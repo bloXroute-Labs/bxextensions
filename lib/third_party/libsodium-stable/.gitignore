@@ -1,4 +1,5 @@
 *.bc
+build-aux/
 *.dSYM
 *.done
 *.final
@@ -27,11 +28,9 @@
 /bin/
 /obj/
 Build
-INSTALL
 Makefile
 Makefile.in
 Vagrantfile
-aclocal.m4
 android-toolchain
 android-toolchain-*
 autom4te.cache
@@ -39,11 +38,9 @@ build
 compile
 confdefs.h
 config.*
-configure
 configure.lineno
 coverage.info
 depcomp
-install-sh
 libsodium-*.tar.bz2
 libsodium-*.tar.gz
 libsodium-*.vcproj

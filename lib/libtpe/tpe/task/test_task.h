@@ -1,4 +1,4 @@
-#include "../../../libtpe/tpe/task/task_base.h"
+#include "tpe/task/task_base.h"
 
 #ifndef SRC_TASK_TEST_TASK_H_
 #define SRC_TASK_TEST_TASK_H_

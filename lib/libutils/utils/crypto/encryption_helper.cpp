@@ -77,7 +77,7 @@ void decrypt(EncryptedMessage& cipher,
   }
 }
 
-int get_cipher_length(int plain_length) {
+unsigned long long get_cipher_length(unsigned long long plain_length) {
   return plain_length + crypto_secretbox_MACBYTES;
 }
 
@@ -85,7 +85,7 @@ int get_key_length() {
   return crypto_secretbox_KEYBYTES;
 }
 
-int get_plain_length(int cipher_text_length) {
+unsigned long long get_plain_length(unsigned long long cipher_text_length) {
   return cipher_text_length - crypto_secretbox_MACBYTES -
       crypto_secretbox_NONCEBYTES;
 }

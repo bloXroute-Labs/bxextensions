@@ -1,4 +1,4 @@
-#include "../../../libtpe/tpe/task/test_task.h"
+#include "tpe/task/test_task.h"
 
 #include <chrono>
 

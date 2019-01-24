@@ -1,5 +1,5 @@
-#include "../../../libtpe/tpe/consts.h"
-#include "../../../libtpe/tpe/task/task_base.h"
+#include "tpe/consts.h"
+#include "tpe/task/task_base.h"
 #include "utils/crypto/encrypted_message.h"
 
 #ifndef SRC_ENCRYPTION_TASK_H_

@@ -1,4 +1,4 @@
-#include "../../../libtpe/tpe/task/decryption_task.h"
+#include "tpe/task/decryption_task.h"
 
 #include "utils/crypto/encryption_helper.h"
 

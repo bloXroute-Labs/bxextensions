@@ -25,7 +25,8 @@ public:
 
 
   void set_cipher_text(void);
-  void resize(int cipher_length);
+  void resize(unsigned long long cipher_length);
+  void reserve(unsigned long long cipher_capacity);
   void from_cipher_text(const std::string& cipher_text);
   void clear(void);
 

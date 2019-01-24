@@ -1,7 +1,7 @@
-#include "../../tpe/task/exception/task_not_executed.h"
-#include "../../../libtpe/tpe/task/task_base.h"
+#include "tpe/task/exception/task_not_executed.h"
+#include "tpe/task/task_base.h"
 
-#include "../../../libtpe/tpe/task/exception/task_not_executed.h"
+#include "tpe/task/exception/task_not_executed.h"
 
 namespace task {
 

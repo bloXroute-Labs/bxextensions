@@ -1,4 +1,4 @@
-#include "../../../libtpe/tpe/task/encryption_task.h"
+#include "tpe/task/encryption_task.h"
 
 #include "utils/crypto/encryption_helper.h"
 
@@ -19,11 +19,11 @@ EncryptionTask::EncryptionTask(
 
 EncryptionTask::EncryptionTask(
     unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
-    TaskBase(),
-    _cipher(
-	utils::crypto::get_cipher_length(
-	    plain_capacity)) {
-  _plain.reserve(plain_capacity);
+    TaskBase(), _cipher(0) {
+  int padding_len = utils::crypto::get_padding_length();
+  _cipher.reserve(utils::crypto::get_cipher_length(
+      plain_capacity + padding_len));
+  _plain.reserve(plain_capacity + padding_len);
   _key.reserve(utils::crypto::get_key_length());
 }
 
@@ -58,7 +58,7 @@ void EncryptionTask::_execute() {
   utils::crypto::encrypt(_plain, _key, _cipher);
 //  unsigned long long t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
 //        std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout<< get_id() << " encryption time (ms): " << t2 - t1 << std::endl;
+//  std::cout<< get_id() << " encryption end time (ms): " << t2 << std::endl;
 }
 
 }

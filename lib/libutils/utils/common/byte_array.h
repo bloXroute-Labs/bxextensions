@@ -10,7 +10,7 @@ namespace common {
 class ByteArray {
 public:
   ByteArray();
-  ByteArray(int length);
+  ByteArray(unsigned long long length);
   ByteArray(const std::string& src);
   ByteArray(const ByteArray& other);
 
@@ -20,17 +20,17 @@ public:
 
   unsigned char* byte_array(void);
   char* char_array(void);
-  int length(void);
-  void reserve(int capacity);
+  unsigned long long length(void);
+  void reserve(unsigned long long capacity);
   void from_str(const std::string& src);
   void reset(void);
-  void resize(int length);
+  void resize(unsigned long long length);
   void clear(void);
 
 private:
   std::vector<unsigned char> _array;
   std::string _str;
-  int _length, _capacity;
+  unsigned long long _length, _capacity;
 };
 
 } // common

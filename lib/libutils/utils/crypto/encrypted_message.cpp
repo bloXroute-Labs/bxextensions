@@ -72,10 +72,17 @@ void EncryptedMessage::from_cipher_text(
 	  _cipher.length());
 }
 
-void EncryptedMessage::resize(int cipher_length) {
+void EncryptedMessage::resize(unsigned long long cipher_length) {
   _cipher.resize(cipher_length);
   _cipher_text.resize(cipher_length + NONCE_LEN);
 }
+
+
+void EncryptedMessage::reserve(unsigned long long cipher_capacity) {
+  _cipher.reserve(cipher_capacity);
+  _cipher_text.reserve(cipher_capacity);
+}
+
 
 void EncryptedMessage::clear() {
   _cipher.clear();

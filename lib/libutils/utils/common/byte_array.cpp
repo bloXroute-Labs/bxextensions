@@ -11,7 +11,7 @@ ByteArray::ByteArray():
 
 }
 
-ByteArray::ByteArray(int length):
+ByteArray::ByteArray(unsigned long long length):
     _length(length),
     _str(),
     _capacity(length) {
@@ -57,11 +57,11 @@ const std::string& ByteArray::str() {
   return _str;
 }
 
-int ByteArray::length() {
+unsigned long long ByteArray::length() {
   return _length;
 }
 
-void ByteArray::reserve(int capacity) {
+void ByteArray::reserve(unsigned long long capacity) {
   if (_capacity < capacity) {
       _array.resize(capacity + 1, '\0');
       _str.reserve(capacity);
@@ -85,7 +85,7 @@ void ByteArray::reset() {
   clear();
 }
 
-void ByteArray::resize(int length) {
+void ByteArray::resize(unsigned long long length) {
   reserve(length);
   _length = length;
 }

@@ -7,6 +7,7 @@ namespace py = pybind11;
 #include "tpe/task/decryption_task.h"
 #include "tpe/task/encryption_task.h"
 #include "tpe/task/test_task.h"
+#include "tpe/task/w2_task.h"
 #include "tpe/task/exception/task_not_executed.h"
 
 #include "utils/crypto/encrypted_message.h"
@@ -185,6 +186,18 @@ PYBIND11_MODULE(task_pool_executor, m) {
        .def("t3", &task::TestTask::t3)
        .def("init", &task::TestTask::init);
    // -----------------------------------End------------------------------------------
+
+   /**
+    * W2 task definition
+    */
+    // -----------------------------------Begin----------------------------------------
+   py::class_<task::W2Task,
+     task::TaskBase,
+     std::shared_ptr<task::W2Task>>(m, "W2Task")
+       .def(py::init<>())
+       .def("init", &task::W2Task::init);
+   // -----------------------------------End------------------------------------------
+
 
 
    /**

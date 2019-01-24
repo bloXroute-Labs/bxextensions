@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "byte_array.h"
 
 namespace utils {

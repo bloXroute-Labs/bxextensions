@@ -9,6 +9,8 @@ set(SODIUM_IMPORT_PATH ${CMAKE_BINARY_DIR})
 add_custom_target(
     ${PROJECT_NAME}_ct
     ALL
+    COMMAND autoreconf -i
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ${CONFIGURE}
             --disable-shared 
             --enable-static 

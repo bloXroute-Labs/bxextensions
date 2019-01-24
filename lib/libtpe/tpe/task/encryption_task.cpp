@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "tpe/task/encryption_task.h"
 
 #include "utils/crypto/encryption_helper.h"

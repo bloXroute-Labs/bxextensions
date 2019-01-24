@@ -1,3 +1,5 @@
+#include <cstring>
+
 extern "C" {
 #include <sodium/crypto_secretbox.h>
 }

@@ -1,0 +1,15 @@
+build/
+.settings/
+*.egg-info*
+.idea/
+Release/
+Debug/
+cmake_install.cmake
+Makefile
+CMakeFiles/
+*.so
+*.a
+*.dylib
+*.log
+/.cproject
+/.project

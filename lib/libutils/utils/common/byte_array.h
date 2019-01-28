@@ -11,10 +11,9 @@ class ByteArray {
 public:
   ByteArray();
   ByteArray(unsigned long long length);
-  ByteArray(const std::string& src);
   ByteArray(const ByteArray& other);
 
-  ByteArray& operator= (const ByteArray& other);
+  ByteArray& operator=(const ByteArray& other);
 
   const std::string& str(void);
 
@@ -22,10 +21,13 @@ public:
   char* char_array(void);
   unsigned long long length(void);
   void reserve(unsigned long long capacity);
-  void from_str(const std::string& src);
+  void from_str(const std::string& src, int initial_position = 0);
+  void from_char_array(const char *src, size_t length,
+		       int initial_position = 0);
   void reset(void);
   void resize(unsigned long long length);
   void clear(void);
+  void shift_left(int shift_count);
 
 private:
   std::vector<unsigned char> _array;

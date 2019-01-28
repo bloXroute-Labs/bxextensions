@@ -8,14 +8,13 @@
 namespace task {
 class EncryptionTask : public TaskBase {
 public:
-  EncryptionTask(
-    const std::string& plain,
-    const std::string& key = ""
-  );
 
   EncryptionTask(unsigned long long plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
 
-  void init(const std::string& plain, const std::string& key= "");
+  void init(const char *plain,
+		  size_t plain_length,
+		  const char *key = nullptr,
+		  size_t key_length = 0);
 
   const utils::crypto::EncryptedMessage& cipher(void);
   const std::string& key(void);

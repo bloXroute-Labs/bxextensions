@@ -10,10 +10,6 @@
 namespace task {
 class DecryptionTask : public TaskBase {
 public:
-  DecryptionTask(
-    const std::string& cipher_text,
-    const std::string& key
-  );
 
   DecryptionTask(
       unsigned long long plain_capacity =

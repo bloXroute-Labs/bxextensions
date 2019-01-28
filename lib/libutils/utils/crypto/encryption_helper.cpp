@@ -37,6 +37,9 @@ static void generate_key_array(
 void encrypt(common::ByteArray& plain,
 	     common::ByteArray& key,
 	     EncryptedMessage& cipher) {
+  if (cipher.cipher().length() < crypto_secretbox_BOXZEROBYTES) {
+      throw std::runtime_error("cipher size is too small");
+  }
   generate_key_array(key);
   randombytes_buf(cipher.nonce_array().byte_array(),
 		  cipher.nonce_array().length());
@@ -55,7 +58,7 @@ void encrypt(common::ByteArray& plain,
   if (ret < 0) {
       throw exception::EncryptionError();
   }
-  cipher.set_cipher_text();
+  cipher.set_cipher_text(crypto_secretbox_BOXZEROBYTES);
 //  clock_t end = clock();
 //  double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 //  std::cout << "elapsed time: " << elapsed_secs << std::endl;
@@ -65,7 +68,7 @@ void encrypt(common::ByteArray& plain,
 void decrypt(EncryptedMessage& cipher,
 	     const std::string& key,
 	     common::ByteArray& plain_text) {
-  int ret = crypto_secretbox_open_easy(
+  int ret = crypto_secretbox_open(
       plain_text.byte_array(),
       cipher.cipher_array().byte_array(),
       cipher.cipher_array().length(),
@@ -75,10 +78,11 @@ void decrypt(EncryptedMessage& cipher,
   if (ret < 0) {
       throw exception::DecryptionError();
   }
+  plain_text.shift_left(crypto_secretbox_ZEROBYTES);
 }
 
 unsigned long long get_cipher_length(unsigned long long plain_length) {
-  return plain_length + crypto_secretbox_MACBYTES;
+  return plain_length + crypto_secretbox_ZEROBYTES;
 }
 
 int get_key_length() {
@@ -86,12 +90,15 @@ int get_key_length() {
 }
 
 unsigned long long get_plain_length(unsigned long long cipher_text_length) {
-  return cipher_text_length - crypto_secretbox_MACBYTES -
-      crypto_secretbox_NONCEBYTES;
+  return cipher_text_length + crypto_secretbox_BOXZEROBYTES;
 }
 
 int get_padding_length() {
   return crypto_secretbox_ZEROBYTES;
+}
+
+int get_cipher_padding_length() {
+  return crypto_secretbox_BOXZEROBYTES;
 }
 
 } // crypto

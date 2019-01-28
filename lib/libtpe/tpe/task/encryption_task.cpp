@@ -1,5 +1,3 @@
-#include <cstring>
-
 #include "tpe/task/encryption_task.h"
 
 #include "utils/crypto/encryption_helper.h"
@@ -8,37 +6,25 @@
 namespace task {
 
 EncryptionTask::EncryptionTask(
-  const std::string& plain,
-  const std::string& key /* = ""*/
-):
-  TaskBase(),
-  _plain(plain),
-  _key(key),
-  _cipher(utils::crypto::get_cipher_length(plain.length()))
-{
-  _key.reserve(utils::crypto::get_key_length());
-}
-
-EncryptionTask::EncryptionTask(
     unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
     TaskBase(), _cipher(0) {
   int padding_len = utils::crypto::get_padding_length();
-  _cipher.reserve(utils::crypto::get_cipher_length(
-      plain_capacity + padding_len));
+  _cipher.reserve(utils::crypto::get_cipher_length(plain_capacity));
   _plain.reserve(plain_capacity + padding_len);
   _key.reserve(utils::crypto::get_key_length());
 }
 
-void EncryptionTask::init(const std::string& plain,
-	  const std::string& key/*= ""*/) {
-//  _plain.from_str(plain);
+void EncryptionTask::init(const char *plain,
+			  size_t plain_length,
+			  const char *key/*= nullptr*/,
+			  size_t key_length/* = 0*/) {
   int pad_len = utils::crypto::get_padding_length();
-  _plain.resize(pad_len + plain.length());
-  _plain.clear();
-  strcpy(&_plain.char_array()[pad_len], plain.c_str());
-  _key.from_str(key);
-  _cipher.resize(utils::crypto::get_cipher_length(
-      plain.length()));
+  _plain.from_char_array(plain, plain_length, pad_len);
+//  _plain.resize(pad_len + plain.length());
+//  _plain.clear();
+//  strncpy(&_plain.char_array()[pad_len], plain.c_str(), _plain.length());
+  _key.from_char_array(key, key_length);
+  _cipher.resize(_plain.length());
   _cipher.clear();
   reset();
 }

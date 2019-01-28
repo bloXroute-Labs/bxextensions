@@ -23,6 +23,7 @@ unsigned long long get_cipher_length(unsigned long long plain_length);
 unsigned long long get_plain_length(unsigned long long cipher_text_length);
 int get_key_length(void);
 int get_padding_length(void);
+int get_cipher_padding_length(void);
 
 } // crypto
 } // utils

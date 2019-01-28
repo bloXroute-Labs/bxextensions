@@ -13,8 +13,6 @@ class EncryptedMessage {
 public:
   EncryptedMessage(int cipher_len);
 
-  EncryptedMessage(const std::string& cipher_text);
-
   const std::string& cipher_text();
   const std::string& cipher();
   const std::string& nonce();
@@ -24,10 +22,11 @@ public:
   common::ByteArray& cipher_text_array();
 
 
-  void set_cipher_text(void);
+  void set_cipher_text(int cipher_start_idx);
   void resize(unsigned long long cipher_length);
   void reserve(unsigned long long cipher_capacity);
-  void from_cipher_text(const std::string& cipher_text);
+  void from_cipher_text(const std::string& cipher_text,
+			int padding_len);
   void clear(void);
 
 private:

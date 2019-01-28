@@ -26,14 +26,21 @@ typedef std::shared_ptr<DecryptionTask_t> PDecryptionTask_t;
 typedef task::pool::TaskPoolExecutor TaskPoolExecutor_t;
 typedef task::exception::TaskNotExecuted TaskNotExecuted_t;
 typedef utils::crypto::EncryptedMessage EncryptedMessage_t;
+typedef utils::common::ByteArray ByteArray_t;
+typedef std::shared_ptr<ByteArray_t> PByteArray_t;
 typedef std::shared_ptr<EncryptedMessage_t> PEncryptedMessage_t;
 typedef utils::exception::EncryptionError EncryptionError_t;
 typedef utils::exception::DecryptionError DecryptionError_t;
 typedef utils::exception::InvalidKeyError InvalidKeyError_t;
 typedef utils::exception::CryptoInitializationError CryptoInitializationError_t;
 
+
 void enqueue_task(PTaskBase_t task) {
   TaskPoolExecutor_t::instance().enqueue_task(task);
+}
+
+py::bytes from_byte_array(ByteArray_t& src) {
+  return py::bytes(src.char_array(), src.length());
 }
 
 /**
@@ -94,17 +101,27 @@ PYBIND11_MODULE(task_pool_executor, m) {
    py::class_<EncryptedMessage_t, PEncryptedMessage_t>(
        m, "EncryptedMessage"
    ).
-       def(py::init<const std::string&>()).
        def("cipher", [](EncryptedMessage_t& msg) {
-	 return py::bytes(msg.cipher());
+	 return from_byte_array(msg.cipher_array());
        }).
        def("cipher_text", [](EncryptedMessage_t& msg) {
-	 return py::bytes(msg.cipher_text());
+	 return from_byte_array(msg.cipher_text_array());
        }).
        def("nonce", [](EncryptedMessage_t& msg) {
-	 return py::bytes(msg.nonce());
+	 return from_byte_array(msg.nonce_array());
        });
    // -----------------------------------End------------------------------------------
+
+   /**
+    * ByteArray definition
+    */
+    // -----------------------------------Begin----------------------------------------
+    py::class_<ByteArray_t, PByteArray_t>(
+        m, "ByteArray"
+    ).
+        def("from_str", &ByteArray_t::from_str).
+	def("from_char_array", &ByteArray_t::from_char_array);
+    // -----------------------------------End------------------------------------------
 
   /**
    * Task base definition
@@ -149,7 +166,19 @@ PYBIND11_MODULE(task_pool_executor, m) {
        .def("key", [](EncryptionTask_t& tsk) {
 	 return py::bytes(tsk.key());
        })
-       .def("init", &EncryptionTask_t::init, py::arg("plain"), py::arg("key")="");
+       .def("init", [](EncryptionTask_t& tsk,
+	   PByteArray_t plain,
+	   PByteArray_t key = nullptr) {
+	     char *_key = nullptr;
+	     size_t _key_size = 0;
+	     if (key != nullptr) {
+		 _key = key->char_array();
+		 _key_size = key->length();
+	     }
+	     tsk.init(plain->char_array(),
+		      plain->length(), _key,
+		      _key_size);
+       });//&EncryptionTask_t::init, py::arg("plain"), py::arg("key")="");
    // -----------------------------------End------------------------------------------
 
    /**

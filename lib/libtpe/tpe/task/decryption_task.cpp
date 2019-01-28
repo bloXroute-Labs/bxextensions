@@ -5,18 +5,6 @@
 namespace task {
 
 DecryptionTask::DecryptionTask(
-    const std::string& cipher_text,
-    const std::string& key):
-	TaskBase(),
-	_cipher(cipher_text),
-	_key(key)
-{
-  _plain.resize(utils::crypto::get_plain_length(
-      cipher_text.length()));
-  _plain.clear();
-}
-
-DecryptionTask::DecryptionTask(
     unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
     TaskBase(),
     _cipher(utils::crypto::get_cipher_length(
@@ -27,10 +15,10 @@ DecryptionTask::DecryptionTask(
 void DecryptionTask::init(
     const std::string& cipher_text,
     const std::string& key) {
-  _cipher.from_cipher_text(cipher_text);
+  int padding_len = utils::crypto::get_cipher_padding_length();
+  _cipher.from_cipher_text(cipher_text, padding_len);
   _key = key;
-  _plain.resize(utils::crypto::get_plain_length(
-      cipher_text.length()));
+  _plain.resize(_cipher.cipher_array().length());
   _plain.clear();
   reset();
 }

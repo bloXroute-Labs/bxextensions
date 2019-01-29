@@ -119,8 +119,14 @@ PYBIND11_MODULE(task_pool_executor, m) {
     py::class_<ByteArray_t, PByteArray_t>(
         m, "ByteArray"
     ).
-        def("from_str", &ByteArray_t::from_str).
-	def("from_char_array", &ByteArray_t::from_char_array);
+	def(py::init<unsigned long long>()).
+        def("from_str", &ByteArray_t::from_str,
+	    py::arg("src"),
+	    py::arg("initial_position") = 0).
+	def("from_char_array", &ByteArray_t::from_char_array,
+	    py::arg("src"),
+	    py::arg("length"),
+	    py::arg("initial_position") = 0);
     // -----------------------------------End------------------------------------------
 
   /**
@@ -166,19 +172,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
        .def("key", [](EncryptionTask_t& tsk) {
 	 return py::bytes(tsk.key());
        })
-       .def("init", [](EncryptionTask_t& tsk,
-	   PByteArray_t plain,
-	   PByteArray_t key = nullptr) {
-	     char *_key = nullptr;
-	     size_t _key_size = 0;
-	     if (key != nullptr) {
-		 _key = key->char_array();
-		 _key_size = key->length();
-	     }
-	     tsk.init(plain->char_array(),
-		      plain->length(), _key,
-		      _key_size);
-       });//&EncryptionTask_t::init, py::arg("plain"), py::arg("key")="");
+       .def("init", &EncryptionTask_t::init,
+	    py::arg("plain"), py::arg("key") = nullptr);//&EncryptionTask_t::init, py::arg("plain"), py::arg("key")="");
    // -----------------------------------End------------------------------------------
 
    /**

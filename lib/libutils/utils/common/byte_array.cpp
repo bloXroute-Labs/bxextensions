@@ -70,7 +70,7 @@ void ByteArray::from_str(const std::string& src,
   }
 
   clear();
-  strncpy(&char_array()[initial_position],
+  memcpy(&char_array()[initial_position],
 	  src.c_str(), src.length());
   _length = src.length() + initial_position;
   _str = src;
@@ -83,7 +83,7 @@ void ByteArray::from_char_array(const char *src, size_t length,
   }
 
   clear();
-  strncpy(&char_array()[initial_position],
+  memcpy(&char_array()[initial_position],
 	  src, length);
   _length = length + initial_position;
   _str = src;

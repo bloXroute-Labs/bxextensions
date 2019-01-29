@@ -11,10 +11,8 @@ public:
 
   EncryptionTask(unsigned long long plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
 
-  void init(const char *plain,
-		  size_t plain_length,
-		  const char *key = nullptr,
-		  size_t key_length = 0);
+  void init(utils::common::ByteArray *plain,
+	    utils::common::ByteArray *key = nullptr);
 
   const utils::crypto::EncryptedMessage& cipher(void);
   const std::string& key(void);

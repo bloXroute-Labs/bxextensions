@@ -14,16 +14,18 @@ EncryptionTask::EncryptionTask(
   _key.reserve(utils::crypto::get_key_length());
 }
 
-void EncryptionTask::init(const char *plain,
-			  size_t plain_length,
-			  const char *key/*= nullptr*/,
-			  size_t key_length/* = 0*/) {
+void EncryptionTask::init(utils::common::ByteArray *plain,
+			  utils::common::ByteArray *key/* = nullptr*/) {
   int pad_len = utils::crypto::get_padding_length();
-  _plain.from_char_array(plain, plain_length, pad_len);
+  _plain.from_char_array(plain->char_array(), plain->length(), pad_len);
 //  _plain.resize(pad_len + plain.length());
 //  _plain.clear();
 //  strncpy(&_plain.char_array()[pad_len], plain.c_str(), _plain.length());
-  _key.from_char_array(key, key_length);
+  if (key != nullptr) {
+      _key.from_char_array(key->char_array(), key->length());
+  } else {
+      _key.reset();
+  }
   _cipher.resize(_plain.length());
   _cipher.clear();
   reset();

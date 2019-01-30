@@ -2,12 +2,13 @@
 #include <vector>
 #include <memory>
 
-#include "../../libtpe/tpe/task/task_base.h"
-#include "utils/concurrency/queue_thread.h"
-#include "utils/patterns/singleton.h"
+#include <utils/concurrency/queue_thread.h>
+#include <utils/patterns/singleton.h>
 
-#ifndef SRC_TASK_POOL_EXECUTOR_H_
-#define SRC_TASK_POOL_EXECUTOR_H_
+#include "tpe/task/task_base.h"
+
+#ifndef TPE_TASK_POOL_EXECUTOR_H_
+#define TPE_TASK_POOL_EXECUTOR_H_
 
 namespace task {
 namespace pool {
@@ -39,4 +40,4 @@ private:
 } // pool
 } // task
 
-#endif // SRC_TASK_POOL_EXECUTOR_H_
+#endif // TPE_TASK_POOL_EXECUTOR_H_

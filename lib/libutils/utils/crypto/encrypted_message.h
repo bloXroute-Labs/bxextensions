@@ -13,9 +13,9 @@ class EncryptedMessage {
 public:
   EncryptedMessage(int cipher_len);
 
-  const std::string& cipher_text();
-  const std::string& cipher();
-  const std::string& nonce();
+  const std::vector<short>& cipher_text();
+  const std::vector<short>& cipher();
+  const std::vector<short>& nonce();
 
   common::ByteArray& nonce_array();
   common::ByteArray& cipher_array();
@@ -25,7 +25,7 @@ public:
   void set_cipher_text(int cipher_start_idx);
   void resize(unsigned long long cipher_length);
   void reserve(unsigned long long cipher_capacity);
-  void from_cipher_text(const std::string& cipher_text,
+  void from_cipher_text(const std::vector<uint8_t>& cipher_text,
 			int padding_len);
   void clear(void);
 

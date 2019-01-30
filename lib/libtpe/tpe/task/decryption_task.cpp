@@ -1,6 +1,6 @@
-#include "tpe/task/decryption_task.h"
+#include <utils/crypto/encryption_helper.h>
 
-#include "utils/crypto/encryption_helper.h"
+#include "tpe/task/decryption_task.h"
 
 namespace task {
 
@@ -13,19 +13,19 @@ DecryptionTask::DecryptionTask(
 }
 
 void DecryptionTask::init(
-    const std::string& cipher_text,
-    const std::string& key) {
+    const std::vector<uint8_t>& cipher_text,
+    const std::vector<uint8_t>& key) {
   int padding_len = utils::crypto::get_cipher_padding_length();
   _cipher.from_cipher_text(cipher_text, padding_len);
-  _key = key;
+  _key.from_array(key);
   _plain.resize(_cipher.cipher_array().length());
   _plain.clear();
   reset();
 }
 
-const std::string& DecryptionTask::plain() {
+const std::vector<short>& DecryptionTask::plain() {
   _wait_if_needed();
-  return _plain.str();
+  return _plain.array();
 }
 
 

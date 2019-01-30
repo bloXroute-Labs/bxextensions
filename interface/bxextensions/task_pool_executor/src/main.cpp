@@ -1,21 +1,27 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/stl_bind.h>
 namespace py = pybind11;
 
 #include <memory>
 
-#include "tpe/task_pool_executor.h"
-#include "tpe/task/decryption_task.h"
-#include "tpe/task/encryption_task.h"
-#include "tpe/task/test_task.h"
-#include "tpe/task/w2_task.h"
-#include "tpe/task/exception/task_not_executed.h"
+#include <tpe/task_pool_executor.h>
+#include <tpe/task/decryption_task.h>
+#include <tpe/task/encryption_task.h>
+#include <tpe/task/test_task.h>
+#include <tpe/task/w2_task.h>
+#include <tpe/task/exception/task_not_executed.h>
 
-#include "utils/crypto/encrypted_message.h"
-#include "utils/crypto/encryption_helper.h"
-#include "utils/exception/encryption_error.h"
-#include "utils/exception/decryption_error.h"
-#include "utils/exception/crypto_initialization_error.h"
-#include "utils/exception/invalid_key_error.h"
+#include <utils/crypto/encrypted_message.h>
+#include <utils/crypto/encryption_helper.h>
+#include <utils/exception/encryption_error.h>
+#include <utils/exception/decryption_error.h>
+#include <utils/exception/crypto_initialization_error.h>
+#include <utils/exception/invalid_key_error.h>
+
+
+PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
+PYBIND11_MAKE_OPAQUE(std::vector<short>);
 
 typedef task::TaskBase TaskBase_t;
 typedef task::EncryptionTask EncryptionTask_t;
@@ -39,15 +45,13 @@ void enqueue_task(PTaskBase_t task) {
   TaskPoolExecutor_t::instance().enqueue_task(task);
 }
 
-py::bytes from_byte_array(ByteArray_t& src) {
-  return py::bytes(src.char_array(), src.length());
-}
-
 /**
  * Initializing the task_pool_executor module
  */
 PYBIND11_MODULE(task_pool_executor, m) {
 
+    py::bind_vector<std::vector<uint8_t>>(m, "InputBytes");
+    py::bind_vector<std::vector<short>>(m, "OutputBytes");
     /**
      * custom exception registration section:
      * template - py::registe_exception<TException>(m, "[Python error class name]"
@@ -95,41 +99,6 @@ PYBIND11_MODULE(task_pool_executor, m) {
    // -----------------------------------Begin----------------------------------------
 
   /**
-   * Encrypted message definition
-   */
-   // -----------------------------------Begin----------------------------------------
-   py::class_<EncryptedMessage_t, PEncryptedMessage_t>(
-       m, "EncryptedMessage"
-   ).
-       def("cipher", [](EncryptedMessage_t& msg) {
-	 return from_byte_array(msg.cipher_array());
-       }).
-       def("cipher_text", [](EncryptedMessage_t& msg) {
-	 return from_byte_array(msg.cipher_text_array());
-       }).
-       def("nonce", [](EncryptedMessage_t& msg) {
-	 return from_byte_array(msg.nonce_array());
-       });
-   // -----------------------------------End------------------------------------------
-
-   /**
-    * ByteArray definition
-    */
-    // -----------------------------------Begin----------------------------------------
-    py::class_<ByteArray_t, PByteArray_t>(
-        m, "ByteArray"
-    ).
-	def(py::init<unsigned long long>()).
-        def("from_str", &ByteArray_t::from_str,
-	    py::arg("src"),
-	    py::arg("initial_position") = 0).
-	def("from_char_array", &ByteArray_t::from_char_array,
-	    py::arg("src"),
-	    py::arg("length"),
-	    py::arg("initial_position") = 0);
-    // -----------------------------------End------------------------------------------
-
-  /**
    * Task base definition
    */
    // -----------------------------------Begin----------------------------------------
@@ -154,6 +123,7 @@ PYBIND11_MODULE(task_pool_executor, m) {
     * Encryption task definition
     */
     // -----------------------------------Begin----------------------------------------
+   py::bytes();
    py::class_<
    EncryptionTask_t,
    TaskBase_t,
@@ -162,18 +132,16 @@ PYBIND11_MODULE(task_pool_executor, m) {
 	    py::arg("plain_capacity") =
 		PLAIN_TEXT_DEFAULT_BUFFER_SIZE)
        .def("cipher",[](EncryptionTask_t& tsk) {
-	     return std::make_shared<EncryptedMessage_t>(tsk.cipher());
+	     return tsk.cipher();
 	   },
 	      R"pbdoc(
 		get the cipher.
 		if the encryption process has not yet been completed
 		then wait() will be called.
 	    	)pbdoc")
-       .def("key", [](EncryptionTask_t& tsk) {
-	 return py::bytes(tsk.key());
-       })
+       .def("key", &EncryptionTask_t::key)
        .def("init", &EncryptionTask_t::init,
-	    py::arg("plain"), py::arg("key") = nullptr);//&EncryptionTask_t::init, py::arg("plain"), py::arg("key")="");
+	    py::arg("plain"), py::arg("key") = nullptr);
    // -----------------------------------End------------------------------------------
 
    /**
@@ -186,9 +154,7 @@ PYBIND11_MODULE(task_pool_executor, m) {
        .def(py::init<unsigned long long>(),
 	    py::arg("plain_capacity") =
 		PLAIN_TEXT_DEFAULT_BUFFER_SIZE)
-       .def("plain",[](DecryptionTask_t& tsk) {
-	       return py::bytes(tsk.plain());
-	     },
+       .def("plain",&DecryptionTask_t::plain,
 	      R"pbdoc(
 		get the plain text.
 		if the decryption process has not yet been completed

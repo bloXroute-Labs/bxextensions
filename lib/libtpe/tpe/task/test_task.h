@@ -1,7 +1,7 @@
 #include "tpe/task/task_base.h"
 
-#ifndef SRC_TASK_TEST_TASK_H_
-#define SRC_TASK_TEST_TASK_H_
+#ifndef TPE_TASK_TEST_TASK_H_
+#define TPE_TASK_TEST_TASK_H_
 
 namespace task {
 
@@ -28,4 +28,4 @@ private:
 
 
 
-#endif /* SRC_TASK_TEST_TASK_H_ */
+#endif /* TPE_TASK_TEST_TASK_H_ */

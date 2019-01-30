@@ -1,5 +1,4 @@
 #include <memory>
-#include <chrono>
 
 extern "C" {
 #include <sodium.h>
@@ -29,7 +28,7 @@ static void generate_key_array(
       key.clear();
       crypto_secretbox_keygen(key.byte_array());
   } else if (key.length() != crypto_secretbox_KEYBYTES) {
-      throw exception::InvalidKeyError(key.str(),
+      throw exception::InvalidKeyError(key.char_array(),
 				       crypto_secretbox_KEYBYTES);
   }
 }
@@ -37,14 +36,12 @@ static void generate_key_array(
 void encrypt(common::ByteArray& plain,
 	     common::ByteArray& key,
 	     EncryptedMessage& cipher) {
-  if (cipher.cipher().length() < crypto_secretbox_BOXZEROBYTES) {
+  if (cipher.cipher_array().length() < crypto_secretbox_BOXZEROBYTES) {
       throw std::runtime_error("cipher size is too small");
   }
   generate_key_array(key);
   randombytes_buf(cipher.nonce_array().byte_array(),
 		  cipher.nonce_array().length());
-//  unsigned long long t1 = std::chrono::duration_cast<std::chrono::milliseconds>(
-//        std::chrono::system_clock::now().time_since_epoch()).count();
   int ret = crypto_secretbox(
       cipher.cipher_array().byte_array(),
       plain.byte_array(),
@@ -52,28 +49,21 @@ void encrypt(common::ByteArray& plain,
       cipher.nonce_array().byte_array(),
       key.byte_array()
     );
-//  unsigned long long t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
-//        std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout << "encryption time (ms): " << t2 - t1 << std::endl;
   if (ret < 0) {
       throw exception::EncryptionError();
   }
   cipher.set_cipher_text(crypto_secretbox_BOXZEROBYTES);
-//  clock_t end = clock();
-//  double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-//  std::cout << "elapsed time: " << elapsed_secs << std::endl;
-
 }
 
 void decrypt(EncryptedMessage& cipher,
-	     const std::string& key,
+	     common::ByteArray& key,
 	     common::ByteArray& plain_text) {
   int ret = crypto_secretbox_open(
       plain_text.byte_array(),
       cipher.cipher_array().byte_array(),
       cipher.cipher_array().length(),
       cipher.nonce_array().byte_array(),
-      (const unsigned char*)key.c_str()
+      key.byte_array()
     );
   if (ret < 0) {
       throw exception::DecryptionError();

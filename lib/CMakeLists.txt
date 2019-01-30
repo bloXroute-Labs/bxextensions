@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(lib)
 add_subdirectory(third_party)
-set(PYBIND11_CPP_STANDARD -std=c++11)
+set(PYBIND11_CPP_STANDARD -std=c++14)
 add_subdirectory(pybind11)
 add_subdirectory(libtpe)
 add_subdirectory(libutils)

@@ -12,7 +12,7 @@ namespace exception {
 class InvalidKeyError : public std::exception {
 public:
 
-  InvalidKeyError(const std::string key, int expected_length):
+  InvalidKeyError(const char* key, int expected_length):
     std::exception(),
     _key(key),
     _expected_length(expected_length) {

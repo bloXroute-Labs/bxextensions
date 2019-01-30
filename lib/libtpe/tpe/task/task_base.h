@@ -4,8 +4,8 @@
 #include <condition_variable>
 
 
-#ifndef SRC_TASK_BASE_H_
-#define SRC_TASK_BASE_H_
+#ifndef TPE_TASK_BASE_H_
+#define TPE_TASK_BASE_H_
 
 namespace task {
 class TaskBase {
@@ -47,4 +47,4 @@ private:
 };
 }
 
-#endif // SRC_TASK_BASE_H_
+#endif // TPE_TASK_BASE_H_

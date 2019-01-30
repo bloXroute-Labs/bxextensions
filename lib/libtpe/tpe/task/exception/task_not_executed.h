@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "utils/common/string_helper.h"
+#include <utils/common/string_helper.h>
 
 #ifndef SRC_TASK_EXCEPTION_TASK_NOT_EXECUTED_H_
 #define SRC_TASK_EXCEPTION_TASK_NOT_EXECUTED_H_

@@ -16,7 +16,7 @@ void encrypt(common::ByteArray& plain,
 	     EncryptedMessage& cipher);
 
 void decrypt(EncryptedMessage& cipher,
-	     const std::string& key,
+	     common::ByteArray& key,
 	     common::ByteArray& plain_text);
 
 unsigned long long get_cipher_length(unsigned long long plain_length);

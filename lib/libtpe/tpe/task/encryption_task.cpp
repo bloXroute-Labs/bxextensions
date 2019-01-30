@@ -1,6 +1,6 @@
-#include "tpe/task/encryption_task.h"
+#include <utils/crypto/encryption_helper.h>
 
-#include "utils/crypto/encryption_helper.h"
+#include "tpe/task/encryption_task.h"
 
 
 namespace task {
@@ -14,15 +14,12 @@ EncryptionTask::EncryptionTask(
   _key.reserve(utils::crypto::get_key_length());
 }
 
-void EncryptionTask::init(utils::common::ByteArray *plain,
-			  utils::common::ByteArray *key/* = nullptr*/) {
+void EncryptionTask::init(const std::vector<uint8_t>& plain,
+	    const std::vector<uint8_t>* key/* = nullptr*/) {
   int pad_len = utils::crypto::get_padding_length();
-  _plain.from_char_array(plain->char_array(), plain->length(), pad_len);
-//  _plain.resize(pad_len + plain.length());
-//  _plain.clear();
-//  strncpy(&_plain.char_array()[pad_len], plain.c_str(), _plain.length());
+  _plain.from_array(plain, pad_len);
   if (key != nullptr) {
-      _key.from_char_array(key->char_array(), key->length());
+      _key.from_array(*key);
   } else {
       _key.reset();
   }
@@ -31,14 +28,14 @@ void EncryptionTask::init(utils::common::ByteArray *plain,
   reset();
 }
 
-const utils::crypto::EncryptedMessage& EncryptionTask::cipher() {
+const std::vector<short>& EncryptionTask::cipher() {
   _wait_if_needed();
-  return _cipher;
+  return _cipher.cipher_text();
 }
 
-const std::string& EncryptionTask::key() {
+const std::vector<short>& EncryptionTask::key() {
   _wait_if_needed();
-  return _key.str();
+  return _key.array();
 }
 
 void EncryptionTask::_execute() {

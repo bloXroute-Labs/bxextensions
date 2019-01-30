@@ -1,9 +1,11 @@
+#include <vector>
+#include <utils/crypto/encrypted_message.h>
+
 #include "tpe/consts.h"
 #include "tpe/task/task_base.h"
-#include "utils/crypto/encrypted_message.h"
 
-#ifndef SRC_ENCRYPTION_TASK_H_
-#define SRC_ENCRYPTION_TASK_H_
+#ifndef TPE_ENCRYPTION_TASK_H_
+#define TPE_ENCRYPTION_TASK_H_
 
 namespace task {
 class EncryptionTask : public TaskBase {
@@ -11,11 +13,11 @@ public:
 
   EncryptionTask(unsigned long long plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
 
-  void init(utils::common::ByteArray *plain,
-	    utils::common::ByteArray *key = nullptr);
+  void init(const std::vector<uint8_t>& plain,
+	    const std::vector<uint8_t>* key = nullptr);
 
-  const utils::crypto::EncryptedMessage& cipher(void);
-  const std::string& key(void);
+  const std::vector<short>& cipher(void);
+  const std::vector<short>& key(void);
 
 protected:
   void _execute() override;
@@ -29,4 +31,4 @@ private:
 };
 }
 
-#endif // SRC_ENCRYPTION_TASK_H_
+#endif // TPE_ENCRYPTION_TASK_H_

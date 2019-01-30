@@ -17,16 +17,16 @@ EncryptedMessage::EncryptedMessage(int cipher_len):
   _cipher_text(NONCE_LEN + cipher_len) {
 }
 
-const std::string& EncryptedMessage::cipher_text() {
-  return _cipher_text.str();
+const std::vector<short>& EncryptedMessage::cipher_text() {
+  return _cipher_text.array();
 }
 
-const std::string& EncryptedMessage::cipher() {
-  return _cipher.str();
+const std::vector<short>& EncryptedMessage::cipher() {
+  return _cipher.array();
 }
 
-const std::string& EncryptedMessage::nonce() {
-  return _nonce.str();
+const std::vector<short>& EncryptedMessage::nonce() {
+  return _nonce.array();
 }
 
 common::ByteArray& EncryptedMessage::nonce_array() {
@@ -54,15 +54,11 @@ void EncryptedMessage::set_cipher_text(int cipher_start_idx) {
 }
 
 void EncryptedMessage::from_cipher_text(
-    const std::string& cipher_text,
+    const std::vector<uint8_t>& cipher_text,
     int padding_len) {
-  _cipher.resize(cipher_text.length() + padding_len - NONCE_LEN);
+  _cipher.resize(cipher_text.size() + padding_len - NONCE_LEN);
   _cipher.clear();
-  _cipher_text.resize(cipher_text.length());
-  _cipher_text.clear();
-  strncpy(_cipher_text.char_array(),
-	 cipher_text.c_str(),
-	 cipher_text.length());
+  _cipher_text.from_array(cipher_text);
   strncpy(_nonce.char_array(),
 	  _cipher_text.char_array(),
 	  NONCE_LEN);

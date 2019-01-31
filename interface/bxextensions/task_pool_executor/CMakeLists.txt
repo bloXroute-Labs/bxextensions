@@ -5,6 +5,7 @@ set(${PROJECT_NAME}_SRC_DIR  "src")
 file(GLOB_RECURSE ${PROJECT_NAME}_SRC_FILES "${${PROJECT_NAME}_SRC_DIR}/*.cpp")
 file(GLOB_RECURSE ${PROJECT_NAME}_HDR_FILES "${${PROJECT_NAME}_SRC_DIR}/*.h")
 
+include_directories(${PROJECT_SOURCE_DIR})
 add_library(
     ${PROJECT_NAME} 
     SHARED 

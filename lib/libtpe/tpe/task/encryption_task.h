@@ -2,13 +2,13 @@
 #include <utils/crypto/encrypted_message.h>
 
 #include "tpe/consts.h"
-#include "tpe/task/task_base.h"
+#include "tpe/task/main_task_base.h"
 
 #ifndef TPE_ENCRYPTION_TASK_H_
 #define TPE_ENCRYPTION_TASK_H_
 
 namespace task {
-class EncryptionTask : public TaskBase {
+class EncryptionTask : public MainTaskBase {
 public:
 
   EncryptionTask(unsigned long long plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
@@ -20,7 +20,7 @@ public:
   const std::vector<short>& key(void);
 
 protected:
-  void _execute() override;
+  void _execute(SubPool_t& sub_pool) override;
 
 private:
 

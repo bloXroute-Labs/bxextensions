@@ -1,16 +1,15 @@
 #include "tpe/task/exception/task_not_executed.h"
 #include "tpe/task/task_base.h"
-#include "tpe/task/exception/task_not_executed.h"
+#include "tpe/task/exception/task_not_completed.h"
 
 namespace task {
 
 TaskBase::TaskBase():
     _is_completed(false),
-    _condition(),
-    _mtx(),
-    _added_to_queue(false),
-    _is_initialized(false) {
-    _task_id = _TASK_ID_CTR++;
+    _is_initialized(false),
+    _current_queue_idx(-1),
+    _last_executed_id(0){
+    _task_id = ++_TASK_ID_CTR;
 }
 
 unsigned long long TaskBase::get_id() {
@@ -21,28 +20,27 @@ bool TaskBase::is_completed() {
   return _is_completed;
 }
 
-void TaskBase::execute() {
-  try {
-      _execute();
-  } catch (...) {
-      _error = std::current_exception();
+void TaskBase::before_execution(int current_queue_idx) {
+  if (_is_initialized) {
+      _assert_execution();
+    _task_id = ++_TASK_ID_CTR;
+    _is_completed = false;
+  } else {
+      _is_initialized = true;
   }
+  _current_queue_idx = current_queue_idx;
+}
+
+void TaskBase::after_execution(
+    std::exception_ptr error/* = nullptr*/) {
+  _error = error;
   _is_completed = true;
-  _condition.notify_all();
+  _current_queue_idx = -1;
+  _last_executed_id = _task_id;
 }
 
-void TaskBase::wait() {
-  std::unique_lock<std::mutex> lock(_mtx);
-  if (!_added_to_queue) {
-      throw exception::TaskNotExecuted(get_id());
-  }
-  while (!_is_completed) {
-      _condition.wait(lock);
-  }
-}
-
-void TaskBase::added_to_queue() {
-  _added_to_queue = true;
+int TaskBase::current_queue_idx() {
+  return _current_queue_idx;
 }
 
 void TaskBase :: _check_error() {
@@ -53,23 +51,12 @@ void TaskBase :: _check_error() {
   }
 }
 
-void TaskBase::reset() {
-  if (_is_initialized) {
-    if (!is_completed()) {
-	throw exception::TaskNotExecuted(get_id());
-    }
-    _check_error();
-    _task_id = _TASK_ID_CTR++;
-    _is_completed = false;
-    _added_to_queue = false;
-  } else {
-      _is_initialized = true;
+void TaskBase::_assert_execution() {
+  if (_task_id != _last_executed_id) {
+      throw exception::TaskNotExecuted(get_id());
   }
-}
-
-void TaskBase::_wait_if_needed() {
   if (!is_completed()) {
-      wait();
+      throw exception::TaskNotCompleted(get_id());
   }
   _check_error();
 }

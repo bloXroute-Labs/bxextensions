@@ -12,8 +12,7 @@ namespace task {
 namespace pool {
 
 TaskPoolExecutor::TaskPoolExecutor():
-    _current_thread_idx(0),
-    _thread_pool(),
+    MainPool_t(),
     _is_initialized(false)
 {
 }
@@ -25,16 +24,32 @@ void TaskPoolExecutor::init() {
       _is_initialized = true;
   }
   int cpu_count = std::thread::hardware_concurrency();
-  for (int cpu = 1 ;
-      cpu < cpu_count ;
-      ++cpu) {
-      _thread_pool.push_back(
-	  std::unique_ptr<utils::concurrency::QueueThread<
-	      task::TaskBase>>(
-	      new utils::concurrency::QueueThread<task::TaskBase>(
-	      [](std::shared_ptr<task::TaskBase> tsk){
+  size_t pool_size = std::max(cpu_count - 1, 1);
+  MainPool_t::init(
+      pool_size,
+      [&](std::shared_ptr<MainTaskBase> tsk) {
+	tsk->execute(*_sub_pools[tsk->current_queue_idx()]);
+  });
+
+  for (int i = 0 ; i < size() ; ++i) {
+      auto sub_pool = std::unique_ptr<SubPool_t>(new SubPool_t());
+      sub_pool->init(pool_size, [](
+	  std::shared_ptr<SubTaskBase> tsk) {
 	tsk->execute();
-      })));
+      });
+      _sub_pools.push_back(std::move(sub_pool));
+  }
+
+//  for (int cpu = 1 ;
+//      cpu < cpu_count ;
+//      ++cpu) {
+//      _thread_pool.push_back(
+//	  std::unique_ptr<utils::concurrency::QueueThread<
+//	      task::TaskBase>>(
+//	      new utils::concurrency::QueueThread<task::TaskBase>(
+//	      [](std::shared_ptr<task::TaskBase> tsk){
+//	tsk->execute();
+//      })));
 
 //      thread_affinity_policy_data_t policy_data = { i };
 //      std::cout << "setting thread "<<
@@ -44,22 +59,15 @@ void TaskPoolExecutor::init() {
 //    		    THREAD_AFFINITY_POLICY,
 //    		    (thread_policy_t)&policy_data,
 //    		    THREAD_AFFINITY_POLICY_COUNT);
-  }
 }
 
 void TaskPoolExecutor::enqueue_task(
-    std::shared_ptr<task::TaskBase> task
+    std::shared_ptr<task::MainTaskBase> task
 )
 {
-//  unsigned long long t1 = std::chrono::duration_cast<std::chrono::milliseconds>(
-//	std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout<< task->get_id() << " started enqueue at: " << t1 << std::endl;
-  _thread_pool[_current_thread_idx]->enqueue(task);
-  task->added_to_queue();
-  const int queue_num =  _current_thread_idx;
-  _current_thread_idx = ++_current_thread_idx % _thread_pool.size();
-//  std::cout << task->get_id() << " added to queue: "
-//      <<  queue_num << std::endl;
+  int queue_idx = get_available_queue();
+  task->before_execution(queue_idx);
+  enqueue_item(task, queue_idx);
 }
 
 //void TaskPoolExecutor::print_thread_status(void) {
@@ -81,9 +89,6 @@ void TaskPoolExecutor::enqueue_task(
 //	    std::endl;
 //      });
 //
-//}
-
-
 
 }
 }

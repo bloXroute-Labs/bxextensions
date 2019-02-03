@@ -2,15 +2,15 @@
 
 #include <utils/common/string_helper.h>
 
-#ifndef TPE_TASK_EXCEPTION_TASK_NOT_EXECUTED_H_
-#define TPE_TASK_EXCEPTION_TASK_NOT_EXECUTED_H_
+#ifndef TPE_TASK_EXCEPTION_TASK_NOT_COMPLETED_H_
+#define TPE_TASK_EXCEPTION_TASK_NOT_COMPLETED_H_
 
 namespace task {
 namespace exception {
 
-class TaskNotExecuted : public std::exception {
+class TaskNotCompleted : public std::exception {
 public:
-  TaskNotExecuted(unsigned long long task_id):
+  TaskNotCompleted(unsigned long long task_id):
     std::exception(),
     _task_id(task_id) {
 
@@ -18,7 +18,7 @@ public:
 
   const char* what(void) const noexcept {
     return utils::common::concatinate(
-	"task ", _task_id, " was never executed!"
+	"task ", _task_id, " did not complete!"
 	).c_str();
   }
 
@@ -28,6 +28,4 @@ private:
 } //task
 } //exception
 
-
-
-#endif /* TPE_TASK_EXCEPTION_TASK_NOT_EXECUTED_H_ */
+#endif /* TPE_TASK_EXCEPTION_TASK_NOT_COMPLETED_H_ */

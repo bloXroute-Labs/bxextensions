@@ -3,13 +3,13 @@
 #include <utils/crypto/encrypted_message.h>
 
 #include "tpe/consts.h"
-#include "tpe/task/task_base.h"
+#include "tpe/task/main_task_base.h"
 
 #ifndef TPE_TASK_DECRYPTION_TASK_H_
 #define TPE_TASK_DECRYPTION_TASK_H_
 
 namespace task {
-class DecryptionTask : public TaskBase {
+class DecryptionTask : public MainTaskBase {
 public:
 
   DecryptionTask(
@@ -23,7 +23,7 @@ public:
 
 
 protected:
-  void _execute() override;
+  void _execute(SubPool_t& sub_pool) override;
 
 private:
 

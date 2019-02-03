@@ -7,7 +7,7 @@ namespace task {
 
 EncryptionTask::EncryptionTask(
     unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
-    TaskBase(), _cipher(0) {
+    MainTaskBase(), _cipher(0) {
   int padding_len = utils::crypto::get_padding_length();
   _cipher.reserve(utils::crypto::get_cipher_length(plain_capacity));
   _plain.reserve(plain_capacity + padding_len);
@@ -25,27 +25,20 @@ void EncryptionTask::init(const std::vector<uint8_t>& plain,
   }
   _cipher.resize(_plain.length());
   _cipher.clear();
-  reset();
 }
 
 const std::vector<short>& EncryptionTask::cipher() {
-  _wait_if_needed();
+  _assert_execution();
   return _cipher.cipher_text();
 }
 
 const std::vector<short>& EncryptionTask::key() {
-  _wait_if_needed();
+  _assert_execution();
   return _key.array();
 }
 
-void EncryptionTask::_execute() {
-//  unsigned long long t1 = std::chrono::duration_cast<std::chrono::milliseconds>(
-//        std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout<< get_id() << " started encrypting at: " << t1 << std::endl;
+void EncryptionTask::_execute(SubPool_t& sub_pool) {
   utils::crypto::encrypt(_plain, _key, _cipher);
-//  unsigned long long t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
-//        std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout<< get_id() << " encryption end time (ms): " << t2 << std::endl;
 }
 
 }

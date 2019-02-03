@@ -6,7 +6,7 @@ namespace task {
 
 DecryptionTask::DecryptionTask(
     unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
-    TaskBase(),
+    MainTaskBase(),
     _cipher(utils::crypto::get_cipher_length(
 	plain_capacity)) {
   _plain.reserve(plain_capacity);
@@ -20,16 +20,15 @@ void DecryptionTask::init(
   _key.from_array(key);
   _plain.resize(_cipher.cipher_array().length());
   _plain.clear();
-  reset();
 }
 
 const std::vector<short>& DecryptionTask::plain() {
-  _wait_if_needed();
+  _assert_execution();
   return _plain.array();
 }
 
 
-void DecryptionTask::_execute() {
+void DecryptionTask::_execute(SubPool_t& sub_pool) {
   utils::crypto::decrypt(_cipher, _key, _plain);
 }
 

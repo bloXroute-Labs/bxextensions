@@ -6,7 +6,7 @@
 namespace task {
 
 TestTask::TestTask():
-    TaskBase(), _t1(0), _t2(0), _t3(0) {
+    MainTaskBase(), _t1(0), _t2(0), _t3(0) {
 
 }
 
@@ -26,7 +26,7 @@ unsigned long long TestTask::t3() {
   return _t3;
 }
 
-void TestTask::_execute() {
+void TestTask::_execute(SubPool_t& sub_pool) {
   _t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch()).count();
   _do_something();

@@ -1,10 +1,11 @@
-#include "src/tasks/task_base.h"
-#include "src/tasks/decryption_task.h"
+#include "src/task/decryption_task.h"
+
+#include "src/task/main_task_base.h"
 
 
 void bind_decryption_task(py::module& m) {
   py::class_<DecryptionTask_t,
-   TaskBase_t,
+   MainTaskBase_t,
    PDecryptionTask_t>(m, "DecryptionTask")
      .def(py::init<unsigned long long>(),
       py::arg("plain_capacity") =

@@ -1,7 +1,4 @@
 #include <iostream>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 
 
 #ifndef TPE_TASK_BASE_H_
@@ -15,33 +12,28 @@ public:
 
   unsigned long long get_id(void);
 
-  void execute(void);
+  void before_execution(int current_queue_idx);
+
+  void after_execution(std::exception_ptr error = nullptr);
 
   bool is_completed(void);
 
-  void wait(void);
-
-  void added_to_queue(void);
-
-  void reset(void);
+  int current_queue_idx(void);
 
 protected:
   TaskBase();
 
-  virtual void _execute(void) = 0;
-
   void _check_error(void);
 
-  void _wait_if_needed(void);
+  void _assert_execution(void);
 
   unsigned long long _task_id;
   volatile bool _is_completed;
 
 private:
   std::exception_ptr _error;
-  std::condition_variable _condition;
-  std::mutex _mtx;
-  volatile bool _added_to_queue;
+  volatile int _current_queue_idx;
+  unsigned long long _last_executed_id;
   bool _is_initialized;
   static unsigned long long _TASK_ID_CTR;
 };

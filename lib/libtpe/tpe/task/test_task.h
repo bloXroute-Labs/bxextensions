@@ -1,11 +1,11 @@
-#include "tpe/task/task_base.h"
+#include "tpe/task/main_task_base.h"
 
 #ifndef TPE_TASK_TEST_TASK_H_
 #define TPE_TASK_TEST_TASK_H_
 
 namespace task {
 
-class TestTask : public TaskBase {
+class TestTask : public MainTaskBase {
 public:
   TestTask();
 
@@ -16,7 +16,7 @@ public:
   unsigned long long t3(void);
 
 protected:
-  void _execute(void) override;
+  void _execute(SubPool_t& sub_pool) override;
 
 private:
   void _do_something(void);

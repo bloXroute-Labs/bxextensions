@@ -1,14 +1,14 @@
 #include "src/tasks.h"
-#include "src/tasks/encryption_task.h"
-#include "src/tasks/decryption_task.h"
-
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
+#include "task/task_base.h"
+#include "task/decryption_task.h"
+#include "task/encryption_task.h"
 
 
 static void bind_test_task(py::module& m) {
   py::class_<task::TestTask,
-    task::TaskBase,
+    task::MainTaskBase,
     std::shared_ptr<task::TestTask>>(m, "TestTask")
       .def(py::init<>())
       .def("t1", &task::TestTask::t1)
@@ -19,7 +19,7 @@ static void bind_test_task(py::module& m) {
 
 static void bind_w2_task(py::module& m) {
   py::class_<task::W2Task,
-    task::TaskBase,
+    task::MainTaskBase,
     std::shared_ptr<task::W2Task>>(m, "W2Task")
       .def(py::init<>())
       .def("init", &task::W2Task::init);
@@ -27,6 +27,7 @@ static void bind_w2_task(py::module& m) {
 
 void bind_tasks(py::module& m) {
   bind_task_base(m);
+  bind_main_task_base(m);
   bind_encryption_task(m);
   bind_decryption_task(m);
   bind_test_task(m);
@@ -36,6 +37,6 @@ void bind_tasks(py::module& m) {
 	)pbdoc");
 }
 
-void enqueue_task(PTaskBase_t task) {
+void enqueue_task(PMainTaskBase_t task) {
   TaskPoolExecutor_t::instance().enqueue_task(task);
 }

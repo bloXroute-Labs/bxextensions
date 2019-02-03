@@ -1,10 +1,11 @@
-#include "src/tasks/task_base.h"
-#include "src/tasks/encryption_task.h"
+#include "src/task/encryption_task.h"
+
+#include "src/task/main_task_base.h"
 
 void bind_encryption_task(py::module& m) {
   py::class_<
   EncryptionTask_t,
-  TaskBase_t,
+  MainTaskBase_t,
   PEncryptionTask_t>(m, "EncryptionTask")
       .def(py::init<unsigned long long>(),"initializing",
 	    py::arg("plain_capacity") =

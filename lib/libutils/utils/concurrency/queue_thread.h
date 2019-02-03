@@ -16,7 +16,8 @@ class QueueThread {
 public:
 
   QueueThread(
-      std::function<void(std::shared_ptr<TItem>)> item_dequeued_func
+      const std::function<void(
+	  std::shared_ptr<TItem>)>& item_dequeued_func
       ): _item_dequeued_func(item_dequeued_func),
 	 _stop_requested(false) {
     _queue_thread = std::unique_ptr<std::thread>(

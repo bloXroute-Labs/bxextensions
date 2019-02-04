@@ -11,3 +11,4 @@ CMakeFiles/
 *.a
 *.dylib
 *.log
+.DS_Store

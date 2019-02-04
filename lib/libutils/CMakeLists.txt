@@ -19,8 +19,10 @@ set_target_properties(
 )
 
 
+find_package(OpenSSL REQUIRED)
+
 include_directories(${CMAKE_BINARY_DIR}/include)
 
-target_link_libraries(${PROJECT_NAME} sodium)
+target_link_libraries(${PROJECT_NAME} sodium OpenSSL::SSL)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR})

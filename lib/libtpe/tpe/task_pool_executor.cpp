@@ -28,17 +28,14 @@ void TaskPoolExecutor::init() {
   MainPool_t::init(
       pool_size,
       [&](std::shared_ptr<MainTaskBase> tsk) {
-	tsk->execute(*_sub_pools[tsk->current_queue_idx()]);
+	tsk->execute(_sub_pool);
   });
 
-  for (int i = 0 ; i < size() ; ++i) {
-      auto sub_pool = std::unique_ptr<SubPool_t>(new SubPool_t());
-      sub_pool->init(pool_size, [](
+  _sub_pool.init(
+	  pool_size, [](
 	  std::shared_ptr<SubTaskBase> tsk) {
-	tsk->execute();
-      });
-      _sub_pools.push_back(std::move(sub_pool));
-  }
+	  tsk->execute();
+  });
 
 //  for (int cpu = 1 ;
 //      cpu < cpu_count ;

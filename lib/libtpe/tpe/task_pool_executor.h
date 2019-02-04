@@ -13,8 +13,8 @@
 namespace task {
 namespace pool {
 
-typedef std::vector<std::unique_ptr<SubPool_t>> SubThreadPools_t;
 typedef utils::concurrency::ThreadPool<MainTaskBase> MainPool_t;
+typedef utils::concurrency::ThreadPool<SubTaskBase> SubPool_t;
 
 class TaskPoolExecutor:
     public utils::patterns::Singleton<TaskPoolExecutor>,
@@ -36,7 +36,7 @@ protected:
 private:
 
   bool _is_initialized;
-  SubThreadPools_t _sub_pools;
+  SubPool_t _sub_pool;
 };
 } // pool
 } // task

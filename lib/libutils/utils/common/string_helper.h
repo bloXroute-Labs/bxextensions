@@ -1,6 +1,9 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <cstdint>
+#include <vector>
+
 
 #ifndef UTILS_COMMON_STRING_HELPER_H_
 #define UTILS_COMMON_STRING_HELPER_H_
@@ -26,6 +29,8 @@ std::string concatinate(Args... a_args) {
   add_to_stream(ss, std::forward<Args>(a_args)...);
   return ss.str();
 }
+
+std::string to_hex_string(const std::vector<uint8_t>& bytes);
 
 } // common
 } // utils

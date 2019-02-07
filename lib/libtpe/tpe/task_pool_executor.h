@@ -17,8 +17,7 @@ typedef utils::concurrency::ThreadPool<MainTaskBase> MainPool_t;
 typedef utils::concurrency::ThreadPool<SubTaskBase> SubPool_t;
 
 class TaskPoolExecutor:
-    public utils::patterns::Singleton<TaskPoolExecutor>,
-    public MainPool_t {
+    public utils::patterns::Singleton<TaskPoolExecutor> {
 
     friend class utils::patterns::Singleton<TaskPoolExecutor>;
 
@@ -37,6 +36,7 @@ private:
 
   bool _is_initialized;
   SubPool_t _sub_pool;
+  MainPool_t _main_pool;
 };
 } // pool
 } // task

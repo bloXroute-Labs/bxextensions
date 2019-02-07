@@ -4,20 +4,20 @@
 #include "tpe/consts.h"
 #include "tpe/task/main_task_base.h"
 
-#ifndef TPE_ENCRYPTION_TASK_H_
-#define TPE_ENCRYPTION_TASK_H_
+#ifndef TPE_TASK_ENCRYPTION_TASK_H_
+#define TPE_TASK_ENCRYPTION_TASK_H_
 
 namespace task {
 class EncryptionTask : public MainTaskBase {
 public:
 
-  EncryptionTask(unsigned long long plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
+  EncryptionTask(size_t plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
 
   void init(const std::vector<uint8_t>& plain,
 	    const std::vector<uint8_t>* key = nullptr);
 
-  const std::vector<short>& cipher(void);
-  const std::vector<short>& key(void);
+  const std::vector<unsigned short>& cipher(void);
+  const std::vector<unsigned short>& key(void);
 
 protected:
   void _execute(SubPool_t& sub_pool) override;
@@ -31,4 +31,4 @@ private:
 };
 }
 
-#endif // TPE_ENCRYPTION_TASK_H_
+#endif // TPE_TASK_ENCRYPTION_TASK_H_

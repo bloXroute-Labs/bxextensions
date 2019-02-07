@@ -7,8 +7,11 @@ namespace py = pybind11;
 #include <vector>
 #include <cstdint>
 
+#include <tpe/task/bc_compression_task.h>
+
 PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
-PYBIND11_MAKE_OPAQUE(std::vector<short>);
+PYBIND11_MAKE_OPAQUE(std::vector<unsigned short>);
+PYBIND11_MAKE_OPAQUE(Sha256ToShortID_t);
 
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
@@ -32,7 +35,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     // binding intput/output byte vectors
     py::bind_vector<std::vector<uint8_t>>(m, "InputBytes");
-    py::bind_vector<std::vector<short>>(m, "OutputBytes");
+    py::bind_vector<std::vector<unsigned short>>(m, "OutputBytes");
+    py::bind_map<Sha256ToShortID_t>(m, "Sha256ToShortIDMap");
 
 
     // registering errors and binding them to Python error objects

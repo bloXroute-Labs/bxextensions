@@ -5,7 +5,7 @@ extern "C" {
 #include <sodium/crypto_secretbox.h>
 }
 
-#include "encryption_helper.h"
+#include "utils/crypto/encryption_helper.h"
 
 #include "utils/exception/encryption_error.h"
 #include "utils/exception/decryption_error.h"

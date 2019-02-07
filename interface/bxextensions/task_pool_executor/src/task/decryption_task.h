@@ -6,12 +6,12 @@ namespace py = pybind11;
 
 #include <tpe/task/decryption_task.h>
 
-#ifndef SRC_TASKS_DECRYPTION_TASK_H_
-#define SRC_TASKS_DECRYPTION_TASK_H_
+#ifndef SRC_TASK_DECRYPTION_TASK_H_
+#define SRC_TASK_DECRYPTION_TASK_H_
 
 typedef task::DecryptionTask DecryptionTask_t;
 typedef std::shared_ptr<DecryptionTask_t> PDecryptionTask_t;
 
 void bind_decryption_task(py::module& m);
 
-#endif /* SRC_TASKS_DECRYPTION_TASK_H_ */
+#endif /* SRC_TASK_DECRYPTION_TASK_H_ */

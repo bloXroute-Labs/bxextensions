@@ -1,5 +1,6 @@
 #include <openssl/sha.h>
 #include "utils/crypto/hash_helper.h"
+#include "utils/common/string_helper.h"
 
 namespace utils {
 namespace crypto {
@@ -20,8 +21,8 @@ Sha256 double_sha256(
 		size_t length
 )
 {
-	Sha256 hash = sha256(data, from, length);
-	++hash;
+	Sha256 hash = std::move(sha256(data, from, length));
+	hash.double_sha256();
 	return std::move(hash);
 }
 

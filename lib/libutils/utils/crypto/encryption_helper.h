@@ -1,7 +1,6 @@
 #include <iostream>
 
-
-#include "encrypted_message.h"
+#include "utils/crypto/encrypted_message.h"
 
 #ifndef UTILS_CRYPTO_ENCRYPTION_HELPER_H_
 #define UTILS_CRYPTO_ENCRYPTION_HELPER_H_

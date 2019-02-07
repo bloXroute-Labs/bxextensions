@@ -6,7 +6,7 @@
 namespace task {
 
 EncryptionTask::EncryptionTask(
-    unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
+	size_t plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
     MainTaskBase(), _cipher(0) {
   int padding_len = utils::crypto::get_padding_length();
   _cipher.reserve(utils::crypto::get_cipher_length(plain_capacity));
@@ -27,12 +27,12 @@ void EncryptionTask::init(const std::vector<uint8_t>& plain,
   _cipher.clear();
 }
 
-const std::vector<short>& EncryptionTask::cipher() {
+const std::vector<unsigned short>& EncryptionTask::cipher() {
   _assert_execution();
   return _cipher.cipher_text();
 }
 
-const std::vector<short>& EncryptionTask::key() {
+const std::vector<unsigned short>& EncryptionTask::key() {
   _assert_execution();
   return _key.array();
 }

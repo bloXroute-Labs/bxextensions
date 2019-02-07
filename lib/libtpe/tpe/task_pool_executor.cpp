@@ -12,7 +12,6 @@ namespace task {
 namespace pool {
 
 TaskPoolExecutor::TaskPoolExecutor():
-    MainPool_t(),
     _is_initialized(false)
 {
 }
@@ -25,7 +24,7 @@ void TaskPoolExecutor::init() {
   }
   int cpu_count = std::thread::hardware_concurrency();
   size_t pool_size = std::max(cpu_count - 1, 1);
-  MainPool_t::init(
+  _main_pool.init(
       pool_size,
       [&](std::shared_ptr<MainTaskBase> tsk) {
 	tsk->execute(_sub_pool);
@@ -62,9 +61,9 @@ void TaskPoolExecutor::enqueue_task(
     std::shared_ptr<task::MainTaskBase> task
 )
 {
-  int queue_idx = get_available_queue();
+  int queue_idx = _main_pool.get_available_queue();
   task->before_execution(queue_idx);
-  enqueue_item(task, queue_idx);
+  _main_pool.enqueue_item(task, queue_idx);
 }
 
 //void TaskPoolExecutor::print_thread_status(void) {

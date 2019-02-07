@@ -13,13 +13,14 @@ class DecryptionTask : public MainTaskBase {
 public:
 
   DecryptionTask(
-      unsigned long long plain_capacity =
-	  PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
+	size_t plain_capacity =
+			PLAIN_TEXT_DEFAULT_BUFFER_SIZE
+  );
 
   void init(const std::vector<uint8_t>& cipher_text,
 	    const std::vector<uint8_t>& key);
 
-  const std::vector<short>& plain(void);
+  const std::vector<unsigned short>& plain(void);
 
 
 protected:

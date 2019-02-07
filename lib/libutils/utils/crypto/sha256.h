@@ -15,25 +15,29 @@ public:
 	Sha256(const std::vector<uint8_t>& data,
 			size_t from,
 			size_t length);
-	Sha256(const Sha256& other) = delete;
+	Sha256(const Sha256& other);
 	Sha256(Sha256&& other);
 
-	const Sha256& operator=(const Sha256& other) = delete;
-	const Sha256& operator++();
+	const Sha256& operator=(const Sha256& other);
+	friend std::ostream& operator <<(std::ostream& out, const Sha256& sha);
 	bool operator==(const Sha256& other) const;
 	void operator()(
 			const std::vector<uint8_t>& data,
 			size_t from,
 			size_t length);
 
-	const std::vector<uint8_t>& sha256(void);
+	void double_sha256(void);
+
+	const std::vector<uint8_t>& sha256(void) const;
 
 	size_t size(void) const;
-
 	size_t hash(void) const;
+
+	std::string repr(void) const;
 
 private:
 	std::vector<uint8_t> _sha256;
+	size_t _hash;
 };
 
 class Sha256Hasher {

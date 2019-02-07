@@ -5,7 +5,7 @@
 namespace task {
 
 DecryptionTask::DecryptionTask(
-    unsigned long long plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
+	size_t plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/):
     MainTaskBase(),
     _cipher(utils::crypto::get_cipher_length(
 	plain_capacity)) {
@@ -22,7 +22,7 @@ void DecryptionTask::init(
   _plain.clear();
 }
 
-const std::vector<short>& DecryptionTask::plain() {
+const std::vector<unsigned short>& DecryptionTask::plain() {
   _assert_execution();
   return _plain.array();
 }

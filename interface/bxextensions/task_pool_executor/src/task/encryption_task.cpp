@@ -7,7 +7,7 @@ void bind_encryption_task(py::module& m) {
   EncryptionTask_t,
   MainTaskBase_t,
   PEncryptionTask_t>(m, "EncryptionTask")
-      .def(py::init<unsigned long long>(),"initializing",
+      .def(py::init<size_t>(),"initializing",
 	    py::arg("plain_capacity") =
 		PLAIN_TEXT_DEFAULT_BUFFER_SIZE)
       .def("cipher",[](EncryptionTask_t& tsk) {

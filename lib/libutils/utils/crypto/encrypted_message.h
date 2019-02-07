@@ -11,11 +11,11 @@ namespace crypto {
 
 class EncryptedMessage {
 public:
-  EncryptedMessage(int cipher_len);
+  EncryptedMessage(size_t cipher_len);
 
-  const std::vector<short>& cipher_text();
-  const std::vector<short>& cipher();
-  const std::vector<short>& nonce();
+  const std::vector<unsigned short>& cipher_text();
+  const std::vector<unsigned short>& cipher();
+  const std::vector<unsigned short>& nonce();
 
   common::ByteArray& nonce_array();
   common::ByteArray& cipher_array();
@@ -23,8 +23,8 @@ public:
 
 
   void set_cipher_text(int cipher_start_idx);
-  void resize(unsigned long long cipher_length);
-  void reserve(unsigned long long cipher_capacity);
+  void resize(size_t cipher_length);
+  void reserve(size_t cipher_capacity);
   void from_cipher_text(const std::vector<uint8_t>& cipher_text,
 			int padding_len);
   void clear(void);

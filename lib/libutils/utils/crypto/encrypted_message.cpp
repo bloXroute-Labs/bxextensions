@@ -11,21 +11,21 @@ extern "C" {
 namespace utils {
 namespace crypto {
 
-EncryptedMessage::EncryptedMessage(int cipher_len):
+EncryptedMessage::EncryptedMessage(size_t cipher_len):
   _nonce(NONCE_LEN),
   _cipher(cipher_len),
   _cipher_text(NONCE_LEN + cipher_len) {
 }
 
-const std::vector<short>& EncryptedMessage::cipher_text() {
+const std::vector<unsigned short>& EncryptedMessage::cipher_text() {
   return _cipher_text.array();
 }
 
-const std::vector<short>& EncryptedMessage::cipher() {
+const std::vector<unsigned short>& EncryptedMessage::cipher() {
   return _cipher.array();
 }
 
-const std::vector<short>& EncryptedMessage::nonce() {
+const std::vector<unsigned short>& EncryptedMessage::nonce() {
   return _nonce.array();
 }
 
@@ -45,10 +45,10 @@ void EncryptedMessage::set_cipher_text(int cipher_start_idx) {
   _cipher.shift_left(cipher_start_idx);
   _cipher_text.resize(_cipher.length() + NONCE_LEN);
   _cipher_text.clear();
-  strncpy(_cipher_text.char_array(),
+  memcpy(_cipher_text.char_array(),
 	    _nonce.char_array(),
 	    NONCE_LEN);
-  strncpy(&_cipher_text.char_array()[NONCE_LEN],
+  memcpy(&_cipher_text.char_array()[NONCE_LEN],
 	    _cipher.char_array(),
 	    _cipher.length());
 }
@@ -59,21 +59,21 @@ void EncryptedMessage::from_cipher_text(
   _cipher.resize(cipher_text.size() + padding_len - NONCE_LEN);
   _cipher.clear();
   _cipher_text.from_array(cipher_text);
-  strncpy(_nonce.char_array(),
+  memcpy(_nonce.char_array(),
 	  _cipher_text.char_array(),
 	  NONCE_LEN);
-  strncpy(&_cipher.char_array()[padding_len],
+  memcpy(&_cipher.char_array()[padding_len],
 	  &_cipher_text.char_array()[NONCE_LEN],
 	  _cipher.length() -  padding_len);
 }
 
-void EncryptedMessage::resize(unsigned long long cipher_length) {
+void EncryptedMessage::resize(size_t cipher_length) {
   _cipher.resize(cipher_length);
   _cipher_text.resize(cipher_length + NONCE_LEN);
 }
 
 
-void EncryptedMessage::reserve(unsigned long long cipher_capacity) {
+void EncryptedMessage::reserve(size_t cipher_capacity) {
   _cipher.reserve(cipher_capacity);
   _cipher_text.reserve(cipher_capacity + NONCE_LEN);
 }

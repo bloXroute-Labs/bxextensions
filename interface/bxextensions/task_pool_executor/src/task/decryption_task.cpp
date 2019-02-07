@@ -7,7 +7,7 @@ void bind_decryption_task(py::module& m) {
   py::class_<DecryptionTask_t,
    MainTaskBase_t,
    PDecryptionTask_t>(m, "DecryptionTask")
-     .def(py::init<unsigned long long>(),
+     .def(py::init<size_t>(),
       py::arg("plain_capacity") =
 	  PLAIN_TEXT_DEFAULT_BUFFER_SIZE)
      .def("plain",&DecryptionTask_t::plain,

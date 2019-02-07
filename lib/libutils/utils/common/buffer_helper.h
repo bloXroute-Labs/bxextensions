@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <array>
+#include <algorithm>
 #include <cstdint>
+#include <type_traits>
+#include "utils/common/byte_array.h"
 
 #ifndef UTILS_COMMON_BUFFER_HELPER_H_
 #define UTILS_COMMON_BUFFER_HELPER_H_
@@ -8,35 +12,60 @@
 namespace utils {
 namespace common {
 
-inline unsigned long int get_unsigned_long_int(
-		const std::vector<uint8_t>& buffer,
-		size_t& offset,
-		size_t type_offset) {
-	uint8_t typ = buffer[type_offset];
-	unsigned long int val;
-	switch (typ) {
-		case 0xff:
-			val = *(unsigned long int *) &buffer[offset];
-			offset += sizeof(unsigned long int);
-			break;
 
-		case 0xfe:
-			val = *(unsigned int *) &buffer[offset];
-			offset += sizeof(unsigned int);
-			break;
-
-		case 0xfd:
-			val = *(unsigned short *) &buffer[offset];
-			offset += sizeof(unsigned short);
-			break;
-
-		default:
-			val = buffer[offset + 1];
-			offset += sizeof(uint8_t);
-			break;
+template <typename ParseType, typename ReturnType, class TBuffer>
+size_t get_little_endian_value(
+		const TBuffer& buffer,
+		ReturnType& out_value,
+		size_t offset
+		) {
+	size_t type_size = sizeof(ParseType);
+	if (type_size > sizeof(uint8_t)) {
+		out_value = (ReturnType) *(ParseType *) &buffer[offset];
+	} else {
+		out_value = (ReturnType) buffer[offset];
 	}
-	return val;
+	return type_size + offset;
 }
+
+template <typename ParseType, typename ReturnType>
+size_t get_big_endian_value(
+		const std::vector<uint8_t>& buffer,
+		ReturnType& out_value,
+		size_t offset
+		) {
+	constexpr size_t type_size = sizeof(ParseType);
+	std::array<uint8_t, type_size> val_array;
+	std::copy_n(
+			buffer.begin() + offset,
+			type_size,
+			val_array.begin()
+	);
+	std::reverse(val_array.begin(), val_array.end());
+	return offset + get_little_endian_value<ParseType, ReturnType> (
+			val_array,
+			out_value,
+			0
+	);
+}
+
+template <typename T, class TBuffer>
+size_t set_little_endian_value(
+		TBuffer& buffer,
+		T value,
+		size_t offset
+		) {
+	constexpr size_t type_size = sizeof(T);
+	size_t end = offset + type_size;
+	if (buffer.size() < end) {
+		buffer.resize(end);
+	}
+
+	memcpy((T*)&buffer[offset], &value, type_size);
+
+	return end;
+}
+
 
 } // common
 } // utils

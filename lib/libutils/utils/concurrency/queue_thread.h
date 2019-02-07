@@ -26,7 +26,9 @@ public:
     }));
   }
 
-  ~QueueThread() {
+  QueueThread(const QueueThread<TItem>& other) = delete;
+
+  virtual ~QueueThread() {
     stop_requested();
     _queue_thread->join();
   }
@@ -44,10 +46,10 @@ private:
 
   void _thread_loop(void) {
     while (!_stop_requested) {
-	std::shared_ptr<TItem> item = _thread_queue.dequeue();
-	if(item != nullptr) {
-	    _item_dequeued_func(item);
-	}
+		std::shared_ptr<TItem> item = _thread_queue.dequeue();
+		if (item != nullptr) {
+			_item_dequeued_func(item);
+		}
     }
   }
 

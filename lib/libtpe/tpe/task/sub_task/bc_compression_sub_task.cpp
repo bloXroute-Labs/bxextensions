@@ -15,13 +15,13 @@ BCCompressionSubTask::BCCompressionSubTask(
 				_output_buffer(capacity),
 				_block_buffer(nullptr),
 				_tx_offsets(nullptr)
-				{
+{
 
 }
 
 void BCCompressionSubTask::init(
-		BlockBuffer_t* const block_buffer,
-		TXOffsets_t* const tx_offsets
+		const BlockBuffer_t* block_buffer,
+		const TXOffsets_t* tx_offsets
 )
 {
 	_block_buffer = block_buffer;
@@ -67,7 +67,8 @@ void BCCompressionSubTask::_execute()  {
 			);
 		}
 	}
-	_block_buffer = _tx_offsets = nullptr;
+	_block_buffer = nullptr;
+	_tx_offsets = nullptr;
 }
 
 }

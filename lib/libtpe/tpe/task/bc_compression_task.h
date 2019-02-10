@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>

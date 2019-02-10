@@ -24,8 +24,8 @@ public:
 			size_t capacity);
 
 	void init(
-			BlockBuffer_t* const block_buffer,
-			TXOffsets_t* const tx_offsets
+			const BlockBuffer_t* block_buffer,
+			const TXOffsets_t* tx_offsets
 	);
 
 	const utils::common::ByteArray& output_buffer(void) const;
@@ -37,8 +37,8 @@ protected:
 private:
 
 	utils::common::ByteArray _output_buffer;
-	BlockBuffer_t* const _block_buffer;
-	TXOffsets_t* const _tx_offsets;
+	const BlockBuffer_t* _block_buffer;
+	const TXOffsets_t* _tx_offsets;
 	const Sha256ToShortID_t& _short_id_map;
 };
 

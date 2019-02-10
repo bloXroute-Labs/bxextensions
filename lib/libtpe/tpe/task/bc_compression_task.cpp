@@ -49,12 +49,13 @@ void BCCompressionTask::_execute(SubPool_t& sub_pool) {
 		}
 	}
 	size_t pool_size = _sub_tasks.size();
-	std::vector<TXOffsets_t> offset_vec(pool_size);
+	std::vector<TXOffsets_t> offset_vec;
+	offset_vec.resize(pool_size);
 
 	for (int count = 0 ; count < tx_count ; ++count) {
-		size_t from = offset;
+		size_t from = offset, idx = (size_t) (count / pool_size) ;
 		offset = msg.get_next_tx_offset(offset);
-		offset_vec[count % pool_size].push_back(
+		offset_vec[idx].push_back(
 				std::pair<size_t, size_t>(from, offset));
 	}
 

@@ -1,10 +1,10 @@
 #include "src/tasks.h"
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
+#include "task/btc_block_compression_task.h"
 #include "task/task_base.h"
 #include "task/decryption_task.h"
 #include "task/encryption_task.h"
-#include "task/bc_compression_task.h"
 
 
 static void bind_test_task(py::module& m) {
@@ -31,7 +31,7 @@ void bind_tasks(py::module& m) {
   bind_main_task_base(m);
   bind_encryption_task(m);
   bind_decryption_task(m);
-  bind_bc_compression_task(m);
+  bind_btc_block_compression_task(m);
   bind_test_task(m);
   bind_w2_task(m);
   m.def("enqueue_task", &enqueue_task, R"pbdoc(

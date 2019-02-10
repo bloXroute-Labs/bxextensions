@@ -7,7 +7,7 @@ namespace py = pybind11;
 #include <vector>
 #include <cstdint>
 
-#include <tpe/task/bc_compression_task.h>
+#include <tpe/task/btc_block_compression_task.h>
 
 PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned short>);

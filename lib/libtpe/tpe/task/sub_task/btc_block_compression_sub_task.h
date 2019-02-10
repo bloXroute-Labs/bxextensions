@@ -4,9 +4,9 @@
 
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>
+#include <utils/protocols/bitcoin/btc_consts.h>
 
 #include "tpe/task/sub_task/sub_task_base.h"
-#include "utils/protocols/bitcoin/btc_consts.h"
 
 #ifndef TPE_TASK_SUB_TASK_BC_COMPRESSION_SUB_TASK_H_
 #define TPE_TASK_SUB_TASK_BC_COMPRESSION_SUB_TASK_H_
@@ -17,9 +17,9 @@ typedef std::list<std::pair<size_t, size_t>> TXOffsets_t;
 
 namespace task {
 
-class BCCompressionSubTask : public SubTaskBase {
+class BTCBlockCompressionSubTask : public SubTaskBase {
 public:
-	BCCompressionSubTask(
+	BTCBlockCompressionSubTask(
 			const Sha256ToShortID_t& short_id_map,
 			size_t capacity);
 

@@ -2,13 +2,13 @@
 #include <utils/protocols/bitcoin/btc_block_message.h>
 #include <utils/crypto/hash_helper.h>
 
-#include "tpe/task/sub_task/bc_compression_sub_task.h"
+#include "tpe/task/sub_task/btc_block_compression_sub_task.h"
 
 
 
 namespace task {
 
-BCCompressionSubTask::BCCompressionSubTask(
+BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 		const Sha256ToShortID_t& short_id_map,
 		size_t capacity):
 				_short_id_map(short_id_map),
@@ -19,7 +19,7 @@ BCCompressionSubTask::BCCompressionSubTask(
 
 }
 
-void BCCompressionSubTask::init(
+void BTCBlockCompressionSubTask::init(
 		const BlockBuffer_t* block_buffer,
 		const TXOffsets_t* tx_offsets
 )
@@ -28,11 +28,11 @@ void BCCompressionSubTask::init(
 	_tx_offsets = tx_offsets;
 }
 
-const utils::common::ByteArray& BCCompressionSubTask::output_buffer() const {
+const utils::common::ByteArray& BTCBlockCompressionSubTask::output_buffer() const {
 	return _output_buffer;
 }
 
-void BCCompressionSubTask::_execute()  {
+void BTCBlockCompressionSubTask::_execute()  {
 	size_t output_offset = 0;
 	for (auto& pair : *_tx_offsets) {
 		size_t from = pair.first, offset = pair.second;

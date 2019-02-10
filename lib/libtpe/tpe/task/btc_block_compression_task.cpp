@@ -2,11 +2,11 @@
 #include <utils/protocols/bitcoin/btc_block_message.h>
 #include <utils/crypto/hash_helper.h>
 
-#include "tpe/task/bc_compression_task.h"
+#include "tpe/task/btc_block_compression_task.h"
 
 namespace task {
 
-BCCompressionTask::BCCompressionTask(
+BTCBlockCompressionTask::BTCBlockCompressionTask(
 		const Sha256ToShortID_t& short_id_map,
 		size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/):
 				_short_id_map(short_id_map),
@@ -14,16 +14,16 @@ BCCompressionTask::BCCompressionTask(
 	_block_buffer.reserve(capacity);
 }
 
-void BCCompressionTask::init(
+void BTCBlockCompressionTask::init(
 		const BlockBuffer_t& block_buffer) {
 	_block_buffer = block_buffer;
 }
 
-const std::vector<unsigned short>& BCCompressionTask::bx_buffer() {
+const std::vector<unsigned short>& BTCBlockCompressionTask::bx_buffer() {
 	return _output_buffer.array();
 }
 
-void BCCompressionTask::_execute(SubPool_t& sub_pool) {
+void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	utils::protocols::BTCBlockMessage msg(_block_buffer);
 	unsigned long long tx_count = 0;
 	size_t offset = msg.get_tx_count(tx_count), output_offset = 0;
@@ -42,7 +42,7 @@ void BCCompressionTask::_execute(SubPool_t& sub_pool) {
 		)
 		{
 			_sub_tasks.push_back(
-					std::make_shared<BCCompressionSubTask>(
+					std::make_shared<BTCBlockCompressionSubTask>(
 							_short_id_map,
 							capacity
 					));

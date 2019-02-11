@@ -8,8 +8,8 @@
 
 #include "tpe/task/sub_task/sub_task_base.h"
 
-#ifndef TPE_TASK_SUB_TASK_BC_COMPRESSION_SUB_TASK_H_
-#define TPE_TASK_SUB_TASK_BC_COMPRESSION_SUB_TASK_H_
+#ifndef TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
+#define TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
 
 typedef std::vector<uint8_t> BlockBuffer_t;
 typedef utils::crypto::Sha256Map_t<unsigned int> Sha256ToShortID_t;
@@ -46,4 +46,4 @@ private:
 
 
 
-#endif /* TPE_TASK_SUB_TASK_BC_COMPRESSION_SUB_TASK_H_ */
+#endif /* TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_ */

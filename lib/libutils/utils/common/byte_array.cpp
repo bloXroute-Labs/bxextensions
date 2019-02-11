@@ -56,11 +56,8 @@ char* ByteArray::char_array() {
 }
 
 const std::vector<unsigned short>& ByteArray::array() {
-  if (_ret_array.size() == 0) {
-      _ret_array.resize(_length);
-      std::copy_n(_array.begin(), _length, _ret_array.begin());
-  }
-  return _ret_array;
+	set_output();
+	return _ret_array;
 }
 
 size_t ByteArray::length() const {
@@ -141,6 +138,13 @@ void ByteArray::shift_left(int shift_count) {
       _array[idx - shift_count] = _array[idx];
   }
   _length = _length - shift_count;
+}
+
+void ByteArray::set_output() {
+	if (_ret_array.size() == 0) {
+	  _ret_array.resize(_length);
+	  std::copy_n(_array.begin(), _length, _ret_array.begin());
+	}
 }
 
 size_t ByteArray::size() const {

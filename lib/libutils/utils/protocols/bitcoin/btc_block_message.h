@@ -19,6 +19,9 @@ public:
 
 	size_t get_next_tx_offset(size_t offset, int tail = -1);
 	size_t get_tx_count(uint64_t& tx_count);
+	size_t get_tx_sid(size_t offset, uint64_t& short_id);
+
+	bool is_sid_tx(size_t offset);
 
 private:
 	size_t _get_tx_io_count_and_offset(

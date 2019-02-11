@@ -16,7 +16,6 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 				_block_buffer(nullptr),
 				_tx_offsets(nullptr)
 {
-
 }
 
 void BTCBlockCompressionSubTask::init(
@@ -26,6 +25,7 @@ void BTCBlockCompressionSubTask::init(
 {
 	_block_buffer = block_buffer;
 	_tx_offsets = tx_offsets;
+	_output_buffer.reset();
 }
 
 const utils::common::ByteArray& BTCBlockCompressionSubTask::output_buffer() const {

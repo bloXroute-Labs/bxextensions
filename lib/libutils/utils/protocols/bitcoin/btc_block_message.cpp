@@ -101,6 +101,21 @@ size_t BTCBlockMessage::get_tx_count(
 	);
 }
 
+size_t BTCBlockMessage::get_tx_sid(
+		size_t offset,
+		uint64_t& short_id
+)
+{
+	return get_varint(
+			short_id,
+			offset + 1
+	);
+}
+
+bool BTCBlockMessage::is_sid_tx(size_t offset) {
+	return _buffer[offset] == BTC_SHORT_ID_INDICATOR;
+}
+
 size_t BTCBlockMessage::_get_tx_io_count_and_offset(
 		size_t offset,
 		uint64_t& txin_count,

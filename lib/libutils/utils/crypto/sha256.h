@@ -27,6 +27,7 @@ public:
 			size_t length);
 
 	void double_sha256(void);
+	void clear(void);
 
 	const std::vector<uint8_t>& sha256(void) const;
 
@@ -56,7 +57,6 @@ using Sha256Map_t = std::unordered_map<
 		T,
 		Sha256Hasher,
 		Sha256Equal>;
-
 } // crypto
 } // utils
 

@@ -2,6 +2,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "utils/common/buffer_view.h"
+
 #ifndef UTILS_COMMON_BYTE_ARRAY_H_
 #define UTILS_COMMON_BYTE_ARRAY_H_
 
@@ -17,6 +19,7 @@ public:
   ByteArray& operator=(const ByteArray& other);
   uint8_t& operator[](const size_t idx);
   ByteArray& operator+=(const ByteArray& from);
+  ByteArray& operator+=(const BufferView& from);
 
   const std::vector<unsigned short>& array(void);
 

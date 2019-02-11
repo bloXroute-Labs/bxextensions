@@ -5,8 +5,8 @@
 #include <utils/crypto/sha256.h>
 #include <utils/protocols/bitcoin/btc_consts.h>
 #include <utils/protocols/bitcoin/btc_block_message.h>
-#include "sub_task/btc_block_compression_sub_task.h"
 
+#include "tpe/task/sub_task/btc_block_compression_sub_task.h"
 #include "tpe/task/main_task_base.h"
 
 #ifndef TPE_TASK_BTC_BLOCK_COMPRESSION_TASK_H_
@@ -30,10 +30,11 @@ public:
 
 	void init(const BlockBuffer_t& block_buffer);
 
-	const std::vector<unsigned short>& bx_buffer(void);
+	const std::vector<unsigned short>& bx_block(void);
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
+
 private:
 	void _init_sub_tasks(size_t pool_size, size_t tx_count);
 	void _dispatch(

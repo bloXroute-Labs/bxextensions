@@ -7,13 +7,10 @@
 #include <utils/protocols/bitcoin/btc_consts.h>
 
 #include "tpe/task/sub_task/sub_task_base.h"
+#include "tpe/task/btc_task_types.h"
 
 #ifndef TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
 #define TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
-
-typedef std::vector<uint8_t> BlockBuffer_t;
-typedef utils::crypto::Sha256Map_t<unsigned int> Sha256ToShortID_t;
-typedef std::list<std::pair<size_t, size_t>> TXOffsets_t;
 
 namespace task {
 

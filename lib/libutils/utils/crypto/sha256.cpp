@@ -67,6 +67,10 @@ void Sha256::double_sha256() {
 	_hash = get_hash(_sha256);
 }
 
+void Sha256::clear() {
+	_sha256.clear();
+	_hash = 0;
+}
 
 
 std::ostream& operator <<(std::ostream& out, const Sha256& sha) {

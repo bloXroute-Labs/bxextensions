@@ -47,6 +47,17 @@ ByteArray& ByteArray::operator+=(const ByteArray& from) {
 	return *this;
 }
 
+ByteArray& ByteArray::operator+=(const BufferView& from) {
+	size_t total_length = _length + from.size(), offset = _length;
+	resize(total_length);
+	std::copy_n(
+			from.begin(),
+			from.size(),
+			_array.begin() + offset
+	);
+	return *this;
+}
+
 unsigned char* ByteArray::byte_array() {
   return &_array[0];
 }

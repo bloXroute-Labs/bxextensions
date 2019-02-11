@@ -19,7 +19,8 @@ void BTCBlockCompressionTask::init(
 	_output_buffer.reset();
 }
 
-const std::vector<unsigned short>& BTCBlockCompressionTask::bx_buffer() {
+const std::vector<unsigned short>& BTCBlockCompressionTask::bx_block() {
+	_assert_execution();
 	return _output_buffer.array();
 }
 

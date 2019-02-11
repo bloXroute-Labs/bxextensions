@@ -7,11 +7,15 @@ namespace py = pybind11;
 #include <vector>
 #include <cstdint>
 
-#include <tpe/task/btc_block_compression_task.h>
+#include <tpe/task/btc_task_types.h>
 
 PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned short>);
-PYBIND11_MAKE_OPAQUE(Sha256ToShortID_t);
+PYBIND11_MAKE_OPAQUE(task::Sha256ToShortID_t);
+PYBIND11_MAKE_OPAQUE(std::vector<utils::crypto::Sha256>);
+PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
+PYBIND11_MAKE_OPAQUE(task::ShortIDToSha256Map_t);
+PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
@@ -33,10 +37,14 @@ PYBIND11_MAKE_OPAQUE(Sha256ToShortID_t);
  */
 PYBIND11_MODULE(task_pool_executor, m) {
 
-    // binding intput/output byte vectors
+    // binding custom STL types
     py::bind_vector<std::vector<uint8_t>>(m, "InputBytes");
     py::bind_vector<std::vector<unsigned short>>(m, "OutputBytes");
-    py::bind_map<Sha256ToShortID_t>(m, "Sha256ToShortIDMap");
+    py::bind_map<task::Sha256ToShortID_t>(m, "Sha256ToShortIDMap");
+    py::bind_vector<std::vector<utils::crypto::Sha256>>(m,"Sha256List");
+    py::bind_vector<std::vector<unsigned int>>(m,"UIntList");
+    py::bind_map<task::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
+    py::bind_map<task::Sha256ToTxMap_t>(m, "Sha256ToTxMap");
 
 
     // registering errors and binding them to Python error objects

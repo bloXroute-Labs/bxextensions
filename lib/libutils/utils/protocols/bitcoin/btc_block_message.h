@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <functional>
 
+#include "utils/crypto/sha256.h"
+
 #ifndef UTILS_PROTOCOLS_BITCOIN_BTC_BLOCK_MESSAGE_H_
 #define UTILS_PROTOCOLS_BITCOIN_BTC_BLOCK_MESSAGE_H_
 
@@ -20,6 +22,8 @@ public:
 	size_t get_next_tx_offset(size_t offset, int tail = -1);
 	size_t get_tx_count(uint64_t& tx_count);
 	size_t get_tx_sid(size_t offset, uint64_t& short_id);
+
+	crypto::Sha256 block_hash(void) const;
 
 	bool is_sid_tx(size_t offset);
 

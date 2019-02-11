@@ -1,6 +1,7 @@
 #include "utils/protocols/bitcoin/btc_block_message.h"
 #include "utils/protocols/bitcoin/btc_consts.h"
 #include "utils/common/buffer_helper.h"
+#include "utils/crypto/hash_helper.h"
 
 namespace utils {
 namespace protocols {
@@ -110,6 +111,15 @@ size_t BTCBlockMessage::get_tx_sid(
 			short_id,
 			offset + 1
 	);
+}
+
+crypto::Sha256 BTCBlockMessage::block_hash(void) const {
+	return std::move(
+			crypto::double_sha256(
+					_buffer,
+					BTC_HDR_COMMON_OFFSET,
+					BTC_BLOCK_HDR_SIZE
+			));
 }
 
 bool BTCBlockMessage::is_sid_tx(size_t offset) {

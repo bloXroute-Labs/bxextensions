@@ -22,36 +22,35 @@ public:
   }
 
   void enqueue(std::shared_ptr<TItem> item) {
-    std::lock_guard<std::mutex> lock(_mtx);
-    _queue.push(item);
-    _condition.notify_one();
+		std::lock_guard<std::mutex> lock(_mtx);
+		_queue.push(item);
+		_condition.notify_one();
   }
 
   std::shared_ptr<TItem> dequeue(void) {
-    std::unique_lock<std::mutex> lock(_mtx);
-    while (_queue.empty() && !_stop_requested) {
-      _condition.wait(lock);
-    }
-    std::shared_ptr<TItem> val;
-    if(_queue.empty()) {
-      val = nullptr;
-    }
-    else {
-      val = std::move(_queue.front());
-      _queue.pop();
-    }
-    lock.unlock();
-    return val;
+		std::unique_lock<std::mutex> lock(_mtx);
+		while (_queue.empty() && !_stop_requested) {
+		  _condition.wait(lock);
+		}
+		std::shared_ptr<TItem> val;
+		if (_queue.empty()) {
+			val = nullptr;
+		}
+		else {
+			val = std::move(_queue.front());
+			_queue.pop();
+		}
+		return val;
   }
 
   void stop_requested() {
-    std::lock_guard<std::mutex> lock(_mtx);
-    _stop_requested = true;
-    _condition.notify_all();
+		std::lock_guard<std::mutex> lock(_mtx);
+		_stop_requested = true;
+		_condition.notify_all();
   }
 
-  int queue_size(void) {
-    return _queue.size();
+  size_t queue_size(void) const {
+		return _queue.size();
   }
 
 private:

@@ -42,6 +42,10 @@ public:
     _thread_queue.stop_requested();
   }
 
+  size_t queue_size(void) const {
+	  return _thread_queue.queue_size();
+  }
+
 private:
 
   void _thread_loop(void) {

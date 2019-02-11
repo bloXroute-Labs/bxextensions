@@ -19,7 +19,6 @@ class ThreadPool {
 
 private:
   std::vector<PThread_t> _pool;
-  volatile int _current_thread_idx;
 
 public:
 
@@ -48,22 +47,34 @@ public:
   }
 
   int get_available_queue(void) {
-    const int queue_idx =  _current_thread_idx;
-    _current_thread_idx = ++_current_thread_idx % _pool.size();
-    return queue_idx;
-  }
-
-  void enqueue_item(std::shared_ptr<TItem> pitem, int queue_idx = -1)
-  {
-    if(queue_idx < 0) {
-    	queue_idx = get_available_queue();
+    size_t best_queue_idx = 0, best_queue_size = 0;
+    for (size_t idx = 0 ; idx < _pool.size() ; ++idx) {
+    	PThread_t& thread = _pool[idx];
+    	size_t queue_size = thread->queue_size();
+		if (queue_size == 0) {
+			return idx;
+		} else if (queue_size < best_queue_size) {
+			best_queue_size = queue_size;
+			best_queue_idx = idx;
+		}
     }
-    assert(queue_idx > 0 && queue_idx < _pool.size());
-    _pool[queue_idx]->enqueue(pitem);
+    return best_queue_idx;
   }
 
   size_t size(void) {
-    return _pool.size();
+	  return _pool.size();
+  }
+
+  void enqueue_item(
+		  std::shared_ptr<TItem> pitem,
+		  int queue_idx = -1
+  )
+  {
+	  if (queue_idx < 0) {
+		  queue_idx = get_available_queue();
+	  }
+	  assert(queue_idx > 0 && queue_idx < size());
+	  _pool[queue_idx]->enqueue(pitem);
   }
 
 };

@@ -1,11 +1,12 @@
 #include "tpe/task/sub_task/sub_task_base.h"
+#include "tpe/task/task_thread_pool.h"
 #include <utils/concurrency/thread_pool.h>
 
 #ifndef TPE_TASK_MAIN_TASK_BASE_H_
 #define TPE_TASK_MAIN_TASK_BASE_H_
 
 namespace task {
-typedef utils::concurrency::ThreadPool<SubTaskBase> SubPool_t;
+typedef TaskThreadPool<SubTaskBase> SubPool_t;
 
 class MainTaskBase : public TaskBase {
 public:

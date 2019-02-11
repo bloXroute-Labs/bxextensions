@@ -13,8 +13,7 @@
 namespace task {
 namespace pool {
 
-typedef utils::concurrency::ThreadPool<MainTaskBase> MainPool_t;
-typedef utils::concurrency::ThreadPool<SubTaskBase> SubPool_t;
+typedef TaskThreadPool<MainTaskBase> MainPool_t;
 
 class TaskPoolExecutor:
     public utils::patterns::Singleton<TaskPoolExecutor> {
@@ -24,10 +23,7 @@ class TaskPoolExecutor:
 public:
 
   void init(void);
-
   void enqueue_task(std::shared_ptr<MainTaskBase> task);
-
-//  void print_thread_status(void);
 
 protected:
   TaskPoolExecutor();

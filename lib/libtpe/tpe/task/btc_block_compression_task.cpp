@@ -105,7 +105,7 @@ void BTCBlockCompressionTask::_enqueue_task(
 			&_block_buffer,
 			&tdata.offsets
 	);
-	sub_pool.enqueue_item(tdata.sub_task);
+	sub_pool.enqueue_task(tdata.sub_task);
 }
 
 } // task

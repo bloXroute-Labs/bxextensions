@@ -29,7 +29,7 @@ const std::vector<unsigned short>& BTCBlockCompressionTask::bx_block() {
 
 void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	utils::protocols::BTCBlockMessage msg(*_block_buffer);
-	unsigned long long tx_count = 0;
+	uint64_t tx_count = 0;
 	size_t offset = msg.get_tx_count(tx_count), output_offset = 0;
 	_dispatch(tx_count, msg, offset, sub_pool);
 	output_offset = _output_buffer.copy_from_array(

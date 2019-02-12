@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include <memory>
 #include <vector>
 #include <functional>

@@ -10,7 +10,7 @@ $ sudo apt-get upgrade
 
 **b. Install dependencies:**
 ```sh
-$ sudo apt install build-essential automake autogen autoconf libtool libtool-bin python python-pip cmake
+$ sudo apt install build-essential automake autogen autoconf libtool libtool-bin python python-pip libssl-dev cmake
 ```
 
 ### Mac:

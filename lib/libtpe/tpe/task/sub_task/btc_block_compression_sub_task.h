@@ -15,14 +15,17 @@
 namespace task {
 
 class BTCBlockCompressionSubTask : public SubTaskBase {
+	typedef std::shared_ptr<const BlockBuffer_t> PBuffer_t;
+	typedef std::shared_ptr<const TXOffsets_t> POffests_t;
+
 public:
 	BTCBlockCompressionSubTask(
 			const Sha256ToShortID_t& short_id_map,
 			size_t capacity);
 
 	void init(
-			const BlockBuffer_t* block_buffer,
-			const TXOffsets_t* tx_offsets
+			PBuffer_t block_buffer,
+			POffests_t tx_offsets
 	);
 
 	const utils::common::ByteArray& output_buffer(void) const;
@@ -34,8 +37,8 @@ protected:
 private:
 
 	utils::common::ByteArray _output_buffer;
-	const BlockBuffer_t* _block_buffer;
-	const TXOffsets_t* _tx_offsets;
+	PBuffer_t _block_buffer;
+	POffests_t _tx_offsets;
 	const Sha256ToShortID_t& _short_id_map;
 };
 

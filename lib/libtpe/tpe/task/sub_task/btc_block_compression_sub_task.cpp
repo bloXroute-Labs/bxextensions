@@ -11,6 +11,7 @@ namespace task {
 BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 		const Sha256ToShortID_t& short_id_map,
 		size_t capacity):
+				SubTaskBase(),
 				_short_id_map(short_id_map),
 				_output_buffer(capacity),
 				_block_buffer(nullptr),
@@ -19,8 +20,8 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 }
 
 void BTCBlockCompressionSubTask::init(
-		const BlockBuffer_t* block_buffer,
-		const TXOffsets_t* tx_offsets
+		PBuffer_t block_buffer,
+		POffests_t tx_offsets
 )
 {
 	_block_buffer = block_buffer;
@@ -42,7 +43,6 @@ void BTCBlockCompressionSubTask::_execute()  {
 						from,
 						offset - from
 		));
-
 		auto shaItr = _short_id_map.find(sha);
 		if (shaItr != _short_id_map.end()) {
 			unsigned int short_id = shaItr->second;

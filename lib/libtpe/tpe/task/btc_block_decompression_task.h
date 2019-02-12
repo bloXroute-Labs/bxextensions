@@ -18,7 +18,7 @@ namespace task {
 class BTCBlockDecompressionTask : public MainTaskBase {
 
 	typedef std::unique_ptr<utils::common::BufferView> PBufferView_t;
-	typedef std::shared_ptr<const std::vector<unsigned short>> BlockMessage_t;
+	typedef const std::vector<unsigned short>& BlockMessage_t;
 
 	struct TxData {
 

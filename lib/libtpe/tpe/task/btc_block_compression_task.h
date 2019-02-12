@@ -18,8 +18,14 @@ class BTCBlockCompressionTask : public MainTaskBase {
 	typedef std::shared_ptr<BTCBlockCompressionSubTask> PSubTask_t;
 
 	struct TaskData {
+		TaskData(): sub_task(nullptr), offsets(nullptr) {}
+		TaskData(TaskData&& other) {
+			sub_task = std::move(other.sub_task);
+			offsets = std::move(other.offsets);
+		}
+
 		PSubTask_t sub_task;
-		TXOffsets_t offsets;
+		std::shared_ptr<TXOffsets_t> offsets;
 	};
 
 	typedef std::vector<TaskData> SubTasksData_t;
@@ -46,7 +52,7 @@ private:
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
 
 
-	BlockBuffer_t _block_buffer;
+	std::shared_ptr<BlockBuffer_t> _block_buffer;
 	utils::common::ByteArray _output_buffer;
 	const Sha256ToShortID_t& _short_id_map;
 	SubTasksData_t _sub_tasks;

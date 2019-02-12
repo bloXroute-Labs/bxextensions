@@ -21,6 +21,8 @@ class TaskThreadPool : public TThreadPool<TTask> {
 	);
 
 public:
+	TaskThreadPool(): TThreadPool_t(){}
+
 	void enqueue_task(std::shared_ptr<TTask> task) {
 		int pool_idx = TThreadPool_t::get_available_queue();
 		task->before_execution(pool_idx);

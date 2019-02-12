@@ -30,14 +30,7 @@ void BTCBlockDecompressionTask::init(
 
 BTCBlockDecompressionTask::BlockMessage_t BTCBlockDecompressionTask::block_message() {
 	_assert_execution();
-	if (_partial_block) {
-		return nullptr;
-	} else {
-		return std::make_shared<
-				const std::vector<unsigned short>>(
-						_output_buffer.array()
-				);
-	}
+	return _output_buffer.array();
 }
 
 const UnknownTxHashes_t& BTCBlockDecompressionTask::unknown_tx_hashes() {

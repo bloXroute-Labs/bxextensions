@@ -8,6 +8,7 @@
 
 #include "tpe/task/sub_task/btc_block_compression_sub_task.h"
 #include "tpe/task/main_task_base.h"
+#include "tpe/consts.h"
 
 #ifndef TPE_TASK_BTC_BLOCK_COMPRESSION_TASK_H_
 #define TPE_TASK_BTC_BLOCK_COMPRESSION_TASK_H_
@@ -31,8 +32,11 @@ class BTCBlockCompressionTask : public MainTaskBase {
 	typedef std::vector<TaskData> SubTasksData_t;
 
 public:
-	BTCBlockCompressionTask(const Sha256ToShortID_t& short_id_map,
-			size_t capacity = BTC_DEFAULT_BLOCK_SIZE);
+	BTCBlockCompressionTask(
+			const Sha256ToShortID_t& short_id_map,
+			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
+			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
+	);
 
 	void init(const BlockBuffer_t& block_buffer);
 
@@ -43,7 +47,7 @@ protected:
 
 private:
 	void _init_sub_tasks(size_t pool_size, size_t tx_count);
-	void _dispatch(
+	size_t _dispatch(
 			size_t tx_count,
 			utils::protocols::BTCBlockMessage& msg,
 			size_t offset,
@@ -56,6 +60,7 @@ private:
 	utils::common::ByteArray _output_buffer;
 	const Sha256ToShortID_t& _short_id_map;
 	SubTasksData_t _sub_tasks;
+	const size_t _minimal_tx_count;
 };
 
 } // task

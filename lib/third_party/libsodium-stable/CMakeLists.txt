@@ -1,5 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
 project(sodium)
+find_file(
+          SODIUM_CONFIGURE_FILE configure
+          ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+)
+if(
+	NOT ${SODIUM_CONFIGURE_FILE} STREQUAL
+	${SODIUM_CONFIGURE_FILE}-NOTFOUND   
+)
+   message("configure file is missing in dir ${CMAKE_CURRENT_SOURCE_DIR}, running autoreconf")
+   execute_process(
+   		COMMAND autoreconf -i
+   		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+   )
+endif()
+
 get_filename_component(CONFIGURE configure 
                        ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -9,8 +24,6 @@ set(SODIUM_IMPORT_PATH ${CMAKE_BINARY_DIR})
 add_custom_target(
     ${PROJECT_NAME}_ct
     ALL
-    COMMAND autoreconf -i
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND ${CONFIGURE}
             --disable-shared 
             --enable-static 

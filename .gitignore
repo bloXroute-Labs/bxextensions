@@ -12,3 +12,5 @@ CMakeFiles/
 *.dylib
 *.log
 .DS_Store
+configure
+aclocal.m4

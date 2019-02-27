@@ -22,9 +22,9 @@ void DecryptionTask::init(
   _plain.clear();
 }
 
-const std::vector<unsigned short>& DecryptionTask::plain() {
+const utils::common::ByteArray& DecryptionTask::plain() {
   _assert_execution();
-  return _plain.array();
+  return _plain;
 }
 
 

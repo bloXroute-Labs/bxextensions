@@ -33,14 +33,22 @@ class BTCBlockCompressionTask : public MainTaskBase {
 
 public:
 	BTCBlockCompressionTask(
-			const Sha256ToShortID_t& short_id_map,
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
 
-	void init(const BlockBuffer_t& block_buffer);
+	void init(
+			const BlockBuffer_t& block_buffer,
+			const Sha256ToShortID_t* short_id_map
+	);
 
-	const std::vector<unsigned short>& bx_block(void);
+	const utils::common::ByteArray& bx_block(void);
+
+	const utils::crypto::Sha256& prev_block_hash(void) const;
+	const utils::crypto::Sha256& block_hash(void) const;
+	const utils::crypto::Sha256& compressed_block_hash(void) const;
+
+	size_t txn_count(void) const;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
@@ -58,9 +66,12 @@ private:
 
 	std::shared_ptr<BlockBuffer_t> _block_buffer;
 	utils::common::ByteArray _output_buffer;
-	const Sha256ToShortID_t& _short_id_map;
+	const Sha256ToShortID_t* _short_id_map;
 	SubTasksData_t _sub_tasks;
 	const size_t _minimal_tx_count;
+	utils::crypto::Sha256 _prev_block_hash, _block_hash;
+	utils::crypto::Sha256 _compressed_block_hash;
+	size_t _txn_count;
 };
 
 } // task

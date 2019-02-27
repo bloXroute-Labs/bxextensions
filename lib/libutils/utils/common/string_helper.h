@@ -12,7 +12,7 @@ namespace utils {
 namespace common {
 
 static void add_to_stream(std::ostringstream&) {
-
+	// Do nothing here
 }
 
 template<typename T, typename... Args>

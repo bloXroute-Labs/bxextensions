@@ -17,16 +17,16 @@ EncryptedMessage::EncryptedMessage(size_t cipher_len):
   _cipher_text(NONCE_LEN + cipher_len) {
 }
 
-const std::vector<unsigned short>& EncryptedMessage::cipher_text() {
-  return _cipher_text.array();
+const common::ByteArray& EncryptedMessage::cipher_text() {
+  return _cipher_text;
 }
 
-const std::vector<unsigned short>& EncryptedMessage::cipher() {
-  return _cipher.array();
+const common::ByteArray& EncryptedMessage::cipher() {
+  return _cipher;
 }
 
-const std::vector<unsigned short>& EncryptedMessage::nonce() {
-  return _nonce.array();
+const common::ByteArray& EncryptedMessage::nonce() {
+  return _nonce;
 }
 
 common::ByteArray& EncryptedMessage::nonce_array() {

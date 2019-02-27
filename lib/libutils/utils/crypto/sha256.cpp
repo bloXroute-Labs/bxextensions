@@ -42,6 +42,22 @@ Sha256::Sha256(
 
 }
 
+Sha256::Sha256(
+		const std::vector<uint8_t>& data,
+		size_t from): _sha256(
+				data.begin() + from,
+				data.begin() + from + SHA256_DIGEST_LENGTH
+		)
+{
+	_hash = get_hash(_sha256);
+}
+
+Sha256::Sha256(const std::vector<uint8_t>& sha):
+		_sha256(sha.begin(), sha.begin() + SHA256_DIGEST_LENGTH)
+{
+	_hash = get_hash(_sha256);
+}
+
 Sha256::Sha256(const Sha256& other) {
 	_sha256 = other._sha256;
 	_hash = other._hash;
@@ -58,11 +74,21 @@ const Sha256& Sha256::operator=(const Sha256& other) {
 	return *this;
 }
 
+Sha256& Sha256::operator=(Sha256&& other) {
+	_sha256 = std::move(other._sha256);
+	_hash = other._hash;
+	return *this;
+}
+
 void Sha256::double_sha256() {
 	calculate_sha256(_sha256, 0,
 			SHA256_DIGEST_LENGTH,
 			_sha256,
 			_hash);
+	reverse();
+}
+
+void Sha256::reverse() {
 	std::reverse(_sha256.begin(), _sha256.end());
 	_hash = get_hash(_sha256);
 }

@@ -13,9 +13,9 @@ class EncryptedMessage {
 public:
   EncryptedMessage(size_t cipher_len);
 
-  const std::vector<unsigned short>& cipher_text();
-  const std::vector<unsigned short>& cipher();
-  const std::vector<unsigned short>& nonce();
+  const common::ByteArray& cipher_text();
+  const common::ByteArray& cipher();
+  const common::ByteArray& nonce();
 
   common::ByteArray& nonce_array();
   common::ByteArray& cipher_array();

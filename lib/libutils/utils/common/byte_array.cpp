@@ -7,40 +7,54 @@ namespace utils {
 namespace common {
 
 ByteArray::ByteArray():
-  _array(),
   _length(0),
-  _capacity(0) {
-
+  _has_ownership(true),
+  _capacity(0)
+{
+	_array = new std::vector<uint8_t>();
+	_shape.resize(1);
 }
 
 ByteArray::ByteArray(size_t capacity):
     _length(0),
-    _capacity(capacity) {
-  _array.resize(capacity + 1, '\0');
-  _ret_array.reserve(capacity);
+	_has_ownership(true),
+    _capacity(capacity)
+{
+	_array = new std::vector<uint8_t>();
+	_array->resize(capacity + 1, '\0');
+	_shape.resize(1);
 }
 
-ByteArray::ByteArray(const ByteArray& other):
-  _length(other._length),
-  _ret_array(other._ret_array),
-  _capacity(other._capacity) {
-  _array = other._array;
+ByteArray::ByteArray(ByteArray&& rhs):
+	_has_ownership(true)
+{
+	_capacity = rhs._capacity;
+	_array = rhs.transfer_ownership();
+	_length = rhs._length;
+	_shape = rhs._shape;
 }
 
-ByteArray& ByteArray::operator=(const ByteArray& other) {
-  this->_length = other._length;
-  this->_array = other._array;
-  this->_ret_array = other._ret_array;
-  this->_capacity = other._capacity;
-  return *this;
+ByteArray::~ByteArray() {
+	if (_has_ownership) {
+		delete _array;
+	}
+	_array = nullptr;
+}
+
+ByteArray& ByteArray::operator=(ByteArray&& rhs) {
+	_capacity = rhs._capacity;
+	_array = rhs.transfer_ownership();
+	_length = rhs._length;
+	_shape = rhs._shape;
+	return *this;
 }
 
 uint8_t& ByteArray::operator[](const size_t idx) {
-	return _array[idx];
+	return _array->at(idx);
 }
 
 ByteArray& ByteArray::operator+=(const ByteArray& from) {
-	copy_from_array(from._array,
+	copy_from_array(*from._array,
 			_length,
 			0,
 			from.size());
@@ -53,32 +67,46 @@ ByteArray& ByteArray::operator+=(const BufferView& from) {
 	std::copy_n(
 			from.begin(),
 			from.size(),
-			_array.begin() + offset
+			_array->begin() + offset
 	);
 	return *this;
 }
 
 unsigned char* ByteArray::byte_array() {
-  return &_array[0];
+  return &_array->at(0);
 }
 
 char* ByteArray::char_array() {
-  return (char *)&_array[0];
+  return (char *)&_array->at(0);
 }
 
-const std::vector<unsigned short>& ByteArray::array() {
-	set_output();
-	return _ret_array;
+std::vector<uint8_t>* ByteArray::transfer_ownership() {
+	_has_ownership = false;
+	return _array;
 }
 
 size_t ByteArray::length() const {
   return _length;
 }
 
+const std::vector<ssize_t>& ByteArray::shape(void) const {
+	return _shape;
+}
+
+const std::vector<ssize_t>& ByteArray::strides(void) {
+	static const std::vector<ssize_t> strides = {
+			sizeof(unsigned char)
+	};
+	return strides;
+}
+
+const std::vector<uint8_t>& ByteArray::array(void) const {
+	return *_array;
+}
+
 void ByteArray::reserve(size_t capacity) {
   if (_capacity < capacity) {
-      _array.resize(capacity + 1, '\0');
-      _ret_array.reserve(capacity);
+      _array->resize(capacity + 1, '\0');
       _capacity = capacity;
   }
 }
@@ -134,9 +162,8 @@ void ByteArray::resize(size_t length) {
 }
 
 void ByteArray::clear() {
-  memset(&_array[0],
+  memset(&_array->at(0),
   		 '\0', sizeof(unsigned char) * (_length + 1));
-  _ret_array.clear();
 }
 
 void ByteArray::shift_left(int shift_count) {
@@ -146,16 +173,13 @@ void ByteArray::shift_left(int shift_count) {
   for (unsigned long long idx = shift_count;
       idx < _length ;
       ++idx) {
-      _array[idx - shift_count] = _array[idx];
+      _array->at(idx - shift_count) = _array->at(idx);
   }
   _length = _length - shift_count;
 }
 
 void ByteArray::set_output() {
-	if (_ret_array.size() == 0) {
-	  _ret_array.resize(_length);
-	  std::copy_n(_array.begin(), _length, _ret_array.begin());
-	}
+	_shape[0] = size();
 }
 
 size_t ByteArray::size() const {
@@ -174,7 +198,7 @@ size_t ByteArray::copy_from_array(
 	std::copy_n(
 			array.begin() + from,
 			length,
-			_array.begin() + offset
+			_array->begin() + offset
 	);
 	return total_length;
 }

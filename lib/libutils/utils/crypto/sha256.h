@@ -15,10 +15,14 @@ public:
 	Sha256(const std::vector<uint8_t>& data,
 			size_t from,
 			size_t length);
+	Sha256(const std::vector<uint8_t>& data,
+			size_t from);
+	Sha256(const std::vector<uint8_t>& sha);
 	Sha256(const Sha256& other);
 	Sha256(Sha256&& other);
 
 	const Sha256& operator=(const Sha256& other);
+	Sha256& operator=(Sha256&& other);
 	friend std::ostream& operator <<(std::ostream& out, const Sha256& sha);
 	bool operator==(const Sha256& other) const;
 	void operator()(
@@ -27,6 +31,7 @@ public:
 			size_t length);
 
 	void double_sha256(void);
+	void reverse(void);
 	void clear(void);
 
 	const std::vector<uint8_t>& sha256(void) const;

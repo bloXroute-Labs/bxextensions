@@ -24,6 +24,7 @@ PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 
 #include "src/errors.h"
 #include "src/tasks.h"
+#include "src/byte_array.h"
 
 
 /**
@@ -46,6 +47,7 @@ PYBIND11_MODULE(task_pool_executor, m) {
     py::bind_map<task::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
     py::bind_map<task::Sha256ToTxMap_t>(m, "Sha256ToTxMap");
 
+    bind_byte_array(m);
 
     // registering errors and binding them to Python error objects
     register_errors(m);
@@ -72,7 +74,6 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     // binding the tasks interface
     bind_tasks(m);
-
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;

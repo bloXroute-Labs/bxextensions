@@ -16,8 +16,8 @@ public:
   void init(const std::vector<uint8_t>& plain,
 	    const std::vector<uint8_t>* key = nullptr);
 
-  const std::vector<unsigned short>& cipher(void);
-  const std::vector<unsigned short>& key(void);
+  const utils::common::ByteArray& cipher(void);
+  const utils::common::ByteArray & key(void);
 
 protected:
   void _execute(SubPool_t& sub_pool) override;

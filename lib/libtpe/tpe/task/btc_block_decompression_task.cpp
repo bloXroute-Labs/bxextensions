@@ -30,7 +30,7 @@ void BTCBlockDecompressionTask::init(
 
 BTCBlockDecompressionTask::BlockMessage_t BTCBlockDecompressionTask::block_message() {
 	_assert_execution();
-	return _output_buffer.array();
+	return _output_buffer;
 }
 
 const UnknownTxHashes_t& BTCBlockDecompressionTask::unknown_tx_hashes() {

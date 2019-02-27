@@ -27,14 +27,14 @@ void EncryptionTask::init(const std::vector<uint8_t>& plain,
   _cipher.clear();
 }
 
-const std::vector<unsigned short>& EncryptionTask::cipher() {
+const utils::common::ByteArray& EncryptionTask::cipher() {
   _assert_execution();
   return _cipher.cipher_text();
 }
 
-const std::vector<unsigned short>& EncryptionTask::key() {
+const utils::common::ByteArray & EncryptionTask::key() {
   _assert_execution();
-  return _key.array();
+  return _key;
 }
 
 void EncryptionTask::_execute(SubPool_t& sub_pool) {

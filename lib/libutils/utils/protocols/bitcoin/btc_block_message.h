@@ -24,6 +24,7 @@ public:
 	size_t get_tx_sid(size_t offset, uint64_t& short_id);
 
 	crypto::Sha256 block_hash(void) const;
+	crypto::Sha256 prev_block_hash(void) const;
 
 	bool is_sid_tx(size_t offset);
 

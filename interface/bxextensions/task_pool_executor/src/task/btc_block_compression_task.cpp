@@ -5,7 +5,14 @@
 
 void bind_btc_block_compression_task(py::module& m) {
 	py::class_<utils::crypto::Sha256>(m, "Sha256")
-			.def("__repr__", &utils::crypto::Sha256::repr);
+			.def(py::init<const std::vector<uint8_t>&>())
+			.def("__repr__", &utils::crypto::Sha256::repr)
+			.def_property_readonly(
+					"binary",
+					 &utils::crypto::Sha256::sha256
+			)
+			.def("__len__", &utils::crypto::Sha256::size)
+			.def("hex_string", &utils::crypto::Sha256::repr);
 
 	m.def("double_sha256", &utils::crypto::double_sha256);
 
@@ -13,11 +20,18 @@ void bind_btc_block_compression_task(py::module& m) {
 	BTCBlockCompressionTask_t,
 	MainTaskBase_t,
 	PBTCBlockCompressionTask_t>(m, "BTCBlockCompressionTask")
-	  .def(py::init<const task::Sha256ToShortID_t&, size_t, size_t>(),
+	  .def(py::init<size_t, size_t>(),
 			  "initializing",
-			  py::arg("short_id_map"),
 			  py::arg("capacity") = BTC_DEFAULT_BLOCK_SIZE,
 			  py::arg("minimal_tx_count") = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT)
-	  .def("bx_block", &BTCBlockCompressionTask_t::bx_block)
-	  .def("init", &BTCBlockCompressionTask_t::init);
+	  .def(
+			  "bx_block",
+			  &BTCBlockCompressionTask_t::bx_block,
+			  py::return_value_policy::reference
+	  )
+	  .def("init", &BTCBlockCompressionTask_t::init)
+	  .def("prev_block_hash", &BTCBlockCompressionTask_t::prev_block_hash)
+	  .def("block_hash", &BTCBlockCompressionTask_t::block_hash)
+	  .def("compressed_block_hash", &BTCBlockCompressionTask_t::compressed_block_hash)
+	  .def("txn_count", &BTCBlockCompressionTask_t::txn_count);
 }

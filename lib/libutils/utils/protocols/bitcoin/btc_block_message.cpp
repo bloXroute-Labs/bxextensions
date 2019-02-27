@@ -122,6 +122,12 @@ crypto::Sha256 BTCBlockMessage::block_hash(void) const {
 			));
 }
 
+crypto::Sha256 BTCBlockMessage::prev_block_hash(void) const {
+	crypto::Sha256 sha(_buffer, BTC_PREV_BLOCK_OFFSET);
+	sha.reverse();
+	return std::move(sha);
+}
+
 bool BTCBlockMessage::is_sid_tx(size_t offset) {
 	return _buffer[offset] == BTC_SHORT_ID_INDICATOR;
 }

@@ -2,6 +2,7 @@
 #include <utils/protocols/bitcoin/btc_block_message.h>
 #include <utils/crypto/hash_helper.h>
 
+#include "tpe/consts.h"
 #include "tpe/task/sub_task/btc_block_compression_sub_task.h"
 
 
@@ -9,10 +10,9 @@
 namespace task {
 
 BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
-		const Sha256ToShortID_t& short_id_map,
 		size_t capacity):
 				SubTaskBase(),
-				_short_id_map(short_id_map),
+				_short_id_map(nullptr),
 				_output_buffer(capacity),
 				_block_buffer(nullptr),
 				_tx_offsets(nullptr)
@@ -20,10 +20,12 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 }
 
 void BTCBlockCompressionSubTask::init(
+		const Sha256ToShortID_t* short_id_map,
 		PBuffer_t block_buffer,
 		POffests_t tx_offsets
 )
 {
+	_short_id_map = short_id_map;
 	_block_buffer = block_buffer;
 	_tx_offsets = tx_offsets;
 	_output_buffer.reset();
@@ -43,8 +45,9 @@ void BTCBlockCompressionSubTask::_execute()  {
 						from,
 						offset - from
 		));
-		auto shaItr = _short_id_map.find(sha);
-		if (shaItr != _short_id_map.end()) {
+		auto shaItr = _short_id_map->find(sha);
+		if (shaItr != _short_id_map->end() &&
+				shaItr->second != NULL_TX_SID) {
 			unsigned int short_id = shaItr->second;
 			uint8_t flag = BTC_SHORT_ID_INDICATOR;
 			output_offset =
@@ -67,6 +70,8 @@ void BTCBlockCompressionSubTask::_execute()  {
 			);
 		}
 	}
+
+	_short_id_map = nullptr;
 	_block_buffer = nullptr;
 	_tx_offsets = nullptr;
 }

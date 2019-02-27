@@ -53,6 +53,8 @@ private:
 		std::shared_ptr<TItem> item = _thread_queue.dequeue();
 		if (item != nullptr) {
 			_item_dequeued_func(item);
+		} else {
+			break;
 		}
     }
   }

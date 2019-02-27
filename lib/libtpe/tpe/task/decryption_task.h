@@ -20,7 +20,7 @@ public:
   void init(const std::vector<uint8_t>& cipher_text,
 	    const std::vector<uint8_t>& key);
 
-  const std::vector<unsigned short>& plain(void);
+  const utils::common::ByteArray& plain(void);
 
 
 protected:

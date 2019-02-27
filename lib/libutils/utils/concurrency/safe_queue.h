@@ -17,7 +17,7 @@ public:
 
   }
 
-  ~SafeQueue() {
+  virtual ~SafeQueue() {
 
   }
 

@@ -28,30 +28,42 @@ void BTCBlockCompressionTask::init(
 	_short_id_map = short_id_map;
 	_block_buffer->assign(block_buffer.begin(), block_buffer.end());
 	_output_buffer.reset();
+	_output_buffer.reserve(block_buffer.size());
+	_short_ids.clear();
 }
 
-const utils::common::ByteArray & BTCBlockCompressionTask::bx_block() {
+const utils::common::ByteArray &
+BTCBlockCompressionTask::bx_block() {
 	_assert_execution();
 	return _output_buffer;
 }
 
 const utils::crypto::Sha256&
-BTCBlockCompressionTask::prev_block_hash() const {
+BTCBlockCompressionTask::prev_block_hash() {
+	_assert_execution();
 	return _prev_block_hash;
 }
 
 const utils::crypto::Sha256&
-BTCBlockCompressionTask::block_hash() const {
+BTCBlockCompressionTask::block_hash() {
+	_assert_execution();
 	return _block_hash;
 }
 
 const utils::crypto::Sha256&
-BTCBlockCompressionTask::compressed_block_hash() const {
+BTCBlockCompressionTask::compressed_block_hash() {
+	_assert_execution();
 	return _compressed_block_hash;
 }
 
-size_t BTCBlockCompressionTask::txn_count() const {
+size_t BTCBlockCompressionTask::txn_count() {
 	return _txn_count;
+}
+
+const std::vector<unsigned int>&
+BTCBlockCompressionTask::short_ids() {
+	_assert_execution();
+	return _short_ids;
 }
 
 void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
@@ -59,7 +71,9 @@ void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	_prev_block_hash = std::move(msg.prev_block_hash());
 	_block_hash = std::move(msg.block_hash());
 	uint64_t tx_count = 0;
-	size_t offset = msg.get_tx_count(tx_count), output_offset = 0;
+	size_t offset = msg.get_tx_count(tx_count),
+			output_offset = sizeof(unsigned int);
+	size_t short_offset = output_offset;
 	_txn_count = tx_count;
 	size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
 	output_offset = _output_buffer.copy_from_array(
@@ -71,8 +85,18 @@ void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
 		auto& tdata = _sub_tasks[idx];
 		tdata.sub_task->wait();
+		short_offset = _insert_short_ids(
+				tdata.sub_task->short_ids(),
+				short_offset
+		);
 		_output_buffer += tdata.sub_task->output_buffer();
 	}
+	const unsigned int short_ids_size = _short_ids.size();
+	utils::common::set_little_endian_value(
+			_output_buffer,
+			short_ids_size,
+			0
+	);
 	_output_buffer.set_output();
 	_compressed_block_hash = std::move(
 			utils::crypto::double_sha256(
@@ -141,6 +165,35 @@ size_t BTCBlockCompressionTask::_dispatch(
 	}
 	_enqueue_task(prev_idx, sub_pool);
 	return prev_idx;
+}
+
+size_t BTCBlockCompressionTask::_insert_short_ids(
+		const std::vector<unsigned int>& short_ids,
+		size_t offset
+)
+{
+	const size_t short_ids_size = short_ids.size();
+	if (short_ids_size == 0) {
+		return offset;
+	}
+	const size_t short_ids_byte_size = sizeof(unsigned int) * short_ids_size;
+	const size_t from = offset;
+	offset = _output_buffer.extend_from(
+			from,
+			short_ids_byte_size
+	);
+	memcpy(
+			&_output_buffer[from],
+			(unsigned char*) &short_ids.at(0),
+			short_ids_byte_size
+	);
+	_short_ids.reserve(_short_ids.size() + short_ids_size);
+	_short_ids.insert(
+			_short_ids.end(),
+			short_ids.begin(),
+			short_ids.end()
+	);
+	return offset;
 }
 
 void BTCBlockCompressionTask::_enqueue_task(

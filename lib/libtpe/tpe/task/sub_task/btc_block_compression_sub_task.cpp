@@ -28,11 +28,20 @@ void BTCBlockCompressionSubTask::init(
 	_short_id_map = short_id_map;
 	_block_buffer = block_buffer;
 	_tx_offsets = tx_offsets;
+	_short_ids.clear();
 	_output_buffer.reset();
 }
 
-const utils::common::ByteArray& BTCBlockCompressionSubTask::output_buffer() const {
+const utils::common::ByteArray&
+BTCBlockCompressionSubTask::output_buffer() {
+	_assert_execution();
 	return _output_buffer;
+}
+
+const std::vector<unsigned int>&
+BTCBlockCompressionSubTask::short_ids() {
+	_assert_execution();
+	return _short_ids;
 }
 
 void BTCBlockCompressionSubTask::_execute()  {
@@ -55,12 +64,7 @@ void BTCBlockCompressionSubTask::_execute()  {
 					_output_buffer,
 					flag,
 					output_offset);
-			output_offset =
-					utils::common::set_little_endian_value(
-					_output_buffer,
-					short_id,
-					output_offset
-			);
+			_short_ids.push_back(short_id);
 		} else {
 			output_offset = _output_buffer.copy_from_array(
 					*_block_buffer,

@@ -46,6 +46,7 @@ public:
   void resize(size_t length);
   void clear(void);
   void shift_left(int shift_count);
+  size_t extend_from(size_t offset, size_t length);
   void set_output(void);
 
   size_t size(void) const;

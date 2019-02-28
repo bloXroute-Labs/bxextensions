@@ -178,6 +178,17 @@ void ByteArray::shift_left(int shift_count) {
   _length = _length - shift_count;
 }
 
+size_t ByteArray::extend_from(size_t offset, size_t length) {
+	std::vector<uint8_t>::iterator from_it =
+			_array->begin() + offset;
+	_length += length;
+	if (_capacity < _length) {
+		_capacity = _length;
+	}
+	_array->insert(from_it, length, 0);
+	return offset + length;
+}
+
 void ByteArray::set_output() {
 	_shape[0] = size();
 }

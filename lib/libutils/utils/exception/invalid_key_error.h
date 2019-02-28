@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "utils/common/string_helper.h"
+#include "utils/exception/error_base.h"
 
 
 #ifndef UTILS_EXCEPTION_INVALID_KEY_ERROR_H_
@@ -9,22 +10,13 @@
 namespace utils {
 namespace exception {
 
-class InvalidKeyError : public std::exception {
+class InvalidKeyError : ErrorBase {
 public:
+  static const std::string ERROR_TYPE;
 
-  InvalidKeyError(const char* key, int expected_length):
-    std::exception(),
-    _key(key),
-    _expected_length(expected_length) {
+  InvalidKeyError(const char* key, int expected_length);
 
-  }
-
-  const char* what(void) const noexcept {
-    return common::concatinate(
-	"invalid key (", _key, ") length - ",
-	"got ", _key.length(), " expecting ",
-	_expected_length).c_str();
-  }
+  const char* what(void) const noexcept;
 
 private:
   std::string _key;

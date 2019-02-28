@@ -44,11 +44,13 @@ public:
 
 	const utils::common::ByteArray& bx_block(void);
 
-	const utils::crypto::Sha256& prev_block_hash(void) const;
-	const utils::crypto::Sha256& block_hash(void) const;
-	const utils::crypto::Sha256& compressed_block_hash(void) const;
+	const utils::crypto::Sha256& prev_block_hash(void);
+	const utils::crypto::Sha256& block_hash(void);
+	const utils::crypto::Sha256& compressed_block_hash(void);
 
-	size_t txn_count(void) const;
+	size_t txn_count(void);
+
+	const std::vector<unsigned int>& short_ids(void);
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
@@ -61,7 +63,12 @@ private:
 			size_t offset,
 			SubPool_t& sub_pool
 	);
+	size_t _insert_short_ids(
+			const std::vector<unsigned int>& short_ids,
+			size_t offset
+	);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
+
 
 
 	std::shared_ptr<BlockBuffer_t> _block_buffer;
@@ -72,6 +79,7 @@ private:
 	utils::crypto::Sha256 _prev_block_hash, _block_hash;
 	utils::crypto::Sha256 _compressed_block_hash;
 	size_t _txn_count;
+	std::vector<unsigned int> _short_ids;
 };
 
 } // task

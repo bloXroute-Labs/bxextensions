@@ -27,7 +27,8 @@ public:
 			POffests_t tx_offsets
 	);
 
-	const utils::common::ByteArray& output_buffer(void) const;
+	const utils::common::ByteArray& output_buffer(void);
+	const std::vector<unsigned int>& short_ids(void);
 
 
 protected:
@@ -39,6 +40,7 @@ private:
 	PBuffer_t _block_buffer;
 	POffests_t _tx_offsets;
 	const Sha256ToShortID_t* _short_id_map;
+	std::vector<unsigned int> _short_ids;
 };
 
 }

@@ -206,10 +206,12 @@ size_t ByteArray::copy_from_array(
 {
 	size_t total_length = offset + length;
 	resize(total_length);
+	auto fromIt = array.begin() + from;
+	auto targetIt = _array->begin() + offset;
 	std::copy_n(
-			array.begin() + from,
+			fromIt,
 			length,
-			_array->begin() + offset
+			targetIt
 	);
 	return total_length;
 }

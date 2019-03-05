@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <list>
 
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>
@@ -63,10 +64,8 @@ private:
 			size_t offset,
 			SubPool_t& sub_pool
 	);
-	size_t _insert_short_ids(
-			const std::vector<unsigned int>& short_ids,
-			size_t offset
-	);
+	size_t _on_sub_task_completed(BTCBlockCompressionSubTask& tsk);
+	void _set_output_buffer(size_t output_offset);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
 
 

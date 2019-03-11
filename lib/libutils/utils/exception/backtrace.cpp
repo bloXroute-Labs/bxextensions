@@ -1,7 +1,9 @@
 #include <algorithm>
-#include <execinfo.h>  // for backtrace
-#include <dlfcn.h>     // for dladdr
-#include <cxxabi.h>    // for __cxa_demangle
+#if !defined(_AIX) && !(defined(__linux__) && !defined(__GLIBC__))
+	#include <execinfo.h>  // for backtrace
+	#include <dlfcn.h>     // for dladdr
+	#include <cxxabi.h>    // for __cxa_demangle
+#endif
 
 #include <string>
 #include <sstream>
@@ -11,6 +13,7 @@ namespace utils {
 namespace exception {
 
 void Backtrace::set_backtrace(int skip/* = 1*/) noexcept {
+#if !defined(_AIX) && !(defined(__linux__) && !defined(__GLIBC__))
 	int nFrames = backtrace(_callstack, MAX_FRAMES);
 	char **symbols = backtrace_symbols(_callstack, nFrames);
 
@@ -49,6 +52,7 @@ void Backtrace::set_backtrace(int skip/* = 1*/) noexcept {
 	trace_buf << _end << std::endl;
 
 	_backtrace = trace_buf.str();
+#endif
 }
 
 const std::string& Backtrace::get_backtrace(void) const {

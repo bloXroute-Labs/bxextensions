@@ -16,6 +16,18 @@ RUN apk update \
 # grab requirements for bxextenstions
         gcc libc-dev unixodbc-dev make \
 	build-base \
+    gfortran \
+    python3 \
+    libc6-compat \
+    freetype-dev \
+    openblas-dev \
+    tcl \
+    tk \
+    python3-dev \
+    pkgconfig \
+    musl \
+    libgfortran \
+    libgcc \
 	automake \
 # 	autogen \
 	autoconf \
@@ -25,12 +37,16 @@ RUN apk update \
 	cmake \
 	libexecinfo-dev
 
+#upgrade pip
+RUN pip3 install --upgrade pip setuptools
+
+
 WORKDIR /app/bxextensions
 COPY docker-entrypoint.sh /usr/local/bin/
 COPY . .
 # RUN rm -rf build
 
 ENV PYTHONPATH=/app/bxextensions
-RUN python setup.py develop
+RUN python3 build_extensions.py --src-dir /app/bxextensions
 
 # ENTRYPOINT ["/sbin/tini", "--", "/bin/sh", "/usr/local/bin/docker-entrypoint.sh"]

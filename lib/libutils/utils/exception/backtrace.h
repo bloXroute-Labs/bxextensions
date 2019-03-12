@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 
 #ifndef UTILS_EXCEPTION_BACKTRACE_H_
 #define UTILS_EXCEPTION_BACKTRACE_H_

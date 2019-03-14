@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /app/bxextensions
-cp *.so output/
+cp *.so release/

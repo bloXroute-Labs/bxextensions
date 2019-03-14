@@ -1,15 +1,41 @@
-#FROM python:3.7.0-alpine3.8
-FROM oryxprod/python-3.7
+FROM python:3.7.0-alpine3.8
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN addgroup -gid 503 -Sys bxextensions && \
-	adduser -uid 503 -Sys -gid 503 bxextensions && \
+RUN addgroup -g 503 -S bxextensions && \
+	adduser -u 503 -S -gid bxextensions bxextensions && \
 	mkdir -p /app/bxextensions && \
 	chown -R bxextensions:bxextensions /app/bxextensions 
 
-RUN apt update \
- && apt upgrade -y \
- && apt install -y build-essential automake autogen autoconf libtool libtool-bin python python-pip libssl-dev cmake
+RUN apk update \
+ && apk add --no-cache \
+# grab su-exec for easy step-down from root
+        'su-exec>=0.2' \
+       tini \
+# grab bash for the convenience
+        bash \
+# grab requirements for bxextenstions
+        gcc libc-dev unixodbc-dev make \
+       build-base \
+    gfortran \
+    python3 \
+    libc6-compat \
+    freetype-dev \
+    openblas-dev \
+    tcl \
+    tk \
+    python3-dev \
+    pkgconfig \
+    musl \
+    libgfortran \
+    libgcc \
+       automake \
+#      autogen \
+       autoconf \
+       libtool \
+#      libtool-bin \
+       openssl-dev \
+       cmake \
+       libexecinfo-dev
 
 #upgrade pip
 RUN pip3 install --upgrade pip setuptools

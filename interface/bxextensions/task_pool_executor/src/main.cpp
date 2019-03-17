@@ -9,7 +9,6 @@ namespace py = pybind11;
 
 #include <tpe/task/btc_task_types.h>
 
-PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
 PYBIND11_MAKE_OPAQUE(task::Sha256ToShortID_t);
 PYBIND11_MAKE_OPAQUE(std::vector<utils::crypto::Sha256>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
@@ -24,6 +23,7 @@ PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 #include "src/errors.h"
 #include "src/tasks.h"
 #include "src/byte_array.h"
+#include "src/python_buffer_view.h"
 
 
 /**
@@ -38,7 +38,6 @@ PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 PYBIND11_MODULE(task_pool_executor, m) {
 
     // binding custom STL types
-    py::bind_vector<std::vector<uint8_t>>(m, "InputBytes");
     py::bind_map<task::Sha256ToShortID_t>(m, "Sha256ToShortIDMap");
     py::bind_vector<std::vector<utils::crypto::Sha256>>(m,"Sha256List");
     py::bind_vector<std::vector<unsigned int>>(m,"UIntList");
@@ -46,6 +45,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
     py::bind_map<task::Sha256ToTxMap_t>(m, "Sha256ToTxMap");
 
     bind_byte_array(m);
+
+    bind_python_buffer_view(m);
 
     // registering errors and binding them to Python error objects
     register_errors(m);

@@ -42,6 +42,10 @@ public:
 		  size_t offset,
 		  size_t from,
 		  size_t length);
+  size_t copy_from_buffer(const BufferView& buffer,
+		  size_t offset,
+		  size_t from,
+		  size_t length);
   void reset(void);
   void resize(size_t length);
   void clear(void);

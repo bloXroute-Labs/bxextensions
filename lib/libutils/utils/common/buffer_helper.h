@@ -29,18 +29,18 @@ size_t get_little_endian_value(
 	return type_size + offset;
 }
 
-template <typename ParseType, typename ReturnType>
+template <typename ParseType, typename ReturnType, class TBuffer>
 size_t get_big_endian_value(
-		const std::vector<uint8_t>& buffer,
+		const TBuffer& buffer,
 		ReturnType& out_value,
 		size_t offset
 		) {
 	constexpr size_t type_size = sizeof(ParseType);
 	std::array<uint8_t, type_size> val_array;
-	std::copy_n(
-			buffer.begin() + offset,
-			type_size,
-			val_array.begin()
+	memcpy(
+			&val_array[0],
+			&buffer[0],
+			type_size
 	);
 	std::reverse(val_array.begin(), val_array.end());
 	return offset + get_little_endian_value<ParseType, ReturnType> (

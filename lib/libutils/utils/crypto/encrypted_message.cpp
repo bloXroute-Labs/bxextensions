@@ -51,6 +51,8 @@ void EncryptedMessage::set_cipher_text(int cipher_start_idx) {
   memcpy(&_cipher_text.char_array()[NONCE_LEN],
 	    _cipher.char_array(),
 	    _cipher.length());
+  _cipher.set_output();
+  _cipher_text.set_output();
 }
 
 void EncryptedMessage::from_cipher_text(

@@ -4,14 +4,15 @@
 #include <list>
 
 #include <utils/crypto/sha256.h>
+#include <utils/common/buffer_view.h>
 
 #ifndef TPE_TASK_BTC_TASK_TYPES_H_
 #define TPE_TASK_BTC_TASK_TYPES_H_
 
 namespace task {
 
-typedef std::vector<uint8_t> BlockBuffer_t;
-typedef std::vector<uint8_t> TxBuffer_t;
+typedef utils::common::BufferView BlockBuffer_t;
+typedef utils::common::BufferView TxBuffer_t;
 typedef utils::crypto::Sha256Map_t<unsigned int> Sha256ToShortID_t;
 typedef std::unordered_map<unsigned int, utils::crypto::Sha256> ShortIDToSha256Map_t;
 typedef utils::crypto::Sha256Map_t<TxBuffer_t> Sha256ToTxMap_t;

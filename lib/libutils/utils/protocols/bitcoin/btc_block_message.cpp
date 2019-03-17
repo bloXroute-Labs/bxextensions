@@ -7,7 +7,7 @@ namespace utils {
 namespace protocols {
 
 BTCBlockMessage::BTCBlockMessage(
-		const std::vector<uint8_t>& buffer
+		const common::BufferView& buffer
 ) : _buffer(buffer)
 {
 }

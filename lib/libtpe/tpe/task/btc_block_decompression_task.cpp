@@ -68,13 +68,7 @@ void BTCBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 		} else {
 			size_t from = offset;
 			offset = msg.get_next_tx_offset(offset);
-			tx_data.ptx = PBufferView_t(
-								new utils::common::BufferView(
-										_block_buffer,
-										from,
-										offset - from
-								)
-						);
+			tx_data.ptx = nullptr; // TODO : fixme
 		}
 		if (_unknown_tx_sids.size() == 0 &&
 				_unknown_tx_hashes.size() == 0) {
@@ -125,9 +119,7 @@ int BTCBlockDecompressionTask::_try_get_tx_data(
 		auto tx_iter = _tx_map.find(sha);
 		if (tx_iter != _tx_map.end()) {
 			ret = 1;
-			tx_data.ptx = PBufferView_t(
-					new utils::common::BufferView(tx_iter->second)
-			);
+			tx_data.ptx = nullptr; // TODO : fixme
 		}
 	}
 	return ret;

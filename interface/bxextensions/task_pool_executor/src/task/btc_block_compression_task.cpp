@@ -14,7 +14,9 @@ void bind_btc_block_compression_task(py::module& m) {
 			.def("__len__", &utils::crypto::Sha256::size)
 			.def("hex_string", &utils::crypto::Sha256::repr);
 
-	m.def("double_sha256", &utils::crypto::double_sha256);
+	m.def("double_sha256", [](const utils::common::BufferView& buf) {
+		return utils::crypto::double_sha256(buf, 0, buf.size());
+	});
 
 	py::class_<
 	BTCBlockCompressionTask_t,

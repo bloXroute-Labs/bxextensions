@@ -70,7 +70,7 @@ private:
 
 
 
-	std::shared_ptr<BlockBuffer_t> _block_buffer;
+	BlockBuffer_t _block_buffer;
 	utils::common::ByteArray _output_buffer;
 	const Sha256ToShortID_t* _short_id_map;
 	SubTasksData_t _sub_tasks;

@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <cstdint>
 
+#include "utils/common/buffer_view.h"
+
 #ifndef UTILS_CRYPTO_SHA256_H_
 #define UTILS_CRYPTO_SHA256_H_
 
@@ -15,7 +17,12 @@ public:
 	Sha256(const std::vector<uint8_t>& data,
 			size_t from,
 			size_t length);
+	Sha256(const common::BufferView& data,
+			size_t from,
+			size_t length);
 	Sha256(const std::vector<uint8_t>& data,
+			size_t from);
+	Sha256(const common::BufferView& data,
 			size_t from);
 	Sha256(const std::vector<uint8_t>& sha);
 	Sha256(const Sha256& other);

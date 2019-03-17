@@ -62,14 +62,10 @@ ByteArray& ByteArray::operator+=(const ByteArray& from) {
 }
 
 ByteArray& ByteArray::operator+=(const BufferView& from) {
-	size_t total_length = _length + from.size(), offset = _length;
-	resize(total_length);
-	std::copy_n(
-			from.begin(),
-			from.size(),
-			_array->begin() + offset
-	);
-	return *this;
+	  size_t total_length = _length + from.size(), offset = _length;
+	  resize(total_length);
+	  memcpy(byte_array(), &from.at(0), total_length);
+	  return *this;
 }
 
 unsigned char* ByteArray::byte_array() {
@@ -213,6 +209,19 @@ size_t ByteArray::copy_from_array(
 			length,
 			targetIt
 	);
+	return total_length;
+}
+
+size_t ByteArray::copy_from_buffer(
+		const BufferView& buffer,
+		size_t offset,
+		size_t from,
+		size_t length
+)
+{
+	size_t total_length = offset + length;
+	resize(total_length);
+	memcpy(&byte_array()[offset], &buffer.at(from), length);
 	return total_length;
 }
 

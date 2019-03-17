@@ -10,12 +10,12 @@ namespace crypto {
 
 void init(void);
 
-void encrypt(common::ByteArray& plain,
+void encrypt(const common::BufferView& plain,
 	     common::ByteArray& key,
 	     EncryptedMessage& cipher);
 
 void decrypt(EncryptedMessage& cipher,
-	     common::ByteArray& key,
+		 const common::BufferView& key,
 	     common::ByteArray& plain_text);
 
 unsigned long long get_cipher_length(unsigned long long plain_length);

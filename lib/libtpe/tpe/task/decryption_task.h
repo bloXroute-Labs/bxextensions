@@ -8,6 +8,8 @@
 #ifndef TPE_TASK_DECRYPTION_TASK_H_
 #define TPE_TASK_DECRYPTION_TASK_H_
 
+typedef utils::common::BufferView DecryptionInputBuffer_t;
+
 namespace task {
 class DecryptionTask : public MainTaskBase {
 public:
@@ -17,8 +19,8 @@ public:
 			PLAIN_TEXT_DEFAULT_BUFFER_SIZE
   );
 
-  void init(const std::vector<uint8_t>& cipher_text,
-	    const std::vector<uint8_t>& key);
+  void init(const DecryptionInputBuffer_t* cipher_text,
+	    const DecryptionInputBuffer_t* key);
 
   const utils::common::ByteArray& plain(void);
 
@@ -30,7 +32,7 @@ private:
 
   utils::crypto::EncryptedMessage _cipher;
   utils::common::ByteArray _plain;
-  utils::common::ByteArray _key;
+  const DecryptionInputBuffer_t* _key;
 
 };
 }

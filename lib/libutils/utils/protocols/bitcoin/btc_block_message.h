@@ -13,7 +13,7 @@ namespace protocols {
 
 class BTCBlockMessage {
 public:
-	BTCBlockMessage(const std::vector<uint8_t>& buffer);
+	BTCBlockMessage(const common::BufferView& buffer);
 
 	size_t get_varint(
 			uint64_t& out_value,
@@ -46,7 +46,7 @@ private:
 			}
 	);
 
-	const std::vector<uint8_t>& _buffer;
+	const common::BufferView& _buffer;
 };
 
 } // protocols

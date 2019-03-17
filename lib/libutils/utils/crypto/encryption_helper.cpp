@@ -27,13 +27,14 @@ static void generate_key_array(
       key.resize(crypto_secretbox_KEYBYTES);
       key.clear();
       crypto_secretbox_keygen(key.byte_array());
+      key.set_output();
   } else if (key.length() != crypto_secretbox_KEYBYTES) {
       throw exception::InvalidKeyError(key.char_array(),
 				       crypto_secretbox_KEYBYTES);
   }
 }
 
-void encrypt(common::ByteArray& plain,
+void encrypt(const common::BufferView& plain,
 	     common::ByteArray& key,
 	     EncryptedMessage& cipher) {
   if (cipher.cipher_array().length() < crypto_secretbox_BOXZEROBYTES) {
@@ -45,7 +46,7 @@ void encrypt(common::ByteArray& plain,
   int ret = crypto_secretbox(
       cipher.cipher_array().byte_array(),
       plain.byte_array(),
-      plain.length(),
+      plain.size(),
       cipher.nonce_array().byte_array(),
       key.byte_array()
     );
@@ -56,7 +57,7 @@ void encrypt(common::ByteArray& plain,
 }
 
 void decrypt(EncryptedMessage& cipher,
-	     common::ByteArray& key,
+		 const common::BufferView& key,
 	     common::ByteArray& plain_text) {
   int ret = crypto_secretbox_open(
       plain_text.byte_array(),
@@ -69,6 +70,7 @@ void decrypt(EncryptedMessage& cipher,
       throw exception::DecryptionError();
   }
   plain_text.shift_left(crypto_secretbox_ZEROBYTES);
+  plain_text.set_output();
 }
 
 unsigned long long get_cipher_length(unsigned long long plain_length) {

@@ -16,7 +16,9 @@ static size_t get_hash(const std::vector<uint8_t>& sha256) {
 	return hash;
 }
 
-static void calculate_sha256(const std::vector<uint8_t>& data,
+template <class TBuffer>
+static void calculate_sha256(
+		const TBuffer& data,
 		size_t from,
 		size_t length,
 		std::vector<uint8_t>& out_sha256,
@@ -35,11 +37,24 @@ Sha256::Sha256(): _sha256(SHA256_DIGEST_LENGTH), _hash(0) {
 Sha256::Sha256(
 		const std::vector<uint8_t>& data,
 		size_t from,
-		size_t length): _sha256(SHA256_DIGEST_LENGTH),
-				_hash(0) {
+		size_t length):
+				_sha256(SHA256_DIGEST_LENGTH),
+				_hash(0)
+{
 	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
 	calculate_sha256(data, from, length, _sha256, _hash);
+}
 
+Sha256::Sha256(
+		const common::BufferView& data,
+		size_t from,
+		size_t length
+) :
+		_sha256(SHA256_DIGEST_LENGTH),
+		_hash(0)
+{
+	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+	calculate_sha256(data, from, length, _sha256, _hash);
 }
 
 Sha256::Sha256(
@@ -49,6 +64,15 @@ Sha256::Sha256(
 				data.begin() + from + SHA256_DIGEST_LENGTH
 		)
 {
+	_hash = get_hash(_sha256);
+}
+
+Sha256::Sha256(
+		const common::BufferView& data,
+		size_t from): _sha256(SHA256_DIGEST_LENGTH)
+{
+	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+	memcpy(&_sha256.at(0), &data.at(0), SHA256_DIGEST_LENGTH);
 	_hash = get_hash(_sha256);
 }
 

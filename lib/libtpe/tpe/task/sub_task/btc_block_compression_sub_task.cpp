@@ -14,14 +14,13 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 				SubTaskBase(),
 				_short_id_map(nullptr),
 				_output_buffer(capacity),
-				_block_buffer(nullptr),
 				_tx_offsets(nullptr)
 {
 }
 
 void BTCBlockCompressionSubTask::init(
 		const Sha256ToShortID_t* short_id_map,
-		PBuffer_t block_buffer,
+		BlockBuffer_t block_buffer,
 		POffests_t tx_offsets
 )
 {
@@ -50,7 +49,7 @@ void BTCBlockCompressionSubTask::_execute()  {
 		size_t from = pair.first, offset = pair.second;
 		utils::crypto::Sha256 sha = std::move(
 				utils::crypto::double_sha256(
-						*_block_buffer,
+						_block_buffer,
 						from,
 						offset - from
 		));
@@ -66,8 +65,8 @@ void BTCBlockCompressionSubTask::_execute()  {
 					output_offset);
 			_short_ids.push_back(short_id);
 		} else {
-			output_offset = _output_buffer.copy_from_array(
-					*_block_buffer,
+			output_offset = _output_buffer.copy_from_buffer(
+					_block_buffer,
 					output_offset,
 					from,
 					offset - from
@@ -76,7 +75,6 @@ void BTCBlockCompressionSubTask::_execute()  {
 	}
 
 	_short_id_map = nullptr;
-	_block_buffer = nullptr;
 	_tx_offsets = nullptr;
 }
 

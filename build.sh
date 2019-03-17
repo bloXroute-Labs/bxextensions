@@ -8,7 +8,8 @@ echo "Building container..."
 docker build . -f Dockerfile -t bxextensions
 echo "Running container..."
 ### docker run -it bxextensions sh
-docker run -d --name bxextensions \
-	--volume ~/bloxroute-dev/bxextensions/release/${OS_RELEASE}:/app/bxextensions/release/ \
+ROOT_DIR=$(pwd)
+docker run --name bxextensions \
+	--volume ${ROOT_DIR}/release/:/app/bxextensions/release/ \
 	bxextensions 
 sudo chown $USER:$GROUP release/${OS_RELEASE}/*.so

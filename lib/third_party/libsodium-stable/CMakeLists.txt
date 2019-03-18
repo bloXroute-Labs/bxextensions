@@ -5,14 +5,16 @@ find_file(
           ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 if(
-	NOT ${SODIUM_CONFIGURE_FILE} STREQUAL
-	${SODIUM_CONFIGURE_FILE}-NOTFOUND   
+	${SODIUM_CONFIGURE_FILE} STREQUAL
+	SODIUM_CONFIGURE_FILE-NOTFOUND   
 )
    message("configure file is missing in dir ${CMAKE_CURRENT_SOURCE_DIR}, running autoreconf")
    execute_process(
    		COMMAND autoreconf -i
    		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
    )
+else()
+	message("configure file found in ${SODIUM_CONFIGURE_FILE}")
 endif()
 
 get_filename_component(CONFIGURE configure 

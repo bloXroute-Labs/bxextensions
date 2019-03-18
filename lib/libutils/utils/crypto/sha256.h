@@ -24,6 +24,7 @@ public:
 			size_t from);
 	Sha256(const common::BufferView& data,
 			size_t from);
+	Sha256(const common::BufferView& data);
 	Sha256(const std::vector<uint8_t>& sha);
 	Sha256(const Sha256& other);
 	Sha256(Sha256&& other);

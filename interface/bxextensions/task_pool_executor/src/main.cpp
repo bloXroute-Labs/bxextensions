@@ -23,7 +23,7 @@ PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 #include "src/errors.h"
 #include "src/tasks.h"
 #include "src/byte_array.h"
-#include "src/python_buffer_view.h"
+#include "src/input_bytes.h"
 
 
 /**
@@ -46,7 +46,7 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     bind_byte_array(m);
 
-    bind_python_buffer_view(m);
+    bind_input_bytes(m);
 
     // registering errors and binding them to Python error objects
     register_errors(m);

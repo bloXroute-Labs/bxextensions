@@ -72,6 +72,15 @@ Sha256::Sha256(
 		size_t from): _sha256(SHA256_DIGEST_LENGTH)
 {
 	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+	memcpy(&_sha256.at(0), &data.at(from), SHA256_DIGEST_LENGTH);
+	_hash = get_hash(_sha256);
+}
+
+Sha256::Sha256(
+		const common::BufferView& data):
+				_sha256(SHA256_DIGEST_LENGTH)
+{
+	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
 	memcpy(&_sha256.at(0), &data.at(0), SHA256_DIGEST_LENGTH);
 	_hash = get_hash(_sha256);
 }

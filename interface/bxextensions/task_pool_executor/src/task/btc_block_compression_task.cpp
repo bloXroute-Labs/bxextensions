@@ -5,7 +5,7 @@
 
 void bind_btc_block_compression_task(py::module& m) {
 	py::class_<utils::crypto::Sha256>(m, "Sha256")
-			.def(py::init<const std::vector<uint8_t>&>())
+			.def(py::init<const utils::common::BufferView&>())
 			.def("__repr__", &utils::crypto::Sha256::repr)
 			.def_property_readonly(
 					"binary",

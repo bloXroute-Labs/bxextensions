@@ -22,7 +22,7 @@ public:
 
 	void init(
 			const Sha256ToShortID_t* short_id_map,
-			BlockBuffer_t block_buffer,
+			const BlockBuffer_t* block_buffer,
 			POffests_t tx_offsets
 	);
 
@@ -36,7 +36,7 @@ protected:
 private:
 
 	utils::common::ByteArray _output_buffer;
-	BlockBuffer_t _block_buffer;
+	const BlockBuffer_t* _block_buffer;
 	POffests_t _tx_offsets;
 	const Sha256ToShortID_t* _short_id_map;
 	std::vector<unsigned int> _short_ids;

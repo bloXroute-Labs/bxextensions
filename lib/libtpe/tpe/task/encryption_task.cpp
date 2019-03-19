@@ -7,26 +7,27 @@ namespace task {
 
 EncryptionTask::EncryptionTask(
 	size_t plain_capacity /*= PLAIN_TEXT_DEFAULT_BUFFER_SIZE*/
-) : MainTaskBase(), _cipher(0), _plain(nullptr)
+) : MainTaskBase(), _cipher(0)
 {
 	int padding_len = utils::crypto::get_padding_length();
 	_cipher.reserve(utils::crypto::get_cipher_length(plain_capacity));
+	_plain.reserve(plain_capacity + padding_len);
 	_key.reserve(utils::crypto::get_key_length());
 }
 
 void EncryptionTask::init(
-		const EncryptionInputBuffer_t* plain,
-	    const EncryptionInputBuffer_t* key/* = nullptr*/
+		EncryptionInputBuffer_t plain,
+	    EncryptionInputBuffer_t key/* = EncryptionInputBuffer_t::empty()*/
 )
 {
 	int pad_len = utils::crypto::get_padding_length();
-	_plain = plain;
-	if (key != nullptr) {
-	  _key.copy_from_buffer(*key, 0, 0, key->size());
+	_plain.copy_from_buffer(plain, pad_len, 0, plain.size());
+	if (key) {
+	  _key.copy_from_buffer(key, 0, 0, key.size());
 	} else {
 	  _key.reset();
 	}
-	_cipher.resize(_plain->size());
+	_cipher.resize(_plain.size());
 	_cipher.clear();
 }
 
@@ -41,7 +42,7 @@ const utils::common::ByteArray & EncryptionTask::key() {
 }
 
 void EncryptionTask::_execute(SubPool_t& sub_pool) {
-	utils::crypto::encrypt(*_plain, _key, _cipher);
+	utils::crypto::encrypt(_plain, _key, _cipher);
 }
 
 }

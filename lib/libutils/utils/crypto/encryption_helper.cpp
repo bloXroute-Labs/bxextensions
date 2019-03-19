@@ -4,6 +4,7 @@ extern "C" {
 #include <sodium.h>
 #include <sodium/crypto_secretbox.h>
 }
+#include <cerrno>
 
 #include "utils/crypto/encryption_helper.h"
 
@@ -11,6 +12,7 @@ extern "C" {
 #include "utils/exception/decryption_error.h"
 #include "utils/exception/crypto_initialization_error.h"
 #include "utils/exception/invalid_key_error.h"
+
 
 namespace utils {
 namespace crypto {
@@ -34,26 +36,29 @@ static void generate_key_array(
   }
 }
 
-void encrypt(const common::BufferView& plain,
-	     common::ByteArray& key,
-	     EncryptedMessage& cipher) {
-  if (cipher.cipher_array().length() < crypto_secretbox_BOXZEROBYTES) {
-      throw std::runtime_error("cipher size is too small");
-  }
-  generate_key_array(key);
-  randombytes_buf(cipher.nonce_array().byte_array(),
+void encrypt(
+		common::ByteArray& plain,
+	    common::ByteArray& key,
+	    EncryptedMessage& cipher
+)
+{
+	if (cipher.cipher_array().length() < crypto_secretbox_BOXZEROBYTES) {
+	  throw std::runtime_error("cipher size is too small");
+	}
+	generate_key_array(key);
+	randombytes_buf(cipher.nonce_array().byte_array(),
 		  cipher.nonce_array().length());
-  int ret = crypto_secretbox(
-      cipher.cipher_array().byte_array(),
-      plain.byte_array(),
-      plain.size(),
-      cipher.nonce_array().byte_array(),
-      key.byte_array()
-    );
-  if (ret < 0) {
-      throw exception::EncryptionError();
-  }
-  cipher.set_cipher_text(crypto_secretbox_BOXZEROBYTES);
+	int ret = crypto_secretbox(
+	  cipher.cipher_array().byte_array(),
+	  plain.byte_array(),
+	  plain.size(),
+	  cipher.nonce_array().byte_array(),
+	  key.byte_array()
+	);
+	if (ret < 0) {
+		throw exception::EncryptionError();
+	}
+	cipher.set_cipher_text(crypto_secretbox_BOXZEROBYTES);
 }
 
 void decrypt(EncryptedMessage& cipher,

@@ -10,9 +10,11 @@ namespace crypto {
 
 void init(void);
 
-void encrypt(const common::BufferView& plain,
-	     common::ByteArray& key,
-	     EncryptedMessage& cipher);
+void encrypt(
+		common::ByteArray& plain,
+	    common::ByteArray& key,
+	    EncryptedMessage& cipher
+);
 
 void decrypt(EncryptedMessage& cipher,
 		 const common::BufferView& key,

@@ -42,6 +42,10 @@ BufferView& BufferView::operator=(const BufferView& other) {
 	return *this;
 }
 
+BufferView::operator bool() const {
+	return _buffer != nullptr;
+}
+
 const uint8_t& BufferView::operator[](size_t idx) const {
 	return _buffer[_from + idx];
 }
@@ -72,6 +76,16 @@ BufferView::const_iterator BufferView::end() const {
 
 size_t BufferView::size(void) const {
 	return _size;
+}
+
+BufferView BufferView::empty() {
+	static BufferView empty_buffer;
+	return empty_buffer;
+}
+
+void BufferView::_set_buffer(const uint8_t* buffer, size_t size) {
+	_buffer = buffer;
+	_size = size;
 }
 
 } // common

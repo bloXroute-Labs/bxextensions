@@ -12,9 +12,10 @@ namespace utils {
 namespace crypto {
 
 EncryptedMessage::EncryptedMessage(size_t cipher_len):
-  _nonce(NONCE_LEN),
-  _cipher(cipher_len),
-  _cipher_text(NONCE_LEN + cipher_len) {
+	_nonce(NONCE_LEN),
+	_cipher(cipher_len),
+	_cipher_text(NONCE_LEN + cipher_len)
+{
 }
 
 const common::ByteArray& EncryptedMessage::cipher_text() {
@@ -72,6 +73,7 @@ void EncryptedMessage::from_cipher_text(
 void EncryptedMessage::resize(size_t cipher_length) {
   _cipher.resize(cipher_length);
   _cipher_text.resize(cipher_length + NONCE_LEN);
+  _nonce.resize(NONCE_LEN);
 }
 
 

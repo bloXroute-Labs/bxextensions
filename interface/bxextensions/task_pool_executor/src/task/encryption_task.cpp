@@ -2,6 +2,8 @@
 
 #include "src/task/main_task_base.h"
 
+typedef utils::common::BufferView BufferView_t;
+
 void bind_encryption_task(py::module& m) {
   py::class_<
   EncryptionTask_t,
@@ -26,5 +28,5 @@ void bind_encryption_task(py::module& m) {
 			  py::return_value_policy::reference
       )
       .def("init", &EncryptionTask_t::init,
-	    py::arg("plain"), py::arg("key") = nullptr);
+	    py::arg("plain"), py::arg("key") = BufferView_t::empty());
 }

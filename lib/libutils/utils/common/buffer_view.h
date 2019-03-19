@@ -61,7 +61,10 @@ public:
 	BufferView(const BufferView&) = default;
 	virtual ~BufferView();
 
+	static BufferView empty();
+
 	BufferView& operator=(const BufferView& other);
+	operator bool() const;
 	const uint8_t& operator[](size_t idx) const;
 	const uint8_t& at(size_t idx) const;
 	const char* char_array(void) const;
@@ -71,7 +74,8 @@ public:
 	const_iterator end(void) const;
 
 	size_t size(void) const;
-
+protected:
+	void _set_buffer(const uint8_t* buffer, size_t size);
 private:
 	const uint8_t* _buffer;
 	size_t _size, _from;

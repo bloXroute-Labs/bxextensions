@@ -15,20 +15,19 @@ BTCBlockCompressionTask::BTCBlockCompressionTask(
 				_short_id_map(nullptr),
 				_output_buffer(capacity),
 				_minimal_tx_count(minimal_tx_count),
-				_txn_count(0),
-				_block_buffer(nullptr)
+				_txn_count(0)
 {
 }
 
 void BTCBlockCompressionTask::init(
-		const BlockBuffer_t* block_buffer,
+		BlockBuffer_t block_buffer,
 		const Sha256ToShortID_t* short_id_map
 )
 {
 	_short_id_map = short_id_map;
 	_block_buffer = block_buffer;
 	_output_buffer.reset();
-	_output_buffer.reserve(block_buffer->size());
+	_output_buffer.reserve(block_buffer.size());
 	_short_ids.clear();
 }
 
@@ -67,7 +66,7 @@ BTCBlockCompressionTask::short_ids() {
 }
 
 void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
-	utils::protocols::BTCBlockMessage msg(*_block_buffer);
+	utils::protocols::BTCBlockMessage msg(_block_buffer);
 	_prev_block_hash = std::move(msg.prev_block_hash());
 	_block_hash = std::move(msg.block_hash());
 	uint64_t tx_count = 0;
@@ -76,7 +75,7 @@ void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
 	size_t output_offset = sizeof(size_t);
 	output_offset = _output_buffer.copy_from_buffer(
-			*_block_buffer,
+			_block_buffer,
 			output_offset,
 			0,
 			offset
@@ -209,7 +208,7 @@ void BTCBlockCompressionTask::_enqueue_task(
 	TaskData& tdata = _sub_tasks[task_idx];
 	tdata.sub_task->init(
 			_short_id_map,
-			_block_buffer,
+			&_block_buffer,
 			tdata.offsets
 	);
 	sub_pool.enqueue_task(tdata.sub_task);

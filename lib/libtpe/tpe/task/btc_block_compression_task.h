@@ -39,7 +39,7 @@ public:
 	);
 
 	void init(
-			const BlockBuffer_t* block_buffer,
+			BlockBuffer_t block_buffer,
 			const Sha256ToShortID_t* short_id_map
 	);
 
@@ -70,7 +70,7 @@ private:
 
 
 
-	const BlockBuffer_t* _block_buffer;
+	BlockBuffer_t _block_buffer;
 	utils::common::ByteArray _output_buffer;
 	const Sha256ToShortID_t* _short_id_map;
 	SubTasksData_t _sub_tasks;

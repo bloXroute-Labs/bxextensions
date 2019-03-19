@@ -15,8 +15,10 @@ public:
 
   EncryptionTask(size_t plain_capacity = PLAIN_TEXT_DEFAULT_BUFFER_SIZE);
 
-  void init(const EncryptionInputBuffer_t* plain,
-	    const EncryptionInputBuffer_t* key = nullptr);
+  void init(
+		  EncryptionInputBuffer_t plain,
+	      EncryptionInputBuffer_t key = EncryptionInputBuffer_t::empty()
+  );
 
   const utils::common::ByteArray& cipher(void);
   const utils::common::ByteArray & key(void);
@@ -27,7 +29,7 @@ protected:
 private:
 
   utils::crypto::EncryptedMessage _cipher;
-  const EncryptionInputBuffer_t* _plain;
+  utils::common::ByteArray _plain;
   utils::common::ByteArray _key;
 
 };

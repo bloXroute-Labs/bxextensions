@@ -26,6 +26,9 @@ public:
 
   unsigned char* byte_array(void);
   char* char_array(void);
+  const unsigned char* byte_array(void) const;
+  const char* char_array(void) const;
+
   std::vector<uint8_t>* transfer_ownership(void);
 
   void reserve(size_t capacity);

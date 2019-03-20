@@ -37,7 +37,7 @@ static void generate_key_array(
 }
 
 void encrypt(
-		common::ByteArray& plain,
+		const common::ByteArray& plain,
 	    common::ByteArray& key,
 	    EncryptedMessage& cipher
 )

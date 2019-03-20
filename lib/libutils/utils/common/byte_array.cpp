@@ -69,11 +69,18 @@ ByteArray& ByteArray::operator+=(const BufferView& from) {
 }
 
 unsigned char* ByteArray::byte_array() {
-  return &_array->at(0);
+	return &_array->at(0);
 }
 
 char* ByteArray::char_array() {
-  return (char *)&_array->at(0);
+	return (char *)&_array->at(0);
+}
+
+const unsigned char* ByteArray::byte_array(void) const {
+	return &_array->at(0);
+}
+const char* ByteArray::char_array(void) const {
+	return (const char *)&_array->at(0);
 }
 
 std::vector<uint8_t>* ByteArray::transfer_ownership() {

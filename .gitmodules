@@ -1,3 +1,6 @@
 [submodule "lib/pybind11"]
 	path = lib/pybind11
 	url = https://github.com/pybind/pybind11
+[submodule "lib/third_party/googletest"]
+	path = lib/third_party/googletest
+	url = https://github.com/google/googletest

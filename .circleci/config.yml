@@ -20,10 +20,6 @@ jobs:
           command: |
             python -m virtualenv venv
             . venv/bin/activate
-      - persist_to_workspace:
-          root: .
-          paths:
-            - venv
       - run:
           name: Install and test bxextensions
           command: |
@@ -38,6 +34,11 @@ jobs:
             }
             cd bxextensions
             python build_extensions.py
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - bxextensions
   e2e:
     executor: bloxroute-executor
     steps:
@@ -81,7 +82,6 @@ jobs:
       - run:
           name: Initialize virtualenv
           command: |
-            python -m virtualenv venv
             . venv/bin/activate
             pip install -r bxcommon/requirements.txt
             pip install -r bxrelay/requirements.txt
@@ -125,7 +125,9 @@ workflows:
   test-build:
     jobs:
       - test
-      - e2e
+      - e2e:
+          requires:
+            - test
       - build:
           requires:
             - test

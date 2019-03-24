@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(bxextensions)
 add_subdirectory(lib)
-#set(SRC_DIR interface/bxextensions)
 foreach(EXT_MODULE ${EXTENTION_MODULES})
 message("including extension: ${EXT_MODULE}")
 add_subdirectory(${EXT_MODULE})

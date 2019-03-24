@@ -26,6 +26,7 @@ def main(src_dir, build_dir, output_dir, extensions_list, build_type):
     ext_module_dirs = ";".join(os.path.join(extensions_dir, ext) for ext in extensions_list)
     cmake_args = [
         "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(output_dir),
+        "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={}".format(os.path.join(output_dir, "bin")),
         "-DPYTHON_EXECUTABLE={}".format(sys.executable),
         "-DEXTENTION_MODULES={}".format(ext_module_dirs),
         "-DCMAKE_BUILD_TYPE={}".format(build_type)

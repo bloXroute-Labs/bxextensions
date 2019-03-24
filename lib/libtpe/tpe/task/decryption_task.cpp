@@ -1,4 +1,5 @@
 #include <utils/crypto/encryption_helper.h>
+#include <cstring>
 
 #include "tpe/task/decryption_task.h"
 

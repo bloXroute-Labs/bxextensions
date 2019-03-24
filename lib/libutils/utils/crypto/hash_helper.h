@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <vector>
+#include <cassert>
 
 #include "utils/crypto/sha256.h"
 

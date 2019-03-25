@@ -25,14 +25,9 @@ jobs:
           command: |
             cd ~/ws
             . venv/bin/activate
-            { # try
-                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxextensions."
-                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 --recursive git@github.com:bloXroute-Labs/bxextensions.git
-            } || { # catch
-                echo "Trying bxextensions develop branch, could not find identical branch name '$CIRCLE_BRANCH' in bxextensions."
-                git clone -b develop --single-branch --depth=1 --recursive git@github.com:bloXroute-Labs/bxextensions.git
-            }
             cd bxextensions
+            git submodule init
+            git submodule update
             python build_extensions.py --run-tests False
       - run:
           name: Unit tests

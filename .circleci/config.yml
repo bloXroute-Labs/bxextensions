@@ -48,6 +48,7 @@ jobs:
           command: |
             cd ~/ws
             . venv/bin/activate
+            cd bxextensions
             python run_tests.py
   e2e:
     executor: bloxroute-executor

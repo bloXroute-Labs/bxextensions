@@ -21,10 +21,10 @@ jobs:
             python -m virtualenv venv
             . venv/bin/activate
       - run:
-          name: Install and test bxextensions
+          name: Install bxextensions
           command: |
-            . venv/bin/activate
             cd ~/ws
+            . venv/bin/activate
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxextensions."
                 git clone -b $CIRCLE_BRANCH --single-branch --depth=1 --recursive git@github.com:bloXroute-Labs/bxextensions.git
@@ -33,7 +33,13 @@ jobs:
                 git clone -b develop --single-branch --depth=1 --recursive git@github.com:bloXroute-Labs/bxextensions.git
             }
             cd bxextensions
-            python build_extensions.py
+            python build_extensions.py --run-tests False
+      - run:
+          name: Unit tests
+          command: |
+            cd ~/ws
+            . venv/bin/activate
+            python run_tests.py
       - persist_to_workspace:
           root: .
           paths:

@@ -7,12 +7,15 @@ executors:
       PYTHONPATH: /home/circleci/ws/bxextensions
     working_directory: ~/ws
 jobs:
-  test:
+  initialize:
     executor: bloxroute-executor
-    working_directory: ~/ws
     steps:
       - attach_workspace:
           at: ~/ws
+      - run:
+          name: install deps
+          command: |
+            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
       - checkout:
           path:
             "bxextensions"
@@ -29,17 +32,23 @@ jobs:
             git submodule init
             git submodule update
             python build_extensions.py --run-tests False
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - bxextensions
+  test:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
       - run:
           name: Unit tests
           command: |
             cd ~/ws
             . venv/bin/activate
             python run_tests.py
-      - persist_to_workspace:
-          root: .
-          paths:
-            - venv
-            - bxextensions
   e2e:
     executor: bloxroute-executor
     steps:
@@ -125,7 +134,10 @@ workflows:
 
   test-build:
     jobs:
-      - test
+      - initialize
+      - test:
+          requires:
+            - initialize
       - e2e:
           requires:
             - test

@@ -77,7 +77,7 @@ jobs:
           at: ~/ws
       - checkout:
           path:
-            "bxcommon"
+            "bxextensions"
       - run:
           name: Try to clone corresponding branches
           command: |
@@ -88,6 +88,13 @@ jobs:
             } || { # catch
                 echo "Trying bxe2e develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
                 git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxe2e.git
+            }
+            { # try
+                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxcommon."
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
+            } || { # catch
+                echo "Trying bxcommon develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
             }
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxrelay."

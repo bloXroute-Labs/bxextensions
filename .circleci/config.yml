@@ -106,16 +106,18 @@ jobs:
             python -m unittest discover --verbose
   build:
     docker:
-      - image: circleci/python:3.7
+      - image: docker:17.05.0-ce-git
     working_directory: ~/ws
-
     steps:
-      - checkout
+      - checkout:
+          path:
+            "bxextensions"
       - attach_workspace:
           at: ~/ws
       - run:
-          name: Package
-          command: 'echo "Yay build!"'
+          name: Build bxextensions Docker image
+          command: |
+            cd ~/ws/bxextensions && docker build -f Dockerfile .
 
   deploy:
     docker:

@@ -7,10 +7,10 @@ Debug/
 cmake_install.cmake
 Makefile
 CMakeFiles/
-*.so
+/*.so
 !/*/*.so
 *.a
-*.dylib
+/*.dylib
 !/*/*.dylib
 *.log
 .DS_Store

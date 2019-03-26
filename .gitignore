@@ -3,14 +3,15 @@ bin/
 .settings/
 *.egg-info*
 .idea/
-Release/
 Debug/
 cmake_install.cmake
 Makefile
 CMakeFiles/
 *.so
+!/*/*.so
 *.a
 *.dylib
+!/*/*.dylib
 *.log
 .DS_Store
 configure

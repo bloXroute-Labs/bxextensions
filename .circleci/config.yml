@@ -10,21 +10,34 @@ executors:
 jobs:
   initialize:
     executor: bloxroute-executor
+    working_directory: ~/ws
     steps:
       - attach_workspace:
           at: ~/ws
-      - run:
-          name: install deps
-          command: |
-            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
       - checkout:
           path:
             "bxextensions"
       - run: # install and activate virtual environment with pip
-          name: install virtual env
+          name: installing virtual env
           command: |
             python -m virtualenv venv
             . venv/bin/activate
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - bxextensions
+
+  build_extensions:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
       - run:
           name: Install bxextensions
           command: |
@@ -39,7 +52,6 @@ jobs:
           paths:
             - venv
             - bxextensions
-
   test:
     executor: bloxroute-executor
     working_directory: ~/ws
@@ -53,6 +65,9 @@ jobs:
             . venv/bin/activate
             cd bxextensions
             python run_tests.py
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
 
   e2e:
     executor: bloxroute-executor
@@ -62,7 +77,7 @@ jobs:
           at: ~/ws
       - checkout:
           path:
-            "bxextensions"
+            "bxcommon"
       - run:
           name: Try to clone corresponding branches
           command: |
@@ -73,13 +88,6 @@ jobs:
             } || { # catch
                 echo "Trying bxe2e develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
                 git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxe2e.git
-            }
-            { # try
-                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxcommon."
-                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
-            } || { # catch
-                echo "Trying bxcommon develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
-                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
             }
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxrelay."
@@ -111,9 +119,9 @@ jobs:
             python -m unittest discover --verbose
 
   build:
+    working_directory: ~/ws
     docker:
       - image: docker:17.05.0-ce-git
-    working_directory: ~/ws
     steps:
       - checkout:
           path:
@@ -144,19 +152,21 @@ workflows:
   test-build:
     jobs:
       - initialize
+      - build_extensions:
+          requires:
+            - initialize
       - test:
           requires:
-            - initialize
+            - build_extensions
       - e2e:
           requires:
-            - initialize
+            - build_extensions
       - build:
           requires:
             - initialize
           filters:
             branches:
               only: develop
-
       - deploy:
           filters:
             branches:

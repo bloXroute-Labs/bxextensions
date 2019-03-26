@@ -122,7 +122,7 @@ jobs:
           command: |
             . venv/bin/activate
             cd bxe2e/test/integration
-            PYTHONPATH=$PYTHONPATH:/home/circleci/ws/bxe2e/src:/home/circleci/ws/bxgateway/src:/home/circleci/ws/bxrelay/src:/home/circleci/ws/bxcommon
+            PYTHONPATH=$PYTHONPATH:/home/circleci/ws/bxe2e/src:/home/circleci/ws/bxgateway/src:/home/circleci/ws/bxrelay/src:/home/circleci/ws/bxcommon/src
             python -m unittest discover --verbose
 
   build:

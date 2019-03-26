@@ -6,6 +6,7 @@ executors:
     environment:
       PYTHONPATH: /home/circleci/ws/bxextensions
     working_directory: ~/ws
+
 jobs:
   initialize:
     executor: bloxroute-executor
@@ -38,6 +39,7 @@ jobs:
           paths:
             - venv
             - bxextensions
+
   test:
     executor: bloxroute-executor
     working_directory: ~/ws
@@ -51,8 +53,10 @@ jobs:
             . venv/bin/activate
             cd bxextensions
             python run_tests.py
+
   e2e:
     executor: bloxroute-executor
+    working_directory: ~/ws
     steps:
       - attach_workspace:
           at: ~/ws
@@ -105,6 +109,7 @@ jobs:
             cd bxe2e/test/integration
             PYTHONPATH=$PYTHONPATH:/home/circleci/ws/bxe2e/src:/home/circleci/ws/bxgateway/src:/home/circleci/ws/bxrelay/src:/home/circleci/ws/bxcommon
             python -m unittest discover --verbose
+
   build:
     docker:
       - image: docker:17.05.0-ce-git
@@ -147,7 +152,7 @@ workflows:
             - initialize
       - build:
           requires:
-            - test
+            - initialize
           filters:
             branches:
               only: develop
@@ -157,4 +162,4 @@ workflows:
             branches:
               only: develop
           requires:
-            - build
+            - initialize

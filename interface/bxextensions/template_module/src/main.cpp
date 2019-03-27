@@ -13,8 +13,7 @@ namespace py = pybind11;
  * 1. if a collection define it as an OPAQUE (see above) - PYBIND11_MAKE_OPAQUE(std::vector<uint8_t>);
  * 2. bind it inside the interface section - py::bind_vector<std::vector<uint8_t>>(m, "InputBytes");
  */
-PYBIND11_MODULE(test_module, m) {
-
+PYBIND11_MODULE(template_module, m) {
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;

@@ -39,8 +39,9 @@ class CMakeBuild(build_ext):
             ext_module_dirs += ";"
         ext_module_dirs = ext_module_dirs[:-1]
         cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + srcdir,
+                      "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={}".format(os.path.join(srcdir, "bin")),
                       '-DPYTHON_EXECUTABLE=' + sys.executable, 
-                      "-DEXTENTION_MODULES={}".format(ext_module_dirs)]
+                      "-DEXTENSION_MODULES={}".format(ext_module_dirs)]
         cfg = 'Debug' if self.debug else 'Release'
         build_args = ['--config', cfg]
         if platform.system() == "Windows":
@@ -59,6 +60,7 @@ class CMakeBuild(build_ext):
         
         subprocess.check_call(['cmake', srcdir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+
 
 setup(
     name="bxextensions",

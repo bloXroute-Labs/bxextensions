@@ -1,0 +1,182 @@
+version: 2.1
+executors:
+  bloxroute-executor:
+    docker:
+      - image: circleci/python:3.7.0
+    environment:
+      PYTHONPATH: /home/circleci/ws/bxextensions
+    working_directory: ~/ws
+
+jobs:
+  initialize:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - checkout:
+          path:
+            "bxextensions"
+      - run: # install and activate virtual environment with pip
+          name: installing virtual env
+          command: |
+            python -m virtualenv venv
+            . venv/bin/activate
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - bxextensions
+
+  build_extensions:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
+      - run:
+          name: Install bxextensions
+          command: |
+            cd ~/ws
+            . venv/bin/activate
+            cd bxextensions
+            git submodule init
+            git submodule update
+            python build_extensions.py --run-tests False
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv
+            - bxextensions
+  test:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: Unit tests
+          command: |
+            cd ~/ws
+            . venv/bin/activate
+            cd bxextensions
+            python run_tests.py
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
+
+  e2e:
+    executor: bloxroute-executor
+    working_directory: ~/ws
+    steps:
+      - attach_workspace:
+          at: ~/ws
+      - checkout:
+          path:
+            "bxextensions"
+      - run:
+          name: Try to clone corresponding branches
+          command: |
+            cd ~/ws
+            { # try
+                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxe2e."
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxe2e.git
+            } || { # catch
+                echo "Trying bxe2e develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxe2e.git
+            }
+            { # try
+                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxcommon."
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
+            } || { # catch
+                echo "Trying bxcommon develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
+            }
+            { # try
+                echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxrelay."
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxrelay.git
+            } || { # catch
+                echo "Trying bxrelay develop branch, could not find identical branch name '$CIRCLE_BRANCH."
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxrelay.git
+            }
+            { # try
+                echo "Trying to clone identical branch name '$CIRCLE_BRANCH  from bxgateway."
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway.git
+            } || { # catch
+                echo "Trying bxgateway develop branch, could not find identical branch name '$CIRCLE_BRANCH."
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway.git
+            }
+      - run:
+          name: Initialize virtualenv
+          command: |
+            . venv/bin/activate
+            pip install -r bxcommon/requirements.txt
+            pip install -r bxrelay/requirements.txt
+            pip install -r bxgateway/requirements.txt
+      - run:
+          name: Integration Test
+          command: |
+            . venv/bin/activate
+            cd bxe2e/test/integration
+            PYTHONPATH=$PYTHONPATH:/home/circleci/ws/bxe2e/src:/home/circleci/ws/bxgateway/src:/home/circleci/ws/bxrelay/src:/home/circleci/ws/bxcommon/src
+            python -m unittest discover --verbose
+
+  build:
+    working_directory: ~/ws
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout:
+          path:
+            "bxextensions"
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: Build bxextensions Docker image
+          command: |
+            cd ~/ws/bxextensions && docker build -f Dockerfile .
+
+  deploy:
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/ws
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/ws
+      - run:
+          name: Package
+          command: 'echo "Yay deploy!"'
+
+workflows:
+  version: 2
+
+  test-build:
+    jobs:
+      - initialize
+      - build_extensions:
+          requires:
+            - initialize
+      - test:
+          requires:
+            - build_extensions
+      - e2e:
+          requires:
+            - build_extensions
+      - build:
+          requires:
+            - initialize
+          filters:
+            branches:
+              only: develop
+      - deploy:
+          filters:
+            branches:
+              only: develop
+          requires:
+            - initialize

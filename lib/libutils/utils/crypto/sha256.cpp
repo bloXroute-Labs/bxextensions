@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <openssl/sha.h>
+#include <cstring>
 
 #include "utils/crypto/sha256.h"
 #include "utils/common/string_helper.h"

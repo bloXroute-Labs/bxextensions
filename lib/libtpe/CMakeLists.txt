@@ -25,11 +25,18 @@ if(NOT ${${PROJECT_NAME}_TEST_MAIN} STREQUAL ${PROJECT_NAME}_TEST_MAIN-NOTFOUND)
     file(GLOB_RECURSE ${PROJECT_NAME}_TEST_FILES "test/*.cpp")
     add_executable(check_${PROJECT_NAME} ${${PROJECT_NAME}_TEST_FILES})
     target_link_libraries(check_${PROJECT_NAME} gtest_main ${PROJECT_NAME})
-    add_custom_command(
-        TARGET check_${PROJECT_NAME}
-        POST_BUILD
-        COMMAND check_${PROJECT_NAME}
-    )
+    if(NOT "${RUN_TESTS}" STREQUAL "")
+    	string(TOLOWER ${RUN_TESTS} RUN_TESTS)
+    else()
+       set(RUN_TESTS "true")
+    endif()
+    if(${RUN_TESTS} STREQUAL "true")
+        add_custom_command(
+            TARGET check_${PROJECT_NAME}
+            POST_BUILD
+            COMMAND check_${PROJECT_NAME}
+        )
+    endif()
 
 endif()
 

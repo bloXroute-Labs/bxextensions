@@ -7,12 +7,12 @@ docker container rm bxextensions
 ROOT_DIR=$(pwd)
 rm -f ${ROOT_DIR}/*.so
 rm -f ${ROOT_DIR}/*.dylib
+
 echo "Building container..."
-docker build . -f Dockerfile -t bxextensions
-### docker run -it bxextensions sh
+docker build -f Dockerfile -t bxextensions .
+
 echo "running docker container"
 docker run --name bxextensions \
 	--volume ${ROOT_DIR}/release/${OS_RELEASE}:/app/bxextensions/release \
+	--user $(id -u):$(id -g) \
 	bxextensions 
-echo "changing release binaries permissions"
-chown $USER:$GROUP release/${OS_RELEASE}/*.so

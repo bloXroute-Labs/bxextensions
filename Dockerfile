@@ -3,8 +3,8 @@ FROM python:3.7.0-alpine3.8
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
 RUN addgroup -g 503 -S bxextensions && \
 	adduser -u 503 -S -gid bxextensions bxextensions && \
-	mkdir -p /app/bxextensions && \
-	chown -R bxextensions:bxextensions /app/bxextensions 
+	mkdir -p /app/bxextensions && \ 
+        chown -R bxextensions:bxextensions /app/bxextensions
 
 RUN apk update \
  && apk add --no-cache \

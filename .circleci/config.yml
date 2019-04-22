@@ -117,8 +117,12 @@ jobs:
           command: |
             . venv/bin/activate
             pip install -r bxcommon/requirements.txt
+            pip install -r bxcommon/requirements-dev.txt
             pip install -r bxrelay/requirements.txt
+            pip install -r bxrelay/requirements-dev.txt
             pip install -r bxgateway/requirements.txt
+            pip install -r bxgateway/requirements-dev.txt
+            pip install -r bxe2e/scripts/requirements.txt
       - run:
           name: Integration Test
           command: |
@@ -153,7 +157,10 @@ jobs:
             cd ~/ws/bxextensions
             git submodule init
             git submodule update
-            docker build -f Dockerfile .
+            docker build -f Dockerfile-ubuntu-18.04 .
+            docker build -f Dockerfile-centos-7.2 .
+            docker build -f Dockerfile-alpine-3.8 .
+
 
   deploy:
     docker:

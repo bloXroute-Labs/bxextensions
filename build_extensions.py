@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import subprocess
+import json
 
 DEFAULT_SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_BUILD_DIR = os.path.join(DEFAULT_SRC_DIR, "build")
@@ -16,9 +17,20 @@ DEFAULT_EXTENSIONS_LIST = ";".join(
     )
 )
 DEFAULT_BUILD_TYPE = "Release"
-VERSION = "1.0"
+VERSION = "v0.0.0.0"
 DEFAULT_RUN_TESTS = True
 DEFAULT_PACKAGE_INSTALLATION = False
+MANIFEST_FILE_NAME = "MANIFEST.MF"
+
+
+def get_version(src_dir):
+    manifest_path = os.path.join(src_dir, "release", MANIFEST_FILE_NAME)
+    try:
+        with open(manifest_path) as manifest_file:
+            manifest_data = json.load(manifest_file)
+        return manifest_data["source_version"]
+    except (IOError, json.JSONDecodeError):
+        return VERSION
 
 
 def str_to_bool(v):
@@ -53,7 +65,7 @@ def main(
         cmake_args.append("-DINSTALL_TESTS=TRUE")
     env = os.environ.copy()
     build_args = ['-j2']
-    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''), VERSION)
+    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''), get_version(src_dir))
     subprocess.check_call(['cmake', src_dir] + cmake_args, cwd=build_dir, env=env)
     subprocess.check_call(['make', 'install'] + build_args, cwd=build_dir)
 

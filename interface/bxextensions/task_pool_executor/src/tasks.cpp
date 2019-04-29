@@ -34,8 +34,12 @@ void bind_tasks(py::module& m) {
   bind_decryption_task(m);
   bind_btc_block_compression_task(m);
   bind_btc_block_decompression_task(m);
-  bind_test_task(m);
-  bind_w2_task(m);
+#ifdef BUILD_TYPE
+	if (BUILD_TYPE == "TESTING") {
+		  bind_test_task(m);
+		  bind_w2_task(m);
+	}
+#endif
   m.def("enqueue_task", &enqueue_task, R"pbdoc(
 	add task to a thread pool queue
 	)pbdoc");

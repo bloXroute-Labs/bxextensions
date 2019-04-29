@@ -15,15 +15,18 @@ void TestTask::init(unsigned long long t1) {
 }
 
 unsigned long long TestTask::t1() {
-  return _t1;
+	_assert_execution();
+	return _t1;
 }
 
 unsigned long long TestTask::t2() {
-  return _t2;
+	_assert_execution();
+	return _t2;
 }
 
 unsigned long long TestTask::t3() {
-  return _t3;
+	_assert_execution();
+	return _t3;
 }
 
 void TestTask::_execute(SubPool_t& sub_pool) {
@@ -32,8 +35,6 @@ void TestTask::_execute(SubPool_t& sub_pool) {
   _do_something();
   _t3 = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::system_clock::now().time_since_epoch()).count();
-//  std::cout << "t1: " << _t1 << ", t2: " << _t2 <<
-//      ", t3: " << _t3 << std::endl;
 }
 
 void TestTask::_do_something() {

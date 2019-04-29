@@ -2,9 +2,14 @@
 #include <algorithm>
 
 #include "byte_array.h"
+#include "utils/exception/index_error.h"
+
 
 namespace utils {
 namespace common {
+
+typedef exception::IndexError IndexError_t;
+
 
 ByteArray::ByteArray():
   _length(0),
@@ -50,7 +55,7 @@ ByteArray& ByteArray::operator=(ByteArray&& rhs) {
 }
 
 uint8_t& ByteArray::operator[](const size_t idx) {
-	return _array->at(idx);
+	return at(idx);
 }
 
 ByteArray& ByteArray::operator+=(const ByteArray& from) {
@@ -69,18 +74,32 @@ ByteArray& ByteArray::operator+=(const BufferView& from) {
 }
 
 unsigned char* ByteArray::byte_array() {
-	return &_array->at(0);
+	return &at(0);
 }
 
 char* ByteArray::char_array() {
-	return (char *)&_array->at(0);
+	return (char *)&at(0);
+}
+
+uint8_t& ByteArray::at(size_t idx) {
+	if (idx >= _length) {
+		throw IndexError_t(idx, _length);
+	}
+	return _array->at(idx);
+}
+
+const uint8_t& ByteArray::at(size_t idx) const {
+	if (idx >= _length) {
+		throw IndexError_t(idx, _length);
+	}
+	return _array->at(idx);
 }
 
 const unsigned char* ByteArray::byte_array(void) const {
-	return &_array->at(0);
+	return &at(0);
 }
 const char* ByteArray::char_array(void) const {
-	return (const char *)&_array->at(0);
+	return (const char *)&at(0);
 }
 
 std::vector<uint8_t>* ByteArray::transfer_ownership() {
@@ -121,9 +140,8 @@ void ByteArray::from_str(const std::string& src,
   }
 
   clear();
-  memcpy(&char_array()[initial_position],
-	  src.c_str(), src.length());
   _length = src.length() + initial_position;
+  memcpy(&at(initial_position), src.c_str(), src.length());
 }
 
 void ByteArray::from_char_array(const char *src, size_t length,
@@ -133,9 +151,8 @@ void ByteArray::from_char_array(const char *src, size_t length,
   }
 
   clear();
-  memcpy(&char_array()[initial_position],
-	  src, length);
   _length = length + initial_position;
+  memcpy(&at(initial_position), src, length);
 }
 
 void ByteArray::from_array(const std::vector<uint8_t>& src,
@@ -149,9 +166,8 @@ void ByteArray::from_array(const std::vector<uint8_t>& src,
   }
 
   clear();
-  memcpy(&char_array()[initial_position],
-	  &src[0], length);
   _length = length + initial_position;
+  memcpy(&at(initial_position), &src[0], length);
 }
 
 void ByteArray::reset() {
@@ -165,8 +181,13 @@ void ByteArray::resize(size_t length) {
 }
 
 void ByteArray::clear() {
-  memset(&_array->at(0),
-  		 '\0', sizeof(unsigned char) * (_length + 1));
+	if (_length) {
+		  memset(
+				  byte_array(),
+				  '\0',
+				  sizeof(unsigned char) * (_length + 1)
+		  );
+	}
 }
 
 void ByteArray::shift_left(int shift_count) {
@@ -176,7 +197,7 @@ void ByteArray::shift_left(int shift_count) {
   for (unsigned long long idx = shift_count;
       idx < _length ;
       ++idx) {
-      _array->at(idx - shift_count) = _array->at(idx);
+      at(idx - shift_count) = at(idx);
   }
   _length = _length - shift_count;
 }

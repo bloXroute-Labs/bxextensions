@@ -10,7 +10,7 @@
 namespace utils {
 namespace exception {
 
-class DecryptionError : ErrorBase {
+class DecryptionError : public ErrorBase {
 public:
   static const std::string ERROR_TYPE;
 

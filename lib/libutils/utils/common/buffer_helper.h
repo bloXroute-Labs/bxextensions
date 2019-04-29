@@ -39,7 +39,7 @@ size_t get_big_endian_value(
 	std::array<uint8_t, type_size> val_array;
 	memcpy(
 			&val_array[0],
-			&buffer[0],
+			&buffer[offset],
 			type_size
 	);
 	std::reverse(val_array.begin(), val_array.end());

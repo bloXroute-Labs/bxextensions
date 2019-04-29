@@ -16,3 +16,4 @@ CMakeFiles/
 .DS_Store
 configure
 aclocal.m4
+__pycache__/

@@ -10,6 +10,13 @@ InvalidKeyError::InvalidKeyError(const char* key, int expected_length):
 {
 }
 
+InvalidKeyError::InvalidKeyError():
+		ErrorBase(ERROR_TYPE),
+		_key("test key"),
+		_expected_length(32)
+{
+}
+
 const char* InvalidKeyError::what(void) const noexcept {
 	   return common::concatinate(
 			   "invalid key (", _key, ") length - ",

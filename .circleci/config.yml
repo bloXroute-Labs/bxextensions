@@ -34,10 +34,15 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/ws
+      - restore_cache:
+          keys:
+            - build-cache-{{ arch }}-{{ .Branch }}-{{ checksum "~/ws/bxextensions/release/MANIFEST.MF" }}
       - run:
           name: install dependencies
           command: |
-            sudo apt install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
+            sudo apt -y update
+            sudo apt -y upgrade
+            sudo apt -y install build-essential automake autogen autoconf libtool libtool-bin libssl-dev cmake
       - run:
           name: Install bxextensions
           command: |
@@ -47,6 +52,10 @@ jobs:
             git submodule init
             git submodule update
             python build_extensions.py --run-tests False
+      - save_cache:
+          key: build-cache-{{ arch }}-{{ .Branch }}-{{ checksum "~/ws/bxextensions/release/MANIFEST.MF" }}
+          paths:
+            - "~/ws/bxextensions/build"
       - persist_to_workspace:
           root: .
           paths:
@@ -115,8 +124,12 @@ jobs:
           command: |
             . venv/bin/activate
             pip install -r bxcommon/requirements.txt
+            pip install -r bxcommon/requirements-dev.txt
             pip install -r bxrelay/requirements.txt
+            pip install -r bxrelay/requirements-dev.txt
             pip install -r bxgateway/requirements.txt
+            pip install -r bxgateway/requirements-dev.txt
+            pip install -r bxe2e/scripts/requirements.txt
       - run:
           name: Integration Test
           command: |

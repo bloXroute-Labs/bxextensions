@@ -10,11 +10,12 @@
 namespace utils {
 namespace exception {
 
-class InvalidKeyError : ErrorBase {
+class InvalidKeyError : public ErrorBase {
 public:
   static const std::string ERROR_TYPE;
 
   InvalidKeyError(const char* key, int expected_length);
+  InvalidKeyError();
 
   const char* what(void) const noexcept;
 

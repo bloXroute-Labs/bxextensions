@@ -44,7 +44,11 @@ def main(src_dir, build_dir, output_dir, extensions_list, build_type, run_tests)
     ]
     env = os.environ.copy()
     build_args = ["--config", build_type, '--', '-j2']
-    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''), VERSION)
+    if build_type.upper() != "DEBUG" and not run_tests:
+        build_type = "TESTING"
+    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\" -DBUILD_TYPE=\\"{}\\"'.format(
+        env.get('CXXFLAGS', ''), VERSION, build_type.upper()
+    )
     subprocess.check_call(['cmake', src_dir] + cmake_args, cwd=build_dir, env=env)
     subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=build_dir)
 

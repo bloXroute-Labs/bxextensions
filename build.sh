@@ -12,10 +12,10 @@ rm -f ${ROOT_DIR}/*.dylib
 DOCKER_FILE="Dockerfile-$OS_RELEASE"
 
 echo "Building container from $DOCKER_FILE"
-docker build -f "$DOCKER_FILE" -t bxextensions .
+docker build -f ${DOCKER_FILE} -t bxextensions --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
 
 echo "running docker container"
 docker run --name bxextensions \
 	--volume ${ROOT_DIR}/release/${OS_RELEASE}:/app/bxextensions/release \
 	--user $(id -u):$(id -g) \
-	bxextensions 
+	bxextensions

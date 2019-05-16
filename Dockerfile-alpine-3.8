@@ -1,10 +1,10 @@
 FROM python:3.7.0-alpine3.8
 
-# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
-RUN addgroup -g 503 -S bxextensions && \
-	adduser -u 503 -S -gid bxextensions bxextensions && \
-	mkdir -p /app/bxextensions && \
-        chown -R bxextensions:bxextensions /app/bxextensions
+ARG GID=503
+ARG UID=503
+
+RUN mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
 
 RUN apk update \
  && apk add --no-cache \
@@ -42,9 +42,11 @@ RUN pip3 install --upgrade pip setuptools
 
 WORKDIR /app/bxextensions
 COPY docker-entrypoint.sh /usr/local/bin/
-COPY . .
-RUN rm -rf build
+COPY interface/ interface/
+COPY lib/ lib/
+COPY build_extensions.py ./
+COPY CMakeLists.txt ./
+
 
 ENV PYTHONPATH=/app/bxextensions
-RUN python3 build_extensions.py --src-dir /app/bxextensions --package-installation
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

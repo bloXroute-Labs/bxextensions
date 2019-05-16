@@ -1,5 +1,7 @@
 build/
 bin/
+lib/
+include/
 tests/
 .settings/
 *.egg-info*

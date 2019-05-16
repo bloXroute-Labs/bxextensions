@@ -1,12 +1,11 @@
 #FROM centos:centos7.2.1511
 FROM centos
 
-# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+ARG GID=503
+ARG UID=503
 
-RUN groupadd --gid 503 --system bxextensions && \
-       useradd --uid 503 --system --gid 503 bxextensions && \
-       mkdir -p /app/bxextensions && \
-       chown -R bxextensions:bxextensions /app/bxextensions
+RUN mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
 
 RUN yum -y update
 RUN yum -y install yum-utils
@@ -32,10 +31,11 @@ RUN pip3 install --upgrade pip setuptools
 
 WORKDIR /app/bxextensions
 COPY docker-entrypoint.sh /usr/local/bin/
-COPY . .
-RUN rm -rf build
+COPY interface/ interface/
+COPY lib/ lib/
+COPY build_extensions.py ./
+COPY CMakeLists.txt ./
 
 ENV PYTHONPATH=/app/bxextensions
-RUN CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc \
-    python3 build_extensions.py --src-dir /app/bxextensions --package-installation
+ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

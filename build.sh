@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
+docker container rm bxextensions
 set -e
 OS_RELEASE=${1:-alpine-3.8}
 echo "Cleaning container..."
 mkdir -p release/${OS_RELEASE}
 rm -f release/${OS_RELEASE}/*
-docker container rm bxextensions || True
 ROOT_DIR=$(pwd)
 rm -f ${ROOT_DIR}/*.so
 rm -f ${ROOT_DIR}/*.dylib

@@ -9,6 +9,12 @@ TaskNotExecuted::TaskNotExecuted(unsigned long long task_id):
 {
 }
 
+TaskNotExecuted::TaskNotExecuted():
+				ErrorBase_t(ERROR_TYPE),
+				_task_id(0)
+{
+}
+
 const char* TaskNotExecuted::what(void) const noexcept {
 	  return utils::common::concatinate(
 			  	  "task ",

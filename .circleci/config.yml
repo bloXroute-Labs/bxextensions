@@ -34,6 +34,9 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/ws
+      - restore_cache:
+          keys:
+            - build-cache-{{ arch }}-{{ .Branch }}-{{ checksum "~/ws/bxextensions/release/MANIFEST.MF" }}
       - run:
           name: install dependencies
           command: |
@@ -49,6 +52,10 @@ jobs:
             git submodule init
             git submodule update
             python build_extensions.py --run-tests False
+      - save_cache:
+          key: build-cache-{{ arch }}-{{ .Branch }}-{{ checksum "~/ws/bxextensions/release/MANIFEST.MF" }}
+          paths:
+            - "~/ws/bxextensions/build"
       - persist_to_workspace:
           root: .
           paths:

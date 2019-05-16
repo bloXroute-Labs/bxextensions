@@ -64,8 +64,12 @@ def main(
         cmake_args.append("-DCMAKE_INSTALL_RPATH={};{}".format(output_dir, os.path.join(output_dir, "tests")))
         cmake_args.append("-DINSTALL_TESTS=TRUE")
     env = os.environ.copy()
+    if build_type.upper() != "DEBUG" and not run_tests:
+        build_type = "TESTING"
     build_args = ['-j2']
-    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''), get_version(src_dir))
+    env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\" -DBUILD_TYPE=\\"{}\\"'.format(
+        env.get('CXXFLAGS', ''), get_version(src_dir), build_type.upper()
+    )
     subprocess.check_call(['cmake', src_dir] + cmake_args, cwd=build_dir, env=env)
     subprocess.check_call(['make', 'install'] + build_args, cwd=build_dir)
 

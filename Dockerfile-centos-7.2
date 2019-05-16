@@ -4,7 +4,8 @@ FROM centos
 ARG GID=503
 ARG UID=503
 
-RUN mkdir -p /app/bxextensions && \
+RUN useradd --uid ${UID} --system --gid ${GID} bxextensions && \
+    mkdir -p /app/bxextensions && \
     chown -R ${UID}:${GID} /app/bxextensions
 
 RUN yum -y update
@@ -35,6 +36,8 @@ COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
+
+RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
 ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc

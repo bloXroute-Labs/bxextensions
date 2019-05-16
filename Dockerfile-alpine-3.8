@@ -3,7 +3,8 @@ FROM python:3.7.0-alpine3.8
 ARG GID=503
 ARG UID=503
 
-RUN mkdir -p /app/bxextensions && \
+RUN adduser -S -u ${UID} -g ${GID} bxextensions && \
+    mkdir -p /app/bxextensions && \
     chown -R ${UID}:${GID} /app/bxextensions
 
 RUN apk update \
@@ -46,6 +47,8 @@ COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
+
+RUN  chown -R ${UID}:${GID} /app/bxextensions
 
 
 ENV PYTHONPATH=/app/bxextensions

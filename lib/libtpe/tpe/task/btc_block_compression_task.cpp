@@ -12,7 +12,7 @@ BTCBlockCompressionTask::BTCBlockCompressionTask(
 
 ):
 				MainTaskBase(),
-				_short_id_map(nullptr),
+				_tx_service(nullptr),
 				_output_buffer(capacity),
 				_minimal_tx_count(minimal_tx_count),
 				_txn_count(0)
@@ -21,10 +21,10 @@ BTCBlockCompressionTask::BTCBlockCompressionTask(
 
 void BTCBlockCompressionTask::init(
 		BlockBuffer_t block_buffer,
-		const Sha256ToShortID_t* short_id_map
+		PTransactionService_t tx_service
 )
 {
-	_short_id_map = short_id_map;
+	_tx_service = tx_service;
 	_block_buffer = block_buffer;
 	_output_buffer.reset();
 	_output_buffer.reserve(block_buffer.size());
@@ -207,7 +207,7 @@ void BTCBlockCompressionTask::_enqueue_task(
 {
 	TaskData& tdata = _sub_tasks[task_idx];
 	tdata.sub_task->init(
-			_short_id_map,
+			_tx_service,
 			&_block_buffer,
 			tdata.offsets
 	);

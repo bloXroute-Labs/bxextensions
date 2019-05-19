@@ -3,7 +3,7 @@
 #include <utils/common/string_helper.h>
 
 /*
- * checking byte to hex string conversion
+ * checking bytes to hex string conversion
  */
 TEST(StringHelperTest, test_to_hex_string) {
 	const std::string hex_string("05ffa3020100");
@@ -11,6 +11,19 @@ TEST(StringHelperTest, test_to_hex_string) {
 			0x05, 0xff, 0xa3, 0x02, 0x01, 0x00
 	};
 	ASSERT_EQ(hex_string, utils::common::to_hex_string(buf));
+}
+
+/*
+ * checking hex string to bytes conversion
+ */
+TEST(StringHelperTest, test_from_hex_string) {
+	const std::string hex_string("05ffa3020100");
+	const std::vector<uint8_t> ref_buf = {
+			0x05, 0xff, 0xa3, 0x02, 0x01, 0x00
+	};
+	std::vector<uint8_t> buf;
+	utils::common::from_hex_string(hex_string, buf);
+	ASSERT_EQ(ref_buf, buf);
 }
 
 /*

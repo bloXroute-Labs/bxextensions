@@ -8,12 +8,14 @@ namespace py = pybind11;
 #include <cstdint>
 
 #include <tpe/task/btc_task_types.h>
+#include <tpe/service/transaction_service.h>
 
 PYBIND11_MAKE_OPAQUE(task::Sha256ToShortID_t);
 PYBIND11_MAKE_OPAQUE(std::vector<utils::crypto::Sha256>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
-PYBIND11_MAKE_OPAQUE(task::ShortIDToSha256Map_t);
-PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
+PYBIND11_MAKE_OPAQUE(std::unordered_set<unsigned int>);
+PYBIND11_MAKE_OPAQUE(service::Sha256ToContentMap_t);
+PYBIND11_MAKE_OPAQUE(service::ShortIDToSha256Map_t);
 
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
@@ -22,6 +24,7 @@ PYBIND11_MAKE_OPAQUE(task::Sha256ToTxMap_t);
 
 #include "src/errors.h"
 #include "src/tasks.h"
+#include "src/service/transaction_service.h"
 #include "src/byte_array.h"
 #include "src/input_bytes.h"
 
@@ -41,8 +44,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
     py::bind_map<task::Sha256ToShortID_t>(m, "Sha256ToShortIDMap");
     py::bind_vector<std::vector<utils::crypto::Sha256>>(m,"Sha256List");
     py::bind_vector<std::vector<unsigned int>>(m,"UIntList");
-    py::bind_map<task::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
-    py::bind_map<task::Sha256ToTxMap_t>(m, "Sha256ToTxMap");
+    py::bind_map<service::Sha256ToContentMap_t>(m, "Sha256ToContentMap");
+    py::bind_map<service::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
 
     bind_byte_array(m);
 
@@ -50,6 +53,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     // registering errors and binding them to Python error objects
     register_errors(m);
+
+    bind_transaction_service(m);
 
     // calling init for thread pool initialization
     TaskPoolExecutor_t::instance().init();

@@ -14,6 +14,7 @@
 #include <utils/exception/invalid_key_error.h>
 #include <utils/exception/aggregated_exception.h>
 #include <utils/exception/index_error.h>
+#include <utils/exception/key_error.h>
 
 #include "src/errors.h"
 
@@ -23,6 +24,7 @@ typedef utils::exception::EncryptionError EncryptionError_t;
 typedef utils::exception::DecryptionError DecryptionError_t;
 typedef utils::exception::InvalidKeyError InvalidKeyError_t;
 typedef utils::exception::IndexError IndexError_t;
+typedef utils::exception::KeyError KeyError_t;
 typedef utils::exception::CryptoInitializationError CryptoInitializationError_t;
 typedef utils::exception::AggregatedException AggregatedException_t;
 typedef utils::exception::ErrorBase ErrorBase_t;
@@ -57,6 +59,7 @@ void register_errors(py::module& m) {
 	register_error<DecryptionError_t>(m, DecryptionError_t::ERROR_TYPE);
 	register_error<InvalidKeyError_t>(m, InvalidKeyError_t::ERROR_TYPE);
 	register_error<IndexError_t>(m, IndexError_t::ERROR_TYPE);
+	register_error<KeyError_t>(m, KeyError_t::ERROR_TYPE);
 	register_error<CryptoInitializationError_t>(
 			m, CryptoInitializationError_t::ERROR_TYPE
 	);

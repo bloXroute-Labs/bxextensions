@@ -4,20 +4,18 @@
 namespace task {
 
 BTCBlockDecompressionTask::BTCBlockDecompressionTask(
-		const ShortIDToSha256Map_t& short_id_map,
-		const Sha256ToTxMap_t& tx_map,
 		size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/
 ) :
-		_short_id_map(short_id_map),
-		_tx_map(tx_map),
 		_output_buffer(capacity),
 		_block_hash(),
-		_partial_block(false)
+		_partial_block(false),
+		_tx_service(nullptr)
 {
 }
 
 void BTCBlockDecompressionTask::init(
-		const BlockBuffer_t& block_buffer
+		const BlockBuffer_t& block_buffer,
+		PTransactionService_t tx_service
 )
 {
 	_unknown_tx_hashes.clear();
@@ -26,6 +24,7 @@ void BTCBlockDecompressionTask::init(
 	_block_buffer = block_buffer;
 	_block_hash.clear();
 	_partial_block = false;
+	_tx_service = tx_service;
 }
 
 BTCBlockDecompressionTask::BlockMessage_t BTCBlockDecompressionTask::block_message() {
@@ -63,7 +62,7 @@ void BTCBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 			if (tx_data.psha == nullptr) {
 				_unknown_tx_sids.push_back(short_id);
 			} else if (tx_data.ptx == nullptr) {
-				_unknown_tx_hashes.push_back(tx_data.psha);
+				_unknown_tx_hashes.push_back(*tx_data.psha);
 			}
 		} else {
 			size_t from = offset;
@@ -111,13 +110,15 @@ int BTCBlockDecompressionTask::_try_get_tx_data(
 )
 {
 	int ret = -1;
-	auto sha_iter = _short_id_map.find(short_id);
-	if (sha_iter != _short_id_map.end()) {
+	auto& short_id_map = _tx_service->short_id_to_tx_hash();
+	auto sha_iter = short_id_map.find(short_id);
+	if (sha_iter != short_id_map.end()) {
 		ret = 0;
-		const utils::crypto::Sha256& sha = sha_iter->second;
+		const utils::crypto::Sha256& sha = *sha_iter->second;
 		tx_data.psha = &sha;
-		auto tx_iter = _tx_map.find(sha);
-		if (tx_iter != _tx_map.end()) {
+		auto& tx_map = _tx_service->tx_hash_to_contents();
+		auto tx_iter = tx_map.find(sha);
+		if (tx_iter != tx_map.end()) {
 			ret = 1;
 			tx_data.ptx = nullptr; // TODO : fixme
 		}

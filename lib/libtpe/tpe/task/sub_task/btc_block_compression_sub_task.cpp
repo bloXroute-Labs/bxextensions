@@ -12,7 +12,7 @@ namespace task {
 BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 		size_t capacity):
 				SubTaskBase(),
-				_short_id_map(nullptr),
+				_tx_service(nullptr),
 				_output_buffer(capacity),
 				_tx_offsets(nullptr),
 				_block_buffer(nullptr)
@@ -20,12 +20,12 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 }
 
 void BTCBlockCompressionSubTask::init(
-		const Sha256ToShortID_t* short_id_map,
+		PTransactionService_t tx_service,
 		const BlockBuffer_t* block_buffer,
 		POffests_t tx_offsets
 )
 {
-	_short_id_map = short_id_map;
+	_tx_service = tx_service;
 	_block_buffer = block_buffer;
 	_tx_offsets = tx_offsets;
 	_short_ids.clear();
@@ -48,16 +48,14 @@ void BTCBlockCompressionSubTask::_execute()  {
 	size_t output_offset = 0;
 	for (auto& pair : *_tx_offsets) {
 		size_t from = pair.first, offset = pair.second;
-		utils::crypto::Sha256 sha = std::move(
+		const utils::crypto::Sha256 sha = std::move(
 				utils::crypto::double_sha256(
 						*_block_buffer,
 						from,
 						offset - from
 		));
-		auto shaItr = _short_id_map->find(sha);
-		if (shaItr != _short_id_map->end() &&
-				shaItr->second != NULL_TX_SID) {
-			unsigned int short_id = shaItr->second;
+		if (_tx_service->has_short_id(sha)) {
+			unsigned int short_id = _tx_service->get_short_id(sha);
 			uint8_t flag = BTC_SHORT_ID_INDICATOR;
 			output_offset =
 					utils::common::set_little_endian_value<uint8_t>(
@@ -75,7 +73,7 @@ void BTCBlockCompressionSubTask::_execute()  {
 		}
 	}
 
-	_short_id_map = nullptr;
+	_tx_service = nullptr;
 	_tx_offsets = nullptr;
 	_block_buffer = nullptr;
 }

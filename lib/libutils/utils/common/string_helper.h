@@ -31,6 +31,9 @@ std::string concatinate(Args... a_args) {
 }
 
 std::string to_hex_string(const std::vector<uint8_t>& bytes);
+void from_hex_string(
+		const std::string& hex_str, std::vector<uint8_t>& bytes
+);
 
 } // common
 } // utils

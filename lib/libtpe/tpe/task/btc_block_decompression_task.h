@@ -14,6 +14,7 @@
 #define TPE_TASK_BTC_BLOCK_DECOMPRESSION_TASK_H_
 
 namespace task {
+typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 
 class BTCBlockDecompressionTask : public MainTaskBase {
 
@@ -35,12 +36,14 @@ class BTCBlockDecompressionTask : public MainTaskBase {
 
 public:
 	BTCBlockDecompressionTask(
-			const ShortIDToSha256Map_t& short_id_map,
-			const Sha256ToTxMap_t& tx_map,
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE
 	);
 
-	void init(const BlockBuffer_t& block_buffer);
+	void init(
+			const BlockBuffer_t& block_buffer,
+			PTransactionService_t tx_service
+
+	);
 
 	BlockMessage_t block_message(void);
 	const UnknownTxHashes_t& unknown_tx_hashes(void);
@@ -72,8 +75,7 @@ private:
 	UnknownTxHashes_t _unknown_tx_hashes;
 	UnknownTxSIDs_t _unknown_tx_sids;
 	utils::crypto::Sha256 _block_hash;
-	const ShortIDToSha256Map_t& _short_id_map;
-	const Sha256ToTxMap_t& _tx_map;
+	PTransactionService_t _tx_service;
 	volatile bool _partial_block;
 };
 

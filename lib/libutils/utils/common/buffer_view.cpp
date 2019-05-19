@@ -36,10 +36,17 @@ BufferView::BufferView(
 {
 }
 
-BufferView::BufferView(const BufferView& other) :
+BufferView::BufferView(const BufferView& other):
 	_buffer(other._buffer),
 	_size(other._size),
 	_from(other._from)
+{
+}
+
+BufferView::BufferView(BufferView&& rhs):
+			_buffer(rhs._buffer),
+			_size(rhs._size),
+			_from(rhs._from)
 {
 }
 
@@ -47,6 +54,13 @@ BufferView::~BufferView() {
 }
 
 BufferView& BufferView::operator=(const BufferView& other) {
+	_buffer = other._buffer;
+	_from = other._from;
+	_size = other._size;
+	return *this;
+}
+
+BufferView& BufferView::operator=(BufferView&& other) {
 	_buffer = other._buffer;
 	_from = other._from;
 	_size = other._size;
@@ -91,6 +105,10 @@ size_t BufferView::size(void) const {
 BufferView BufferView::empty() {
 	static BufferView empty_buffer;
 	return empty_buffer;
+}
+
+void* BufferView::ptr() {
+	return (void *)_buffer;
 }
 
 void BufferView::_set_buffer(const uint8_t* buffer, size_t size) {

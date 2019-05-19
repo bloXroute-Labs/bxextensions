@@ -11,6 +11,7 @@
 #include "tpe/task/main_task_base.h"
 #include "tpe/consts.h"
 
+
 #ifndef TPE_TASK_BTC_BLOCK_COMPRESSION_TASK_H_
 #define TPE_TASK_BTC_BLOCK_COMPRESSION_TASK_H_
 
@@ -40,7 +41,7 @@ public:
 
 	void init(
 			BlockBuffer_t block_buffer,
-			const Sha256ToShortID_t* short_id_map
+			PTransactionService_t tx_service
 	);
 
 	const utils::common::ByteArray& bx_block(void);
@@ -72,7 +73,7 @@ private:
 
 	BlockBuffer_t _block_buffer;
 	utils::common::ByteArray _output_buffer;
-	const Sha256ToShortID_t* _short_id_map;
+	PTransactionService_t _tx_service;
 	SubTasksData_t _sub_tasks;
 	const size_t _minimal_tx_count;
 	utils::crypto::Sha256 _prev_block_hash, _block_hash;

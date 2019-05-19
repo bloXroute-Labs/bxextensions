@@ -31,8 +31,16 @@ static void calculate_sha256(
 	out_hash = get_hash(out_sha256);
 }
 
-Sha256::Sha256(): _sha256(SHA256_DIGEST_LENGTH), _hash(0) {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+Sha256::Sha256(const std::string& hex_string/* = ""*/):
+		_sha256(SHA256_DIGEST_LENGTH),
+		_hash(0)
+{
+	if (hex_string.size() == 2 * SHA256_DIGEST_LENGTH) {
+		common::from_hex_string(hex_string, _sha256);
+		_hash = get_hash(_sha256);
+	} else {
+		_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+	}
 }
 
 Sha256::Sha256(
@@ -152,11 +160,15 @@ bool Sha256::operator==(const Sha256& other) const {
 			other._sha256.begin());
 }
 
-const std::vector<uint8_t>& Sha256::sha256() const {
-	return _sha256;
+common::BufferView Sha256::sha256() const {
+	return std::move(common::BufferView(_sha256));
 }
 
 std::string Sha256::repr(void) const {
+	return common::concatinate("Sha256: ", hex_string());
+}
+
+std::string Sha256::hex_string(void) const {
 	return common::to_hex_string(_sha256);
 }
 

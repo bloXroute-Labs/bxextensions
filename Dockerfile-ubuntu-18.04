@@ -3,7 +3,9 @@ FROM ubuntu:18.04
 ARG GID=503
 ARG UID=503
 
-RUN adduser -uid ${UID} -system -gid ${GID} bxextensions && \
+RUN if [ $(grep ":${GID}:" /etc/group | wc -l) == 0 ]; then addgroup -system -gid ${GID} bxextensions; fi
+
+RUN if [ $(grep ":${UID}:" /etc/passwd | wc -l) == 0 ]; then adduser -uid ${UID} -system -gid ${GID} bxextensions; fi  && \
     mkdir -p /app/bxextensions && \
     chown -R ${UID}:${GID} /app/bxextensions
 

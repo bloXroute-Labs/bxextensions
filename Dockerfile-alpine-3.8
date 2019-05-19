@@ -3,7 +3,9 @@ FROM python:3.7.0-alpine3.8
 ARG GID=503
 ARG UID=503
 
-RUN adduser -S -u ${UID} -g ${GID} bxextensions && \
+RUN if [ $(grep ":${GID}:" /etc/group | wc -l) == 0 ]; then addgroup -S -g ${GID} bxextensions; fi
+
+RUN if [ $(grep ":${UID}:" /etc/passwd | wc -l) == 0 ]; then adduser -u ${UID} -S -g ${GID} bxextensions; fi  && \
     mkdir -p /app/bxextensions && \
     chown -R ${UID}:${GID} /app/bxextensions
 

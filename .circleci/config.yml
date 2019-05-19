@@ -164,9 +164,9 @@ jobs:
             cd ~/ws/bxextensions
             git submodule init
             git submodule update
-            docker build -f Dockerfile-ubuntu-18.04 .
-            docker build -f Dockerfile-centos-7.2 .
-            docker build -f Dockerfile-alpine-3.8 .
+            docker build -f Dockerfile-ubuntu-18.04 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
+            docker build -f Dockerfile-centos-7.2 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
+            docker build -f Dockerfile-alpine-3.8 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
 
 
   deploy:

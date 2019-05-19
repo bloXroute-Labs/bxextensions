@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(bxextensions)
+option(INSTALL_GTEST OFF)
 add_subdirectory(lib)
 if("${EXTENSION_MODULES}" STREQUAL "")
     set(EXTENSION_MODULES "")

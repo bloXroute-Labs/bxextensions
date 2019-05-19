@@ -1,0 +1,52 @@
+FROM ubuntu:18.04
+
+ARG GID=503
+ARG UID=503
+
+RUN adduser -uid ${UID} -system -gid ${GID} bxextensions && \
+    mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
+
+RUN apt update \
+ &&  apt upgrade -y
+
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true
+RUN apt install -y tzdata
+
+RUN apt install -y  \
+# grab su-exec for easy step-down from root
+       git \
+# grab bash for the convenience
+       bash \
+# grab requirements for bxextenstions
+       gcc libc-dev make \
+       build-essential \
+       gfortran \
+       libfreetype6-dev \
+       libopenblas-dev \
+       tcl \
+       tk \
+       python3 \
+       python3-pip \
+       python3-dev \
+       musl \
+       automake \
+       autoconf \
+       libtool \
+       libssl-dev \
+       cmake
+
+#upgrade pip
+RUN pip3 install --upgrade pip setuptools
+
+WORKDIR /app/bxextensions
+COPY docker-entrypoint.sh /usr/local/bin/
+COPY interface/ interface/
+COPY lib/ lib/
+COPY build_extensions.py ./
+COPY CMakeLists.txt ./
+
+RUN chown -R ${UID}:${GID} /app/bxextensions
+
+ENV PYTHONPATH=/app/bxextensions
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

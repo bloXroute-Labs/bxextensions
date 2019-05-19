@@ -27,8 +27,8 @@ class TaskPoolExecutorTest(unittest.TestCase):
 def main():
     print("\n\n***********************CPP TESTS***************************\n\n")
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    bin_dir = os.path.join(root_dir, "bin")
-    test_exec_files = glob.glob(os.path.join(bin_dir, "check_*"))
+    tests_dir = os.path.join(root_dir, "tests")
+    test_exec_files = glob.glob(os.path.join(tests_dir, "check_*"))
     for test_exec_file in test_exec_files:
         subprocess.check_call(test_exec_file)
     print("\n\n**********************Python TESTS*************************\n\n")

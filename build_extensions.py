@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import subprocess
+import json
 
 DEFAULT_SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_BUILD_DIR = os.path.join(DEFAULT_SRC_DIR, "build")
@@ -16,8 +17,20 @@ DEFAULT_EXTENSIONS_LIST = ";".join(
     )
 )
 DEFAULT_BUILD_TYPE = "Release"
-VERSION = "1.0"
+VERSION = "v0.0.0.0"
 DEFAULT_RUN_TESTS = True
+DEFAULT_PACKAGE_INSTALLATION = False
+MANIFEST_FILE_NAME = "MANIFEST.MF"
+
+
+def get_version(src_dir):
+    manifest_path = os.path.join(src_dir, "release", MANIFEST_FILE_NAME)
+    try:
+        with open(manifest_path) as manifest_file:
+            manifest_data = json.load(manifest_file)
+        return manifest_data["source_version"]
+    except (IOError, json.JSONDecodeError):
+        return VERSION
 
 
 def str_to_bool(v):
@@ -29,28 +42,36 @@ def str_to_bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def main(src_dir, build_dir, output_dir, extensions_list, build_type, run_tests):
+def main(
+        src_dir, build_dir, output_dir, extensions_list, build_type, run_tests, packages_installation
+):
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
     extensions_dir = os.path.join(src_dir, "interface", "bxextensions")
     ext_module_dirs = ";".join(os.path.join(extensions_dir, ext) for ext in extensions_list)
     cmake_args = [
-        "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(output_dir),
-        "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY={}".format(os.path.join(output_dir, "bin")),
+        "-DCMAKE_INSTALL_PREFIX={}".format(output_dir),
         "-DPYTHON_EXECUTABLE={}".format(sys.executable),
+        "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE",
         "-DEXTENSION_MODULES={}".format(ext_module_dirs),
         "-DRUN_TESTS={}".format(run_tests),
         "-DCMAKE_BUILD_TYPE={}".format(build_type)
     ]
+    if packages_installation:
+        cmake_args.append("-DCMAKE_INSTALL_RPATH=.;..")
+        cmake_args.append("-DINSTALL_TESTS=FALSE")
+    else:
+        cmake_args.append("-DCMAKE_INSTALL_RPATH={};{}".format(output_dir, os.path.join(output_dir, "tests")))
+        cmake_args.append("-DINSTALL_TESTS=TRUE")
     env = os.environ.copy()
-    build_args = ["--config", build_type, '--', '-j2']
     if build_type.upper() != "DEBUG" and not run_tests:
         build_type = "TESTING"
+    build_args = ['-j2']
     env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\" -DBUILD_TYPE=\\"{}\\"'.format(
-        env.get('CXXFLAGS', ''), VERSION, build_type.upper()
+        env.get('CXXFLAGS', ''), get_version(src_dir), build_type.upper()
     )
     subprocess.check_call(['cmake', src_dir] + cmake_args, cwd=build_dir, env=env)
-    subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=build_dir)
+    subprocess.check_call(['make', 'install'] + build_args, cwd=build_dir)
 
 
 if __name__ == "__main__":
@@ -94,6 +115,12 @@ if __name__ == "__main__":
         type=str_to_bool,
         default=DEFAULT_RUN_TESTS
     )
+    parser.add_argument(
+        "--package-installation",
+        help="if true than targets will be linked with relative paths (default: {})".format(DEFAULT_PACKAGE_INSTALLATION),
+        action="store_true",
+        default=DEFAULT_PACKAGE_INSTALLATION
+    )
     args = parser.parse_args()
 
     main(
@@ -102,5 +129,6 @@ if __name__ == "__main__":
         args.output_dir,
         args.extensions_list.split(";"),
         args.build_type,
-        args.run_tests
+        args.run_tests,
+        args.package_installation
     )

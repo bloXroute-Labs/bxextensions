@@ -1,0 +1,44 @@
+#FROM centos:centos7.2.1511
+FROM centos
+
+ARG GID=503
+ARG UID=503
+
+RUN useradd --uid ${UID} --system --gid ${GID} bxextensions && \
+    mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
+
+RUN yum -y update
+RUN yum -y install yum-utils
+RUN yum -y groupinstall development
+RUN yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+RUN yum -y install python36-devel python36-pip
+#RUN yum -y install libtool
+#RUN yum -y install  gcc
+#RUN yum -y install gcc-c++
+RUN yum -y install cmake3
+RUN yum -y install openssl-devel
+#RUN yum -y clean all
+
+RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
+RUN yum -y install centos-release-scl devtoolset-7-gcc
+RUN yum -y install centos-release-scl-rh
+RUN yum -y --enablerepo=centos-sclo-rh-testing install devtoolset-7-gcc devtoolset-7-gcc-c++
+RUN /opt/rh/devtoolset-7/enable
+RUN g++ --version
+
+#upgrade pip
+RUN pip3 install --upgrade pip setuptools
+
+WORKDIR /app/bxextensions
+COPY docker-entrypoint.sh /usr/local/bin/
+COPY interface/ interface/
+COPY lib/ lib/
+COPY build_extensions.py ./
+COPY CMakeLists.txt ./
+
+RUN chown -R ${UID}:${GID} /app/bxextensions
+
+ENV PYTHONPATH=/app/bxextensions
+ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

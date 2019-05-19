@@ -38,5 +38,18 @@ if(NOT ${${PROJECT_NAME}_TEST_MAIN} STREQUAL ${PROJECT_NAME}_TEST_MAIN-NOTFOUND)
         )
     endif()
 
+    if(${INSTALL_TESTS} STREQUAL "TRUE")
+        install(
+                TARGETS check_${PROJECT_NAME}
+                RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/tests
+        )
+    endif()
+
+
 endif()
 
+
+install(
+        TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}
+)

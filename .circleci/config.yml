@@ -164,7 +164,10 @@ jobs:
             cd ~/ws/bxextensions
             git submodule init
             git submodule update
-            docker build -f Dockerfile .
+            docker build -f Dockerfile-ubuntu-18.04 .
+            docker build -f Dockerfile-centos-7.2 .
+            docker build -f Dockerfile-alpine-3.8 .
+
 
   deploy:
     docker:

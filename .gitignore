@@ -1,6 +1,7 @@
 build/
 bin/
-lib/
+cmake/
+pkgconfig/
 include/
 tests/
 .settings/

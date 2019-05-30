@@ -11,11 +11,12 @@ namespace exception {
 
 typedef utils::exception::ErrorBase ErrorBase_t;
 
-class TaskNotCompleted : ErrorBase_t {
+class TaskNotCompleted : public ErrorBase_t {
 public:
   static const std::string ERROR_TYPE;
 
   TaskNotCompleted(unsigned long long task_id);
+  TaskNotCompleted();
 
   const char* what(void) const noexcept;
 

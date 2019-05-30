@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <list>
+#include <memory>
 
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>
@@ -9,19 +10,21 @@
 #include "tpe/task/sub_task/sub_task_base.h"
 #include "tpe/task/btc_task_types.h"
 
+
 #ifndef TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
 #define TPE_TASK_SUB_TASK_BTC_BLOCK_COMPRESSION_SUB_TASK_H_
 
 namespace task {
 
+typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
+
 class BTCBlockCompressionSubTask : public SubTaskBase {
-	typedef std::shared_ptr<const TXOffsets_t> POffests_t;
 
 public:
 	BTCBlockCompressionSubTask(size_t capacity);
 
 	void init(
-			const Sha256ToShortID_t* short_id_map,
+			PTransactionService_t tx_service,
 			const BlockBuffer_t* block_buffer,
 			POffests_t tx_offsets
 	);
@@ -38,7 +41,7 @@ private:
 	utils::common::ByteArray _output_buffer;
 	const BlockBuffer_t* _block_buffer;
 	POffests_t _tx_offsets;
-	const Sha256ToShortID_t* _short_id_map;
+	PTransactionService_t _tx_service;
 	std::vector<unsigned int> _short_ids;
 };
 

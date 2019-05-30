@@ -3,10 +3,24 @@ import re
 import sys
 import platform
 import subprocess
+import json
 
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from distutils.version import LooseVersion
+
+VERSION = "v0.0.0.0"
+MANIFEST_FILE_NAME = "MANIFEST.MF"
+
+
+def get_version(src_dir):
+    manifest_path = os.path.join(src_dir, "release", MANIFEST_FILE_NAME)
+    try:
+        with open(manifest_path) as manifest_file:
+            manifest_data = json.load(manifest_file)
+        return manifest_data["source_version"]
+    except (IOError, json.JSONDecodeError):
+        return VERSION
 
 
 class CMakeExtension(Extension):
@@ -38,19 +52,24 @@ class CMakeBuild(build_ext):
             ext_module_dirs += os.path.join(ext_modules_root, ext.name)
             ext_module_dirs += ";"
         ext_module_dirs = ext_module_dirs[:-1]
-        cmake_args = ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + srcdir,
-                      '-DPYTHON_EXECUTABLE=' + sys.executable, 
-                      "-DEXTENTION_MODULES={}".format(ext_module_dirs)]
+        cmake_args = [
+            "-DCMAKE_INSTALL_PREFIX={}".format(srcdir),
+            "-DPYTHON_EXECUTABLE={}".format(sys.executable),
+            "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE",
+            "-DEXTENSION_MODULES={}".format(ext_module_dirs),
+            "-DRUN_TESTS=TRUE",
+            "-DCMAKE_INSTALL_RPATH={};{}".format(srcdir, os.path.join(srcdir, "tests")),
+            "-DINSTALL_TESTS=FALSE"
+        ]
         cfg = 'Debug' if self.debug else 'Release'
-        build_args = ['--config', cfg]
+        build_args = []
         if platform.system() == "Windows":
-            cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), srcdir)]
+            cmake_args += ['-DCMAKE_INSTALL_PREFIX_{}={}'.format(cfg.upper(), srcdir)]
             if sys.maxsize > 2**32:
                 cmake_args += ['-A', 'x64']
-            build_args += ['--', '/m']
         else:
             cmake_args += ['-DCMAKE_BUILD_TYPE=' + cfg]
-            build_args += ['--', '-j2']
+            build_args += ['-j2']
         env = os.environ.copy()
         env['CXXFLAGS'] = '{} -DVERSION_INFO=\\"{}\\"'.format(env.get('CXXFLAGS', ''),
                                                               self.distribution.get_version())
@@ -58,11 +77,11 @@ class CMakeBuild(build_ext):
             os.makedirs(self.build_temp)
         
         subprocess.check_call(['cmake', srcdir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['make', 'install'] + build_args, cwd=self.build_temp)
 
 setup(
     name="bxextensions",
-    version="0.0.1",
+    version=get_version(os.path.abspath("")),
     author="Avraham Mahfuda",
     author_email="avraham.mahfuda@bloxroute.com",
     description="bloXroute c++ python extension modules",

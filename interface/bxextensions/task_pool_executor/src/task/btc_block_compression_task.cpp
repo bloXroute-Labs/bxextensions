@@ -4,15 +4,15 @@
 #include <utils/crypto/hash_helper.h>
 
 void bind_btc_block_compression_task(py::module& m) {
-	py::class_<utils::crypto::Sha256>(m, "Sha256")
+	py::class_<Sha256_t, PSha256_t>(m, "Sha256")
 			.def(py::init<const utils::common::BufferView&>())
 			.def("__repr__", &utils::crypto::Sha256::repr)
-			.def_property_readonly(
+			.def(
 					"binary",
 					 &utils::crypto::Sha256::sha256
 			)
 			.def("__len__", &utils::crypto::Sha256::size)
-			.def("hex_string", &utils::crypto::Sha256::repr);
+			.def("hex_string", &utils::crypto::Sha256::hex_string);
 
 	m.def("double_sha256", [](const utils::common::BufferView& buf) {
 		return utils::crypto::double_sha256(buf, 0, buf.size());
@@ -36,5 +36,8 @@ void bind_btc_block_compression_task(py::module& m) {
 	  .def("block_hash", &BTCBlockCompressionTask_t::block_hash)
 	  .def("compressed_block_hash", &BTCBlockCompressionTask_t::compressed_block_hash)
 	  .def("txn_count", &BTCBlockCompressionTask_t::txn_count)
-	  .def("short_ids", &BTCBlockCompressionTask_t::short_ids);
+	  .def(
+			  "short_ids",
+			  &BTCBlockCompressionTask_t::short_ids
+	  );
 }

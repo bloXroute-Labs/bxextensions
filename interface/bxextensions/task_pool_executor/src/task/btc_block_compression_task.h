@@ -11,6 +11,8 @@ namespace py = pybind11;
 
 typedef task::BTCBlockCompressionTask BTCBlockCompressionTask_t;
 typedef std::shared_ptr<BTCBlockCompressionTask_t> PBTCBlockCompressionTask_t;
+typedef utils::crypto::Sha256 Sha256_t;
+typedef std::shared_ptr<Sha256_t> PSha256_t;
 
 void bind_btc_block_compression_task(py::module& m);
 

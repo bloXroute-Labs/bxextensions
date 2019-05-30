@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "utils/common/buffer_view.h"
+#include "utils/common/default_map.h"
 
 #ifndef UTILS_CRYPTO_SHA256_H_
 #define UTILS_CRYPTO_SHA256_H_
@@ -13,7 +14,7 @@ namespace crypto {
 
 class Sha256 {
 public:
-	Sha256();
+	Sha256(const std::string& hex_string = "");
 	Sha256(const std::vector<uint8_t>& data,
 			size_t from,
 			size_t length);
@@ -42,12 +43,13 @@ public:
 	void reverse(void);
 	void clear(void);
 
-	const std::vector<uint8_t>& sha256(void) const;
+	common::BufferView sha256(void) const;
 
 	size_t size(void) const;
 	size_t hash(void) const;
 
 	std::string repr(void) const;
+	std::string hex_string(void) const;
 
 private:
 	std::vector<uint8_t> _sha256;
@@ -66,6 +68,13 @@ public:
 
 template <typename T>
 using Sha256Map_t = std::unordered_map<
+		Sha256,
+		T,
+		Sha256Hasher,
+		Sha256Equal>;
+
+template <typename T>
+using Sha256DefaultMap_t = common::DefaultMap<
 		Sha256,
 		T,
 		Sha256Hasher,

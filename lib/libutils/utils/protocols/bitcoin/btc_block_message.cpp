@@ -102,18 +102,7 @@ size_t BTCBlockMessage::get_tx_count(
 	);
 }
 
-size_t BTCBlockMessage::get_tx_sid(
-		size_t offset,
-		uint64_t& short_id
-)
-{
-	return get_varint(
-			short_id,
-			offset + 1
-	);
-}
-
-crypto::Sha256 BTCBlockMessage::block_hash(void) const {
+crypto::Sha256 BTCBlockMessage::block_hash() const {
 	return std::move(
 			crypto::double_sha256(
 					_buffer,
@@ -122,10 +111,18 @@ crypto::Sha256 BTCBlockMessage::block_hash(void) const {
 			));
 }
 
-crypto::Sha256 BTCBlockMessage::prev_block_hash(void) const {
+crypto::Sha256 BTCBlockMessage::prev_block_hash() const {
 	crypto::Sha256 sha(_buffer, BTC_PREV_BLOCK_OFFSET);
 	sha.reverse();
 	return std::move(sha);
+}
+
+uint32_t BTCBlockMessage::get_block_size() const {
+	uint32_t block_size = 0;
+	common::get_little_endian_value<uint32_t>(
+			_buffer, block_size, BTC_BLOCK_LENGTH_OFFSET
+	);
+	return block_size;
 }
 
 bool BTCBlockMessage::is_sid_tx(size_t offset) {

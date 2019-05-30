@@ -13,7 +13,7 @@ namespace common {
 class ByteArray {
 public:
   ByteArray();
-  ByteArray(size_t length);
+  ByteArray(size_t capacity);
   ByteArray(const ByteArray& other) = delete;
   ByteArray(ByteArray&& rhs);
   ~ByteArray();
@@ -26,6 +26,8 @@ public:
 
   unsigned char* byte_array(void);
   char* char_array(void);
+  uint8_t& at(size_t idx);
+  const uint8_t& at(size_t idx) const;
   const unsigned char* byte_array(void) const;
   const char* char_array(void) const;
 

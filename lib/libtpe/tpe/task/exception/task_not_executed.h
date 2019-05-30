@@ -16,6 +16,7 @@ public:
   static const std::string ERROR_TYPE;
 
   TaskNotExecuted(unsigned long long task_id);
+  TaskNotExecuted();
 
   const char* what(void) const noexcept;
 

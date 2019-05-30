@@ -9,22 +9,30 @@ void bind_btc_block_decompression_task(py::module& m) {
 	BTCBlockDecompressionTask_t,
 	MainTaskBase_t,
 	PBTCBlockDecompressionTask_t>(m, "BTCBlockDecompressionTask")
-	  .def(py::init<
-			  const task::ShortIDToSha256Map_t&,
-			  const task::Sha256ToTxMap_t&,
-			  size_t
-			  >(),
+	  .def(py::init<size_t, size_t>(),
 			  "initializing",
-			  py::arg("short_id_map"),
-			  py::arg("tx_map"),
-			  py::arg("capacity") = BTC_DEFAULT_BLOCK_SIZE)
+			  py::arg("capacity") = BTC_DEFAULT_BLOCK_SIZE,
+			  py::arg("minimal_tx_count") = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
+	  )
 	  .def(
 			  "block_message",
-			  &BTCBlockDecompressionTask_t::block_message,
+			  &BTCBlockDecompressionTask_t::btc_block,
 			  py::return_value_policy::reference
 	  )
 	  .def("block_hash", &BTCBlockDecompressionTask_t::block_hash)
-	  .def("unknown_tx_hashes", &BTCBlockDecompressionTask_t::unknown_tx_hashes)
-	  .def("unknown_tx_sids", &BTCBlockDecompressionTask_t::unknown_tx_sids)
+	  .def("tx_count", &BTCBlockDecompressionTask_t::tx_count)
+	  .def("success", &BTCBlockDecompressionTask_t::success)
+	  .def(
+			  "short_ids",
+			  &BTCBlockDecompressionTask_t::short_ids
+	  )
+	  .def(
+			  "unknown_tx_hashes",
+			  &BTCBlockDecompressionTask_t::unknown_tx_hashes
+	  )
+	  .def(
+			  "unknown_tx_sids",
+			  &BTCBlockDecompressionTask_t::unknown_tx_sids
+	  )
 	  .def("init", &BTCBlockDecompressionTask_t::init);
 }

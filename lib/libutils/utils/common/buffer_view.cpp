@@ -1,7 +1,11 @@
 #include "utils/common/buffer_view.h"
+#include "utils/exception/index_error.h"
 
 namespace utils {
 namespace common {
+
+typedef exception::IndexError IndexError_t;
+
 
 BufferView::BufferView() :
 	_buffer(nullptr),
@@ -32,10 +36,40 @@ BufferView::BufferView(
 {
 }
 
+BufferView::BufferView(
+		const BufferView& src, size_t length, size_t from
+):
+		_buffer(src._buffer),
+		_from(from),
+		_size(length)
+{
+}
+
+BufferView::BufferView(const BufferView& other):
+	_buffer(other._buffer),
+	_size(other._size),
+	_from(other._from)
+{
+}
+
+BufferView::BufferView(BufferView&& rhs):
+			_buffer(rhs._buffer),
+			_size(rhs._size),
+			_from(rhs._from)
+{
+}
+
 BufferView::~BufferView() {
 }
 
 BufferView& BufferView::operator=(const BufferView& other) {
+	_buffer = other._buffer;
+	_from = other._from;
+	_size = other._size;
+	return *this;
+}
+
+BufferView& BufferView::operator=(BufferView&& other) {
 	_buffer = other._buffer;
 	_from = other._from;
 	_size = other._size;
@@ -51,19 +85,18 @@ const uint8_t& BufferView::operator[](size_t idx) const {
 }
 
 const uint8_t& BufferView::at(size_t idx) const {
-	idx += _from;
 	if (idx >= _size) {
-		throw std::runtime_error("index out of the array bounds");
+		throw IndexError_t(idx, _size);
 	}
-	return _buffer[idx];
+	return this->operator [](idx);
 }
 
 const char* BufferView::char_array(void) const {
-	return (const char*)_buffer;
+	return (const char*)&_buffer[_from];
 }
 
 const unsigned char* BufferView::byte_array(void) const {
-	return _buffer;
+	return &_buffer[_from];
 }
 
 BufferView::const_iterator BufferView::begin() const {
@@ -81,6 +114,10 @@ size_t BufferView::size(void) const {
 BufferView BufferView::empty() {
 	static BufferView empty_buffer;
 	return empty_buffer;
+}
+
+void* BufferView::ptr() {
+	return (void *)_buffer;
 }
 
 void BufferView::_set_buffer(const uint8_t* buffer, size_t size) {

@@ -1,8 +1,12 @@
 build/
+bin/
+cmake/
+pkgconfig/
+include/
+tests/
 .settings/
 *.egg-info*
 .idea/
-Release/
 Debug/
 cmake_install.cmake
 Makefile
@@ -14,3 +18,4 @@ CMakeFiles/
 .DS_Store
 configure
 aclocal.m4
+__pycache__/

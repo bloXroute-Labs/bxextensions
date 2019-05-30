@@ -1,4 +1,5 @@
 #include <utils/crypto/encryption_helper.h>
+#include <cstring>
 
 #include "tpe/task/decryption_task.h"
 
@@ -30,7 +31,7 @@ void DecryptionTask::init(
 }
 
 const utils::common::ByteArray& DecryptionTask::plain() {
-	_assert_execution();
+	assert_execution();
 	return _plain;
 }
 

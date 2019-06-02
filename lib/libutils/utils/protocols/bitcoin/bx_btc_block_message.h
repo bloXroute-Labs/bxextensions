@@ -20,6 +20,9 @@ public:
 	size_t get_tx_count(uint64_t& tx_count);
 	void deserialize_short_ids(std::vector<unsigned int>& short_ids);
 
+	static uint32_t
+	get_original_block_size(const common::BufferView& buffer);
+
 	static constexpr size_t offset_diff = sizeof(uint64_t);
 private:
 	common::BufferView _bx_block;

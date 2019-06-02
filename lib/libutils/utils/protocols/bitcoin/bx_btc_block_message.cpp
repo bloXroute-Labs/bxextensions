@@ -68,5 +68,19 @@ void BxBtcBlockMessage::deserialize_short_ids(
 	}
 }
 
+uint32_t
+BxBtcBlockMessage::get_original_block_size(
+		const common::BufferView& buffer
+)
+{
+	uint32_t block_size = 0;
+	utils::common::get_little_endian_value<uint32_t>(
+			buffer,
+			block_size,
+			offset_diff + BTC_BLOCK_LENGTH_OFFSET
+	);
+	return block_size + BTC_HDR_COMMON_OFFSET;
+}
+
 } // protocols
 } // utils

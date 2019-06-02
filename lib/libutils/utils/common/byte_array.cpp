@@ -111,6 +111,10 @@ size_t ByteArray::length() const {
   return _length;
 }
 
+size_t ByteArray::capacity(void) const {
+	return _capacity;
+}
+
 const std::vector<ssize_t>& ByteArray::shape(void) const {
 	return _shape;
 }
@@ -248,7 +252,9 @@ size_t ByteArray::copy_from_buffer(
 )
 {
 	size_t total_length = offset + length;
-	resize(total_length);
+	if (total_length > _length) {
+		resize(total_length);
+	}
 	memcpy(&byte_array()[offset], &buffer.at(from), length);
 	return total_length;
 }

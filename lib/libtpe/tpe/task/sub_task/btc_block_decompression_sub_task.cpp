@@ -3,6 +3,7 @@
 namespace task {
 
 BTCBlockDecompressionSubTask::BTCBlockDecompressionSubTask():
+		SubTaskBase(),
 		_tx_service(nullptr),
 		_block_buffer(nullptr),
 		_output_buffer(nullptr),

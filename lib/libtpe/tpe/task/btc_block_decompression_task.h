@@ -18,6 +18,7 @@
 namespace task {
 
 typedef std::shared_ptr<BTCBlockDecompressionSubTask> PSubTask_t;
+typedef utils::protocols::BxBtcBlockMessage BxBtcBlockMessage_t;
 
 class BTCBlockDecompressionTask : public MainTaskBase {
 
@@ -47,16 +48,18 @@ protected:
 private:
 	void _init_sub_tasks(size_t pool_size);
 	size_t _dispatch(
-			utils::protocols::BxBtcBlockMessage& msg,
+			BxBtcBlockMessage_t& msg,
 			size_t offset,
 			SubPool_t& sub_pool
 	);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
 
-	utils::protocols::BxBtcBlockMessage _parse_block_header(
+	BxBtcBlockMessage_t _parse_block_header(
 			size_t& offset,
 			uint64_t& tx_count
 	);
+
+	void _extend_output_buffer(size_t output_offset);
 
 
 	BlockBuffer_t _block_buffer;

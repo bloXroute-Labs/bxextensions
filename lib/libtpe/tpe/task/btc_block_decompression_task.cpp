@@ -1,6 +1,7 @@
 #include "tpe/task/btc_block_decompression_task.h"
 
 #include <utils/common/buffer_helper.h>
+#include <utils/common/string_helper.h>
 
 
 namespace task {
@@ -24,12 +25,18 @@ void BTCBlockDecompressionTask::init(
 )
 {
 	_unknown_tx_hashes.clear();
+	const uint32_t output_size = std::max(
+			(size_t)BxBtcBlockMessage_t::get_original_block_size(
+					block_buffer
+			),
+			_output_buffer->capacity()
+	);
 	if (_output_buffer.use_count() > 1) {
 		_output_buffer =  std::make_shared<ByteArray_t>(
-				block_buffer.size()
+				output_size
 		);
 	} else {
-		_output_buffer->reserve(block_buffer.size());
+		_output_buffer->reserve(output_size);
 		_output_buffer->reset();
 	}
 	_unknown_tx_sids.clear();
@@ -169,7 +176,7 @@ size_t BTCBlockDecompressionTask::_dispatch(
 		if(idx > prev_idx) {
 			tdata.output_offset = prev_output_offset;
 			tdata.short_ids_offset = short_ids_offset;
-			_output_buffer->resize(output_offset);
+			_extend_output_buffer(output_offset);
 			_enqueue_task(prev_idx, sub_pool);
 			short_ids_offset += tdata.short_ids_len;
 			prev_output_offset = output_offset;
@@ -178,6 +185,7 @@ size_t BTCBlockDecompressionTask::_dispatch(
 	}
 	_sub_tasks[prev_idx]->task_data().output_offset = prev_output_offset;
 	_sub_tasks[prev_idx]->task_data().short_ids_offset = short_ids_offset;
+	_extend_output_buffer(output_offset);
 	_enqueue_task(prev_idx, sub_pool);
 	return prev_idx;
 }
@@ -187,7 +195,7 @@ void BTCBlockDecompressionTask::_enqueue_task(
 		SubPool_t& sub_pool
 )
 {
-	auto& task = _sub_tasks[task_idx];
+	auto task = _sub_tasks[task_idx];
 	task->init(
 			_tx_service,
 			&_block_buffer,
@@ -213,6 +221,22 @@ BTCBlockDecompressionTask::_parse_block_header(
 	offset = msg.get_tx_count(tx_count);
 	msg.deserialize_short_ids(_short_ids);
 	return msg;
+}
+
+void BTCBlockDecompressionTask::_extend_output_buffer(
+		size_t output_offset
+)
+{
+	if (output_offset > _output_buffer->capacity()) {
+		std::string error = utils::common::concatinate(
+				"not enough space allocated to output buffer. \ncapacity - ",
+				_output_buffer->capacity(),
+				", required size - ",
+				output_offset
+		);
+		throw std::runtime_error(error);
+	}
+	_output_buffer->resize(output_offset);
 }
 
 } // task

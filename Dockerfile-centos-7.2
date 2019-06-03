@@ -39,6 +39,10 @@ COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
 
+WORKDIR /app/bxextensions/lib/third_party/libsodium-stable
+RUN autoreconf --force --install
+WORKDIR /app/bxextensions
+
 RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions

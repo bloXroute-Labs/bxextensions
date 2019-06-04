@@ -31,7 +31,7 @@ void DecryptionTask::init(
 }
 
 const utils::common::ByteArray& DecryptionTask::plain() {
-	_assert_execution();
+	assert_execution();
 	return _plain;
 }
 

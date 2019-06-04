@@ -60,6 +60,7 @@ public:
 
   size_t size(void) const;
   size_t length(void) const;
+  size_t capacity(void) const;
   const std::vector<ssize_t>& shape(void) const;
   static const std::vector<ssize_t>& strides(void);
   const std::vector<uint8_t>& array(void) const;

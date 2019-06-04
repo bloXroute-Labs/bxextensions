@@ -38,7 +38,6 @@ void bind_btc_block_compression_task(py::module& m) {
 	  .def("txn_count", &BTCBlockCompressionTask_t::txn_count)
 	  .def(
 			  "short_ids",
-			  &BTCBlockCompressionTask_t::short_ids,
-			  py::return_value_policy::reference
+			  &BTCBlockCompressionTask_t::short_ids
 	  );
 }

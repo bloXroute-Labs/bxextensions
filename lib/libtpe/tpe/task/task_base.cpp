@@ -22,7 +22,7 @@ bool TaskBase::is_completed() {
 
 void TaskBase::before_execution(int current_queue_idx) {
   if (_is_initialized) {
-      _assert_execution();
+      assert_execution();
     _task_id = ++_TASK_ID_CTR;
     _is_completed = false;
   } else {
@@ -51,7 +51,7 @@ void TaskBase :: _check_error() {
   }
 }
 
-void TaskBase::_assert_execution() {
+void TaskBase::assert_execution() {
   if (_task_id != _last_executed_id) {
       throw exception::TaskNotExecuted(get_id());
   }

@@ -32,12 +32,12 @@ void EncryptionTask::init(
 }
 
 const utils::common::ByteArray& EncryptionTask::cipher() {
-	_assert_execution();
+	assert_execution();
 	return _cipher.cipher_text();
 }
 
 const utils::common::ByteArray & EncryptionTask::key() {
-	_assert_execution();
+	assert_execution();
 	return _key;
 }
 

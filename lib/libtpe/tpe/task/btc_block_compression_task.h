@@ -44,11 +44,11 @@ public:
 			PTransactionService_t tx_service
 	);
 
-	const utils::common::ByteArray& bx_block(void);
+	PByteArray_t bx_block(void);
 
-	const utils::crypto::Sha256& prev_block_hash(void);
-	const utils::crypto::Sha256& block_hash(void);
-	const utils::crypto::Sha256& compressed_block_hash(void);
+	PSha256_t prev_block_hash(void);
+	PSha256_t block_hash(void);
+	PSha256_t compressed_block_hash(void);
 
 	size_t txn_count(void);
 
@@ -72,12 +72,12 @@ private:
 
 
 	BlockBuffer_t _block_buffer;
-	utils::common::ByteArray _output_buffer;
+	PByteArray_t _output_buffer;
 	PTransactionService_t _tx_service;
 	SubTasksData_t _sub_tasks;
 	const size_t _minimal_tx_count;
-	utils::crypto::Sha256 _prev_block_hash, _block_hash;
-	utils::crypto::Sha256 _compressed_block_hash;
+	PSha256_t _prev_block_hash, _block_hash;
+	PSha256_t _compressed_block_hash;
 	size_t _txn_count;
 	std::vector<unsigned int> _short_ids;
 };

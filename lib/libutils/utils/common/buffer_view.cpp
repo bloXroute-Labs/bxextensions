@@ -36,6 +36,15 @@ BufferView::BufferView(
 {
 }
 
+BufferView::BufferView(
+		const BufferView& src, size_t length, size_t from
+):
+		_buffer(src._buffer),
+		_from(from),
+		_size(length)
+{
+}
+
 BufferView::BufferView(const BufferView& other):
 	_buffer(other._buffer),
 	_size(other._size),

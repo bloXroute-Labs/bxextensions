@@ -74,7 +74,7 @@ public:
 	  if (queue_idx < 0) {
 		  queue_idx = get_available_queue();
 	  }
-	  assert(queue_idx > 0 && queue_idx < size());
+	  assert(queue_idx >= 0 && queue_idx < size());
 	  _pool[queue_idx]->enqueue(pitem);
   }
 

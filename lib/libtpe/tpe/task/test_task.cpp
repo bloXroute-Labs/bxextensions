@@ -15,17 +15,17 @@ void TestTask::init(unsigned long long t1) {
 }
 
 unsigned long long TestTask::t1() {
-	_assert_execution();
+	assert_execution();
 	return _t1;
 }
 
 unsigned long long TestTask::t2() {
-	_assert_execution();
+	assert_execution();
 	return _t2;
 }
 
 unsigned long long TestTask::t3() {
-	_assert_execution();
+	assert_execution();
 	return _t3;
 }
 

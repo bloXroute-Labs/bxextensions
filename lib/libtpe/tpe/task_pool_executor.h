@@ -22,7 +22,7 @@ class TaskPoolExecutor:
 
 public:
 
-  void init(void);
+  void init(size_t pool_size);
   void enqueue_task(std::shared_ptr<MainTaskBase> task);
 
 protected:

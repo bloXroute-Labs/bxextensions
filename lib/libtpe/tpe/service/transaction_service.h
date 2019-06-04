@@ -20,6 +20,8 @@ typedef std::shared_ptr<Sha256_t> PSha256_t;
 typedef Sha256DefaultMap_t<std::unordered_set<unsigned int>> Sha256ToShortIDsMap_t;
 typedef std::unordered_map<unsigned int, PSha256_t> ShortIDToSha256Map_t;
 typedef utils::crypto::Sha256Map_t<TxContents_t> Sha256ToContentMap_t;
+typedef std::vector<PSha256_t> UnknownTxHashes_t;
+typedef std::vector<unsigned int> UnknownTxSIDs_t;
 
 class TransactionService {
 public:
@@ -31,7 +33,17 @@ public:
 
 	unsigned int get_short_id(const Sha256_t& tx_hash) const;
 
+	TxContents_t get_transaction(
+			unsigned int short_id, Sha256_t& tx_hash
+	);
+
 	size_t size(void) const;
+	size_t get_tx_size(unsigned int short_id) const;
+	bool get_missing_transactions(
+			UnknownTxHashes_t& unknown_tx_hashes,
+			UnknownTxSIDs_t& unknown_tx_sids,
+			const std::vector<unsigned int>& short_ids
+	) const;
 
 private:
 	Sha256ToShortIDsMap_t _tx_hash_to_short_ids;

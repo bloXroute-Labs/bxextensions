@@ -31,7 +31,7 @@ void SubTaskBase::wait(void) {
 	if (!is_completed()) {
 		_condition.wait(lock);
 	}
-	_assert_execution();
+	assert_execution();
 }
 
 }

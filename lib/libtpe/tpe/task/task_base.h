@@ -20,12 +20,12 @@ public:
 
   int current_queue_idx(void);
 
+  void assert_execution(void);
+
 protected:
   TaskBase();
 
   void _check_error(void);
-
-  void _assert_execution(void);
 
   unsigned long long _task_id;
   volatile bool _is_completed;

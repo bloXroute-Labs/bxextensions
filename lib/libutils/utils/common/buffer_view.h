@@ -58,6 +58,7 @@ public:
 			size_t length = 0,
 			size_t from = 0
 	);
+	BufferView(const BufferView& src, size_t length, size_t from);
 	BufferView(const BufferView&);
 	BufferView(BufferView&&);
 	virtual ~BufferView();

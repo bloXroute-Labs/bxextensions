@@ -12,14 +12,15 @@ TaskPoolExecutor::TaskPoolExecutor():
 {
 }
 
-void TaskPoolExecutor::init() {
+void TaskPoolExecutor::init(size_t pool_size) {
 	if (_is_initialized) {
-		return;
+		throw std::runtime_error("init was already called!");
 	} else {
 		_is_initialized = true;
 	}
-	int cpu_count = std::thread::hardware_concurrency();
-	size_t pool_size = std::max(cpu_count - 1, 1);
+	if (pool_size > std::thread::hardware_concurrency()) {
+		throw std::runtime_error("pool size cannot exceed the system cpu count!");
+	}
 	_main_pool.init(
 			pool_size,
 			[&](std::shared_ptr<MainTaskBase> tsk) {
@@ -37,6 +38,10 @@ void TaskPoolExecutor::enqueue_task(
     std::shared_ptr<task::MainTaskBase> task
 )
 {
+	if (!_is_initialized) {
+		int cpu_count = std::thread::hardware_concurrency();
+		init(std::max(cpu_count - 1, 1));
+	}
 	_main_pool.enqueue_task(task);
 }
 

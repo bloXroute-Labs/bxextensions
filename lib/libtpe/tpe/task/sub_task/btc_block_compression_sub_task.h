@@ -19,7 +19,6 @@ namespace task {
 typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 
 class BTCBlockCompressionSubTask : public SubTaskBase {
-	typedef std::shared_ptr<const TXOffsets_t> POffests_t;
 
 public:
 	BTCBlockCompressionSubTask(size_t capacity);

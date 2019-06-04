@@ -34,13 +34,13 @@ void BTCBlockCompressionSubTask::init(
 
 const utils::common::ByteArray&
 BTCBlockCompressionSubTask::output_buffer() {
-	_assert_execution();
+	assert_execution();
 	return _output_buffer;
 }
 
 const std::vector<unsigned int>&
 BTCBlockCompressionSubTask::short_ids() {
-	_assert_execution();
+	assert_execution();
 	return _short_ids;
 }
 

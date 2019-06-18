@@ -91,11 +91,11 @@ const uint8_t& BufferView::at(size_t idx) const {
 	return this->operator [](idx);
 }
 
-const char* BufferView::char_array(void) const {
+const char* BufferView::char_array() const {
 	return (const char*)&_buffer[_from];
 }
 
-const unsigned char* BufferView::byte_array(void) const {
+const unsigned char* BufferView::byte_array() const {
 	return &_buffer[_from];
 }
 
@@ -107,7 +107,7 @@ BufferView::const_iterator BufferView::end() const {
 	return const_iterator(_buffer + _from + _size);
 };
 
-size_t BufferView::size(void) const {
+size_t BufferView::size() const {
 	return _size;
 }
 

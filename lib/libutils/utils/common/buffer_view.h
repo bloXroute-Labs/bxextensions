@@ -47,7 +47,7 @@ public:
 		const uint8_t *_ptr;
 	};
 
-	BufferView();
+    BufferView();
 	BufferView(
 			const uint8_t* buffer,
 			size_t size,

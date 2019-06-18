@@ -19,3 +19,5 @@ CMakeFiles/
 configure
 aclocal.m4
 __pycache__/
+.cproject
+cmake-build*/

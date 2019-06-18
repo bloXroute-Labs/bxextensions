@@ -62,7 +62,7 @@ public:
     return best_queue_idx;
   }
 
-  size_t size(void) {
+  size_t size(void) const {
 	  return _pool.size();
   }
 

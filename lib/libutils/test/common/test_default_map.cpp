@@ -67,8 +67,8 @@ TEST_F(DefaultMapTest, test_nested) {
 }
 
 TEST_F(DefaultMapTest, test_value_factory) {
-	DefaultFactoryMap_t map;
 	nested_vector_factory factory;
+	DefaultFactoryMap_t map(factory);
 	EXPECT_EQ(map[5], factory());
 }
 

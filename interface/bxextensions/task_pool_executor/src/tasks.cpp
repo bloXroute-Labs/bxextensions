@@ -3,6 +3,8 @@
 #include <tpe/task/w2_task.h>
 #include "src/task/btc_block_compression_task.h"
 #include "src/task/btc_block_decompression_task.h"
+#include "src/task/btc_compact_block_mapping_task.h"
+#include "src/task/btc_compact_block_compression_task.h"
 #include "src/task/task_base.h"
 #include "src/task/decryption_task.h"
 #include "src/task/encryption_task.h"
@@ -34,6 +36,8 @@ void bind_tasks(py::module& m) {
   bind_decryption_task(m);
   bind_btc_block_compression_task(m);
   bind_btc_block_decompression_task(m);
+  bind_btc_compact_block_compression_task(m);
+  bind_btc_compact_block_mapping_task(m);
 #ifdef BUILD_TYPE
 	if (BUILD_TYPE == "TESTING") {
 		  bind_test_task(m);

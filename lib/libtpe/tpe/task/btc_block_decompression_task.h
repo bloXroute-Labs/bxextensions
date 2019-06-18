@@ -17,13 +17,13 @@
 
 namespace task {
 
-typedef std::shared_ptr<BTCBlockDecompressionSubTask> PSubTask_t;
-typedef utils::protocols::BxBtcBlockMessage BxBtcBlockMessage_t;
+typedef std::shared_ptr<BtcBlockDecompressionSubTask> PSubTask_t;
+typedef utils::protocols::bitcoin::BxBtcBlockMessage BxBtcBlockMessage_t;
 
-class BTCBlockDecompressionTask : public MainTaskBase {
+class BtcBlockDecompressionTask : public MainTaskBase {
 
 public:
-	BTCBlockDecompressionTask(
+	BtcBlockDecompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);

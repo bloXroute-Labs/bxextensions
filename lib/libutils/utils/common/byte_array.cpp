@@ -111,7 +111,7 @@ size_t ByteArray::length() const {
   return _length;
 }
 
-size_t ByteArray::capacity(void) const {
+size_t ByteArray::capacity() const {
 	return _capacity;
 }
 

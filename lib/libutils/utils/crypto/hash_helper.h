@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "utils/crypto/sha256.h"
+#include "utils/crypto/compact_short_id.h"
 
 #ifndef UTILS_CRYPTO_HASH_HELPER_H_
 #define UTILS_CRYPTO_HASH_HELPER_H_
@@ -18,7 +19,10 @@ Sha256 sha256(
 		size_t length
 )
 {
-	assert(data.size() >= from + length);
+//	assert(data.size() >= from + length);
+    if (data.size() < from + length) {
+        throw std::runtime_error("invalid buffer size provided"); // TODO : replace with proper exception here
+    }
 	return std::move(Sha256(data, from, length));
 }
 
@@ -31,10 +35,28 @@ Sha256 double_sha256(
 {
 	Sha256 hash = std::move(sha256(data, from, length));
 	hash.double_sha256();
+	hash.reverse();
 	return std::move(hash);
 }
 
+template<class TBuffer, typename... Args>
+Sha256 several_sources_sha256(
+    const TBuffer& data,
+    FromLengthPair_t source,
+    Args... extra_sources
+)
+{
+    Sha256 hash = std::move(Sha256(data, {source, extra_sources...}));
+    return std::move(hash);
+}
+
 size_t sha256_size(void);
+
+CompactShortId to_compact_id(
+		const Sha256& sha, const SipKey_t& key
+);
+
+
 
 } // crypto
 } // utils

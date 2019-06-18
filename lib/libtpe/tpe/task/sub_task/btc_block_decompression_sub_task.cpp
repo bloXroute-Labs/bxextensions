@@ -2,7 +2,7 @@
 
 namespace task {
 
-BTCBlockDecompressionSubTask::BTCBlockDecompressionSubTask():
+BtcBlockDecompressionSubTask::BtcBlockDecompressionSubTask():
 		SubTaskBase(),
 		_tx_service(nullptr),
 		_block_buffer(nullptr),
@@ -11,7 +11,7 @@ BTCBlockDecompressionSubTask::BTCBlockDecompressionSubTask():
 {
 }
 
-void BTCBlockDecompressionSubTask::init(
+void BtcBlockDecompressionSubTask::init(
 		PTransactionService_t tx_service,
 		const BlockBuffer_t* block_buffer,
 		utils::common::ByteArray* output_buffer,
@@ -24,12 +24,12 @@ void BTCBlockDecompressionSubTask::init(
 	_short_ids = short_ids;
 }
 
-BTCBlockDecompressionSubTask::TaskData&
-BTCBlockDecompressionSubTask::task_data() {
+BtcBlockDecompressionSubTask::TaskData&
+BtcBlockDecompressionSubTask::task_data() {
 	return _task_data;
 }
 
-void BTCBlockDecompressionSubTask::_execute() {
+void BtcBlockDecompressionSubTask::_execute() {
 	size_t short_id_idx = _task_data.short_ids_offset;
 	size_t output_offset = _task_data.output_offset;
 	for (auto& pair : *_task_data.offsets) {

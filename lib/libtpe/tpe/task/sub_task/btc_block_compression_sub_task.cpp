@@ -9,7 +9,7 @@
 
 namespace task {
 
-BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
+BtcBlockCompressionSubTask::BtcBlockCompressionSubTask(
 		size_t capacity):
 				SubTaskBase(),
 				_tx_service(nullptr),
@@ -19,7 +19,7 @@ BTCBlockCompressionSubTask::BTCBlockCompressionSubTask(
 {
 }
 
-void BTCBlockCompressionSubTask::init(
+void BtcBlockCompressionSubTask::init(
 		PTransactionService_t tx_service,
 		const BlockBuffer_t* block_buffer,
 		POffests_t tx_offsets
@@ -33,18 +33,18 @@ void BTCBlockCompressionSubTask::init(
 }
 
 const utils::common::ByteArray&
-BTCBlockCompressionSubTask::output_buffer() {
+BtcBlockCompressionSubTask::output_buffer() {
 	assert_execution();
 	return _output_buffer;
 }
 
 const std::vector<unsigned int>&
-BTCBlockCompressionSubTask::short_ids() {
+BtcBlockCompressionSubTask::short_ids() {
 	assert_execution();
 	return _short_ids;
 }
 
-void BTCBlockCompressionSubTask::_execute()  {
+void BtcBlockCompressionSubTask::_execute()  {
 	size_t output_offset = 0;
 	for (auto& pair : *_tx_offsets) {
 		size_t from = pair.first, offset = pair.second;

@@ -15,11 +15,10 @@
 
 namespace task {
 
-typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef std::vector<unsigned int> ShortIDs_t;
 typedef utils::common::BufferView BufferView_t;
 
-class BTCBlockDecompressionSubTask : public SubTaskBase {
+class BtcBlockDecompressionSubTask : public SubTaskBase {
 public:
 
 	struct TaskData {
@@ -44,7 +43,7 @@ public:
 		size_t output_offset;
 	};
 
-	BTCBlockDecompressionSubTask();
+	BtcBlockDecompressionSubTask();
 
 	void init(
 			PTransactionService_t tx_service,

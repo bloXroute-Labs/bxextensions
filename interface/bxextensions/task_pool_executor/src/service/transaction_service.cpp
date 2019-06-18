@@ -57,17 +57,22 @@ void bind_transaction_service(py::module& m) {
 			.def(py::init<>())
 			.def(
 					"tx_hash_to_short_ids",
-					&TransactionService_t::tx_hash_to_short_ids,
+					&TransactionService_t::get_tx_hash_to_short_ids,
 					py::return_value_policy::reference
 			)
 			.def(
 					"short_id_to_tx_hash",
-					&TransactionService_t::short_id_to_tx_hash,
+					&TransactionService_t::get_short_id_to_tx_hash,
+					py::return_value_policy::reference
+			)
+			.def(
+					"remove_tx_seen_in_block",
+					&TransactionService_t::remove_from_tx_pool,
 					py::return_value_policy::reference
 			)
 			.def(
 					"tx_hash_to_contents",
-					&TransactionService_t::tx_hash_to_contents,
+					&TransactionService_t::get_tx_hash_to_contents,
 					py::return_value_policy::reference
 			);
 }

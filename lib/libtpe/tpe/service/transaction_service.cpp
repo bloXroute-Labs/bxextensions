@@ -1,17 +1,37 @@
 #include "tpe/service/transaction_service.h"
 #include "tpe/consts.h"
+#include "tpe/task_pool_executor.h"
 
 namespace service {
 
-Sha256ToShortIDsMap_t& TransactionService::tx_hash_to_short_ids() {
+typedef task::pool::TaskPoolExecutor TaskPoolExecutor_t;
+
+TransactionService::TransactionService():
+		_tx_not_seen_in_blocks(BTC_DEFAULT_TX_BUCKET_SIZE, TaskPoolExecutor_t::instance().try_init()),
+		_tx_hash_to_short_ids(_tx_not_seen_in_blocks)
+{
+
+}
+
+Sha256ToShortIDsMap_t& TransactionService::get_tx_hash_to_short_ids() {
 	return _tx_hash_to_short_ids;
 }
 
-ShortIDToSha256Map_t& TransactionService::short_id_to_tx_hash() {
+ShortIDToSha256Map_t& TransactionService::get_short_id_to_tx_hash() {
 	return _short_id_to_tx_hash;
 }
 
-Sha256ToContentMap_t& TransactionService::tx_hash_to_contents() {
+Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
+	return _tx_hash_to_contents;
+}
+
+const Sha256ToShortIDsMap_t&
+TransactionService::tx_hash_to_short_ids() const {
+	return _tx_hash_to_short_ids;
+}
+
+const Sha256ToContentMap_t&
+TransactionService::tx_hash_to_contents() const {
 	return _tx_hash_to_contents;
 }
 
@@ -65,6 +85,19 @@ bool TransactionService::get_missing_transactions(
 		}
 	}
 	return success;
+}
+
+const TxNotSeenInBlocks_t& TransactionService::acquire_tx_pool() {
+	_tx_not_seen_in_blocks.acquire_read();
+	return _tx_not_seen_in_blocks;
+}
+
+void TransactionService::on_finished_reading_tx_pool() {
+	_tx_not_seen_in_blocks.release_read();
+}
+
+void TransactionService::remove_from_tx_pool(const Sha256_t& sha) {
+	_tx_not_seen_in_blocks.erase(sha);
 }
 
 

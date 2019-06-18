@@ -6,7 +6,7 @@
 
 namespace task {
 
-BTCBlockCompressionTask::BTCBlockCompressionTask(
+BtcBlockCompressionTask::BtcBlockCompressionTask(
 		size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/,
 		size_t minimal_tx_count/* = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 
@@ -19,7 +19,7 @@ BTCBlockCompressionTask::BTCBlockCompressionTask(
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
-void BTCBlockCompressionTask::init(
+void BtcBlockCompressionTask::init(
 		BlockBuffer_t block_buffer,
 		PTransactionService_t tx_service
 )
@@ -39,41 +39,41 @@ void BTCBlockCompressionTask::init(
 }
 
 PByteArray_t
-BTCBlockCompressionTask::bx_block() {
+BtcBlockCompressionTask::bx_block() {
 	assert_execution();
 	return _output_buffer;
 }
 
 PSha256_t
-BTCBlockCompressionTask::prev_block_hash() {
+BtcBlockCompressionTask::prev_block_hash() {
 	assert_execution();
 	return _prev_block_hash;
 }
 
 PSha256_t
-BTCBlockCompressionTask::block_hash() {
+BtcBlockCompressionTask::block_hash() {
 	assert_execution();
 	return _block_hash;
 }
 
 PSha256_t
-BTCBlockCompressionTask::compressed_block_hash() {
+BtcBlockCompressionTask::compressed_block_hash() {
 	assert_execution();
 	return _compressed_block_hash;
 }
 
-size_t BTCBlockCompressionTask::txn_count() {
+size_t BtcBlockCompressionTask::txn_count() {
 	return _txn_count;
 }
 
 const std::vector<unsigned int>&
-BTCBlockCompressionTask::short_ids() {
+BtcBlockCompressionTask::short_ids() {
 	assert_execution();
 	return _short_ids;
 }
 
-void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
-	utils::protocols::BTCBlockMessage msg(_block_buffer);
+void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
+	utils::protocols::bitcoin::BtcBlockMessage msg(_block_buffer);
 	_prev_block_hash = std::make_shared<Sha256_t>(
 			std::move(msg.prev_block_hash())
 	);
@@ -92,9 +92,9 @@ void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 			offset
 	);
 	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
-		auto& tdata = _sub_tasks[idx];
-		tdata.sub_task->wait();
-		output_offset = _on_sub_task_completed(*tdata.sub_task);
+		TaskData& data = _sub_tasks[idx];
+		data.sub_task->wait();
+		output_offset = _on_sub_task_completed(*data.sub_task);
 	}
 	_set_output_buffer(output_offset);
 	_compressed_block_hash = std::make_shared<Sha256_t>(std::move(
@@ -106,7 +106,7 @@ void BTCBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	));
 }
 
-void BTCBlockCompressionTask::_init_sub_tasks(
+void BtcBlockCompressionTask::_init_sub_tasks(
 		size_t pool_size,
 		size_t tx_count
 )
@@ -125,7 +125,7 @@ void BTCBlockCompressionTask::_init_sub_tasks(
 		{
 			TaskData task_data;
 			task_data.sub_task = std::make_shared<
-					BTCBlockCompressionSubTask>(
+					BtcBlockCompressionSubTask>(
 					capacity
 			);
 			task_data.offsets = std::make_shared<TXOffsets_t>();
@@ -138,9 +138,9 @@ void BTCBlockCompressionTask::_init_sub_tasks(
 	}
 }
 
-size_t BTCBlockCompressionTask::_dispatch(
+size_t BtcBlockCompressionTask::_dispatch(
 		size_t tx_count,
-		utils::protocols::BTCBlockMessage& msg,
+		utils::protocols::bitcoin::BtcBlockMessage& msg,
 		size_t offset,
 		SubPool_t& sub_pool
 )
@@ -167,8 +167,8 @@ size_t BTCBlockCompressionTask::_dispatch(
 	return prev_idx;
 }
 
-size_t BTCBlockCompressionTask::_on_sub_task_completed(
-		BTCBlockCompressionSubTask& tsk
+size_t BtcBlockCompressionTask::_on_sub_task_completed(
+		BtcBlockCompressionSubTask& tsk
 )
 {
 	auto& output_buffer = tsk.output_buffer();
@@ -183,7 +183,7 @@ size_t BTCBlockCompressionTask::_on_sub_task_completed(
 	return _output_buffer->size();
 }
 
-void BTCBlockCompressionTask::_set_output_buffer(
+void BtcBlockCompressionTask::_set_output_buffer(
 		size_t output_offset
 )
 {
@@ -211,18 +211,18 @@ void BTCBlockCompressionTask::_set_output_buffer(
 	_output_buffer->set_output();
 }
 
-void BTCBlockCompressionTask::_enqueue_task(
+void BtcBlockCompressionTask::_enqueue_task(
 		size_t task_idx,
 		SubPool_t& sub_pool
 )
 {
-	TaskData& tdata = _sub_tasks[task_idx];
-	tdata.sub_task->init(
+	TaskData& data = _sub_tasks[task_idx];
+	data.sub_task->init(
 			_tx_service,
 			&_block_buffer,
-			tdata.offsets
+			data.offsets
 	);
-	sub_pool.enqueue_task(tdata.sub_task);
+	sub_pool.enqueue_task(data.sub_task);
 }
 
 } // task

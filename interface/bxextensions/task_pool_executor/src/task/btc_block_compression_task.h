@@ -9,8 +9,8 @@ namespace py = pybind11;
 #ifndef SRC_TASK_BC_COMPRESSION_TASK_H_
 #define SRC_TASK_BC_COMPRESSION_TASK_H_
 
-typedef task::BTCBlockCompressionTask BTCBlockCompressionTask_t;
-typedef std::shared_ptr<BTCBlockCompressionTask_t> PBTCBlockCompressionTask_t;
+typedef task::BtcBlockCompressionTask BtcBlockCompressionTask_t;
+typedef std::shared_ptr<BtcBlockCompressionTask_t> PBtcBlockCompressionTask_t;
 typedef utils::crypto::Sha256 Sha256_t;
 typedef std::shared_ptr<Sha256_t> PSha256_t;
 

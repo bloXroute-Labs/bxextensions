@@ -19,7 +19,7 @@ public:
 
 protected:
 	void SetUp() override {
-		_tx_service.tx_hash_to_short_ids()[sha256].insert(SHORT_ID);
+		_tx_service.get_tx_hash_to_short_ids()[sha256].insert(SHORT_ID);
 	}
 
 private:

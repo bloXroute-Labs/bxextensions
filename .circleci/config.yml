@@ -120,6 +120,11 @@ jobs:
                 git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway.git
             }
       - run:
+          name: install dependencies
+          command: |
+            sudo apt update &&
+            sudo apt install linux-headers-amd64
+      - run:
           name: Initialize virtualenv
           command: |
             . venv/bin/activate

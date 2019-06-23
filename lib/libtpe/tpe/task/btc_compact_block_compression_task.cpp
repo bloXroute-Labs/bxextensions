@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <array>
 #include "tpe/task/btc_compact_block_compression_task.h"
 #include "tpe/task/sub_task/btc_compact_block_compression_sub_task.h"
@@ -49,13 +51,17 @@ void BtcCompactBlockCompressionTask::init(
 			_data_service.msg().prev_block_hash()
 	));
 	_block_header.clear();
+	_short_ids.clear();
+	_compressed_block_hash = nullptr;
+    _recovered_transactions = nullptr;
+    _txn_count = 0;
 }
 
 void BtcCompactBlockCompressionTask::add_recovered_transactions(
 		PRecoveredTransactions_t recovered_transactions
 )
 {
-	_recovered_transactions = recovered_transactions;
+	_recovered_transactions = std::move(recovered_transactions);
 }
 
 PByteArray_t BtcCompactBlockCompressionTask::bx_block() {
@@ -160,7 +166,7 @@ size_t BtcCompactBlockCompressionTask::_fill_block_transactions(
 		size_t offset
 )
 {
-	RecoveredTransactions_t::iterator recovered_iter = _recovered_transactions->begin();
+	auto recovered_iter = _recovered_transactions->begin();
 	for(
 			const TransactionPlaceholder_t& placeholder:
 			_data_service.tx_placeholders()

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <utils/common/buffer_helper.h>
 #include <utils/crypto/hash_helper.h>
 #include <algorithm>
@@ -24,7 +26,7 @@ void BtcBlockCompressionTask::init(
 		PTransactionService_t tx_service
 )
 {
-	_tx_service = tx_service;
+	_tx_service = std::move(tx_service);
 	_block_buffer = block_buffer;
 	if (_output_buffer.use_count() > 1) {
 		_output_buffer =  std::make_shared<ByteArray_t>(
@@ -36,6 +38,7 @@ void BtcBlockCompressionTask::init(
 	}
 	_short_ids.clear();
 	_block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
+	_txn_count = 0;
 }
 
 PByteArray_t

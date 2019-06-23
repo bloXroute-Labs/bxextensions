@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "tpe/task/sub_task/btc_block_decompression_sub_task.h"
 
 namespace task {
@@ -18,7 +20,7 @@ void BtcBlockDecompressionSubTask::init(
 		const ShortIDs_t* short_ids
 )
 {
-	_tx_service = tx_service;
+	_tx_service = std::move(tx_service);
 	_block_buffer = block_buffer;
 	_output_buffer = output_buffer;
 	_short_ids = short_ids;

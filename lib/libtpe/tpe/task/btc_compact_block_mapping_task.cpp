@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <unistd.h>
 #include <algorithm>
 
@@ -12,6 +14,7 @@ typedef service::CompactBlockDataService CompactBlockDataService_t;
 BtcCompactBlockMappingTask::BtcCompactBlockMappingTask(size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/):
 		MainTaskBase(),
 		_block_buffer(nullptr),
+        _tx_service(nullptr),
 		_magic(0),
 		_capacity(capacity)
 {
@@ -30,8 +33,8 @@ void BtcCompactBlockMappingTask::init(
 	} else {
 		_missing_indices->clear();
 	}
-	_block_buffer = block_buffer;
-	_tx_service = tx_service;
+	_block_buffer = std::move(block_buffer);
+	_tx_service = std::move(tx_service);
 	_magic = magic;
 	if (_compression_task.use_count() > 1) {
 		_compression_task = std::make_shared<BtcCompactBlockCompressionTask>(
@@ -42,7 +45,7 @@ void BtcCompactBlockMappingTask::init(
 
 bool BtcCompactBlockMappingTask::success() {
 	assert_execution();
-	return _missing_indices->size() == 0;
+	return _missing_indices->empty();
 }
 
 PUnknownTxIndices_t
@@ -78,15 +81,11 @@ void BtcCompactBlockMappingTask::_execute(SubPool_t& sub_pool) {
 	for(int idx = 0 ; idx <= task_idx ; ++idx) {
 		_sub_tasks[idx]->wait();
 	}
-	size_t cmpt_found_count = counter.load();
-	if (cmpt_found_count < compact_tx_count) {
-		for (
-				auto compact_iter = compact_map.begin() ;
-				compact_iter != compact_map.end() ;
-				++compact_iter
-		)
+	size_t compact_found_count = counter.load();
+	if (compact_found_count < compact_tx_count) {
+		for (const auto & compact_iter : compact_map)
 		{
-			const auto& pair = compact_iter->second;
+			const auto& pair = compact_iter.second;
 			const auto& placeholder = tx_placeholders.at(pair.second);
 			if (placeholder.type == TransactionPlaceholderType_t::missing_compact_id) {
 				_missing_indices->push_back(pair.second);
@@ -94,15 +93,16 @@ void BtcCompactBlockMappingTask::_execute(SubPool_t& sub_pool) {
 		}
 		std::sort(_missing_indices->begin(), _missing_indices->end());
 	}
-	size_t total_cmpt_proccessed =
-			_missing_indices->size() + cmpt_found_count;
-	if (total_cmpt_proccessed != compact_tx_count) {
+	size_t total_compact_processed =
+			_missing_indices->size() + compact_found_count;
+	if (total_compact_processed != compact_tx_count) {
 		throw std::runtime_error("invalid compact short id processing");
         // TODO : replace with proper exception here
 	}
 	_compression_task->init(std::move(service), _magic);
 	_tx_service->on_finished_reading_tx_pool();
 	_block_buffer = nullptr;
+	_tx_service = nullptr;
 }
 
 void BtcCompactBlockMappingTask::_init_sub_tasks(

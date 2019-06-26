@@ -11,6 +11,10 @@ typedef service::Sha256_t Sha256_t;
 class TransactionServiceTest : public ::testing::Test {
 public:
 
+    TransactionServiceTest(): _tx_service(1) {
+
+    }
+
 	static const Sha256_t sha256;
 
 	const TransactionService_t& tx_service() const {

@@ -75,6 +75,10 @@ public:
 		return _map[key];
 	}
 
+	TValue& at(const TKey& key) {
+        return _map.at(key);
+	}
+
 	const TValue& operator[](const TKey& key) const {
 		typename Map_t::const_iterator iter =  find(key);
 		if (iter == end()) {
@@ -83,7 +87,7 @@ public:
 		return iter->second;
 	}
 
-	size_t size(void) const {
+	size_t size() const {
 		return _map.size();
 	}
 
@@ -91,7 +95,7 @@ public:
 		_map.erase(key);
 	}
 
-	virtual void clear(void) {
+	virtual void clear() {
 		_map.clear();
 	}
 

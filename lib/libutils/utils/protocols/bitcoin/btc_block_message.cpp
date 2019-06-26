@@ -45,18 +45,6 @@ crypto::Sha256 BtcBlockMessage::prev_block_hash() const {
 	return std::move(get_prev_block_hash(_buffer));
 }
 
-uint32_t BtcBlockMessage::get_block_size() const {
-	uint32_t block_size = 0;
-	common::get_little_endian_value<uint32_t>(
-			_buffer, block_size, BTC_BLOCK_LENGTH_OFFSET
-	);
-	return block_size;
-}
-
-bool BtcBlockMessage::is_sid_tx(size_t offset) {
-	return _buffer[offset] == BTC_SHORT_ID_INDICATOR;
-}
-
 
 } // bitcoin
 } // protocols

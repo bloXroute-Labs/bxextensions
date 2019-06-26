@@ -35,13 +35,13 @@ void BtcBlockDecompressionSubTask::_execute() {
 	size_t short_id_idx = _task_data.short_ids_offset;
 	size_t output_offset = _task_data.output_offset;
 	for (auto& pair : *_task_data.offsets) {
-		service::TxContents_t content = nullptr;
+		service::PTxContents_t content = nullptr;
+        const service::TxContents_t* p_contents = nullptr;
 		const size_t from = pair.first, to = pair.second;
 		size_t size = to - from;
 		if (size == 1) {
 			unsigned int short_id = _short_ids->at(short_id_idx);
-			utils::crypto::Sha256 tx_hash;
-			content = _tx_service->get_transaction(short_id, tx_hash);
+            p_contents = _tx_service->get_tx_contents_raw_ptr(short_id);
 			short_id_idx += 1;
 		} else {
 			content = std::make_shared<BufferView_t>(
@@ -49,12 +49,13 @@ void BtcBlockDecompressionSubTask::_execute() {
 					size,
 					from
 			);
+            p_contents = content.get();
 		}
 		output_offset = _output_buffer->copy_from_buffer(
-				*content,
+				*p_contents,
 				output_offset,
 				0,
-				content->size()
+                p_contents->size()
 		);
 	}
 

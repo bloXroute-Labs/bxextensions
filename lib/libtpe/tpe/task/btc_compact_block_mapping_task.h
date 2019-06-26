@@ -26,11 +26,11 @@ public:
 			uint32_t magic
 	);
 
-	bool success(void);
+	bool success();
 
-	PUnknownTxIndices_t missing_indecies(void);
+	PUnknownTxIndices_t missing_indices();
 
-	PCompressionTask_t compression_task(void);
+	PCompressionTask_t compression_task();
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "tpe/task/btc_block_decompression_task.h"
 
 #include <utils/common/buffer_helper.h>
@@ -42,7 +44,7 @@ void BtcBlockDecompressionTask::init(
 	_unknown_tx_sids.clear();
 	_block_buffer = block_buffer;
 	_block_hash = nullptr;
-	_tx_service = tx_service;
+	_tx_service = std::move(tx_service);
 	_short_ids.clear();
 	_tx_count = 0;
 }

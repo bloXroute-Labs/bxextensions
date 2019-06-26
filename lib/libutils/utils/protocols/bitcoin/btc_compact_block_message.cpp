@@ -24,8 +24,8 @@ BtcCompactBlockMessage::BtcCompactBlockMessage(
 BtcCompactBlockMessage::BtcCompactBlockMessage(
 		BtcCompactBlockMessage&& rhs
 ):
-    	    _buffer(rhs._buffer),
-    	    _tx_in_block(rhs._tx_in_block)
+    _buffer(rhs._buffer),
+    _tx_in_block(rhs._tx_in_block)
 {
 }
 

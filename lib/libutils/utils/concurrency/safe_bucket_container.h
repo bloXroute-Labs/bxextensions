@@ -52,15 +52,15 @@ public:
 		return _buckets.at(idx);
 	}
 
-	bool is_reading(void) const {
+	bool is_reading() const {
 		return _reader_count > 0;
 	}
 
-	bool is_write_pending(void) const {
+	bool is_write_pending() const {
 		return !_items_to_add.empty() || !_items_to_remove.empty();
 	}
 
-	void acquire_read(void) {
+	void acquire_read() {
 		std::unique_lock<std::mutex> lock(_mtx);
 		if (is_write_pending()) {
 			_write_condition.wait(
@@ -71,7 +71,7 @@ public:
 		++_reader_count;
 	}
 
-	void release_read(void) {
+	void release_read() {
 		std::lock_guard<std::mutex> lock(_mtx);
 		--_reader_count;
 		if (is_reading()) {
@@ -79,14 +79,14 @@ public:
 		}
 		while(!_items_to_add.empty()) {
 			const T& item = _items_to_add.front();
-			_items_to_add.pop();
 			_insert_to_container(item);
-		}
+            _items_to_add.pop();
+        }
 		while(!_items_to_remove.empty()) {
 			const std::pair<T, uint32_t>& pair = _items_to_remove.front();
-			_items_to_remove.pop();
 			_remove_from_container(pair);
-		}
+            _items_to_remove.pop();
+        }
 		_write_condition.notify_all();
 	}
 
@@ -113,7 +113,7 @@ public:
 		}
 	}
 
-	void clear(void) {
+	void clear() {
 		erase([](const T& item) {return true;});
 	}
 
@@ -136,7 +136,7 @@ public:
 		}
 	}
 
-	size_t size(void) const {
+	size_t size() const {
 		size_t total = 0;
 		for (const Bucket_t& bucket: _buckets) {
 			total += bucket.size();
@@ -144,21 +144,21 @@ public:
 		return total;
 	}
 
-	uint32_t bucket_count(void) const {
+	uint32_t bucket_count() const {
 		return _bucket_count;
 	}
 
-	void stop_requested(void) {
+	void stop_requested() {
 		std::lock_guard<std::mutex> lock(_mtx);
 		_stop_requested = true;
 		_write_condition.notify_all();
 	}
 
-	typename Buckets_t::const_iterator begin(void) const {
+	typename Buckets_t::const_iterator begin() const {
 		return _buckets.begin();
 	}
 
-	typename Buckets_t::const_iterator end(void) const {
+	typename Buckets_t::const_iterator end() const {
 		return _buckets.end();
 	}
 
@@ -175,7 +175,7 @@ private:
 
 	void _remove_from_container(const T& item) {
 		for (Bucket_t& bucket: _buckets) {
-			if (bucket.erase(item) == 0) {
+			if (bucket.erase(item)) {
 				break;
 			}
 		}

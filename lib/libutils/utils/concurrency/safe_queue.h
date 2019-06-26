@@ -27,7 +27,7 @@ public:
 		_condition.notify_one();
   }
 
-  std::shared_ptr<TItem> dequeue(void) {
+  std::shared_ptr<TItem> dequeue() {
 		std::unique_lock<std::mutex> lock(_mtx);
 		while (_queue.empty() && !_stop_requested) {
 		  _condition.wait(lock);
@@ -49,7 +49,7 @@ public:
 		_condition.notify_all();
   }
 
-  size_t queue_size(void) const {
+  size_t queue_size() const {
 		return _queue.size();
   }
 

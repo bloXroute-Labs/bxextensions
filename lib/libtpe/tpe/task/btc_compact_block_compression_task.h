@@ -32,22 +32,22 @@ public:
 			PRecoveredTransactions_t recovered_transactions
 	);
 
-	PByteArray_t bx_block(void);
+	PByteArray_t bx_block();
 
-	PSha256_t prev_block_hash(void);
-	PSha256_t block_hash(void);
-	PSha256_t compressed_block_hash(void);
+	PSha256_t prev_block_hash();
+	PSha256_t block_hash();
+	PSha256_t compressed_block_hash();
 
-	uint64_t txn_count(void);
+	uint64_t txn_count();
 
-	const std::vector<uint32_t>& short_ids(void);
+	const std::vector<uint32_t>& short_ids();
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
 
 private:
 
-	size_t _set_header(void);
+	size_t _set_header();
 
 	size_t _fill_block_transactions(size_t offset);
 

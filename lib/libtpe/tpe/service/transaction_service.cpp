@@ -1,14 +1,16 @@
 #include "tpe/service/transaction_service.h"
-#include "tpe/consts.h"
-#include "tpe/task_pool_executor.h"
+
 
 namespace service {
 
-typedef task::pool::TaskPoolExecutor TaskPoolExecutor_t;
-
-TransactionService::TransactionService():
-		_tx_not_seen_in_blocks(BTC_DEFAULT_TX_BUCKET_SIZE, TaskPoolExecutor_t::instance().try_init()),
-		_tx_hash_to_short_ids(_tx_not_seen_in_blocks)
+TransactionService::TransactionService(
+        size_t pool_size,
+        size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
+        size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
+):
+		_tx_not_seen_in_blocks(tx_bucket_capacity, pool_size),
+		_tx_hash_to_short_ids(_tx_not_seen_in_blocks),
+		_final_tx_confirmations_count(final_tx_confirmations_count)
 {
 
 }
@@ -47,12 +49,20 @@ unsigned int TransactionService::get_short_id(
 	return *iter->second.begin();
 }
 
-TxContents_t TransactionService::get_transaction(
+PTxContents_t TransactionService::get_transaction(
 		unsigned int short_id, Sha256_t& tx_hash
 )
 {
 	tx_hash = *_short_id_to_tx_hash[short_id];
 	return _tx_hash_to_contents[tx_hash];
+}
+
+const TxContents_t* TransactionService::get_tx_contents_raw_ptr(
+        unsigned int short_id
+)
+{
+    const Sha256_t& tx_hash = *_short_id_to_tx_hash[short_id];
+    return _tx_hash_to_contents[tx_hash].get();
 }
 
 size_t TransactionService::size() const {
@@ -66,7 +76,7 @@ size_t TransactionService::get_tx_size(unsigned int short_id) const {
 
 bool TransactionService::get_missing_transactions(
 		UnknownTxHashes_t& unknown_tx_hashes,
-		UnknownTxSIDs_t& unknown_tx_sids,
+		ShortIDs_t& unknown_tx_sids,
 		const std::vector<unsigned int>& short_ids
 ) const
 {
@@ -96,9 +106,56 @@ void TransactionService::on_finished_reading_tx_pool() {
 	_tx_not_seen_in_blocks.release_read();
 }
 
-void TransactionService::remove_from_tx_pool(const Sha256_t& sha) {
+void TransactionService::track_seen_transaction(const Sha256_t &sha) {
 	_tx_not_seen_in_blocks.erase(sha);
 }
 
+// TODO : add a lock to this function to prevent a race condition between data structures
+ShortIDs_t TransactionService::track_seen_short_ids(
+        const ShortIDs_t &short_ids
+)
+{
+    ShortIDs_t dup_sids;
+    _short_ids_seen_in_block.push_back(short_ids);
+    for (const unsigned int& short_id: short_ids) {
+        auto sha_itr = _short_id_to_tx_hash.find(short_id);
+        if (sha_itr != _short_id_to_tx_hash.end()) {
+            _tx_not_seen_in_blocks.erase(*sha_itr->second);
+        }
+    }
+    if (_short_ids_seen_in_block.size() >= _final_tx_confirmations_count) {
+        auto& final_short_ids = _short_ids_seen_in_block.front();
+        for (const unsigned int& short_id: final_short_ids) {
+            _remove_transaction_by_short_id(short_id, dup_sids);
+        }
+        _short_ids_seen_in_block.pop_front();
+    }
+    return std::move(dup_sids);
+}
+
+void TransactionService::set_final_tx_confirmations_count(size_t val) {
+    _final_tx_confirmations_count = val;
+}
+
+void TransactionService::_remove_transaction_by_short_id(
+        unsigned int short_id, ShortIDs_t& dup_sids
+)
+{
+    auto sha_iter = _short_id_to_tx_hash.find(short_id);
+    if (sha_iter != _short_id_to_tx_hash.end()) {
+        const Sha256_t& sha = *sha_iter->second;
+        auto& short_ids = _tx_hash_to_short_ids.at(sha);
+        if (short_ids.size() > 1) {
+            short_ids.erase(short_id);
+            for (const unsigned int& dup_short_id : short_ids) {
+                _short_id_to_tx_hash.erase(dup_short_id);
+                dup_sids.push_back(dup_short_id);
+            }
+        }
+        _tx_hash_to_short_ids.erase(sha);
+        _tx_hash_to_contents.erase(sha);
+        _short_id_to_tx_hash.erase(sha_iter);
+    }
+}
 
 } // service

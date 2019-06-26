@@ -25,56 +25,56 @@ public:
 		_set.reserve(capacity);
 	}
 
-	Bucket(Bucket&& other) {
+	Bucket(Bucket&& other) noexcept {
 		_capacity = other._capacity;
 		_bucket_index = other._bucket_index;
 		_set = other._set;
 	}
 
-	Bucket& operator=(Bucket&& rhs) {
+	Bucket& operator =(Bucket&& rhs) noexcept {
 		_capacity = rhs._capacity;
 		_bucket_index = rhs._bucket_index;
 		_set = std::move(rhs._set);
 		return *this;
 	}
 
-	iterator begin(void) {
+	iterator begin() {
 		return _set.begin();
 	}
 
-	const_iterator begin(void) const {
+	const_iterator begin() const {
 		return _set.begin();
 	}
 
-	iterator end(void) {
+	iterator end() {
 		return _set.end();
 	}
-	const_iterator end(void) const {
+	const_iterator end() const {
 		return _set.end();
 	}
 
-	uint32_t bucket_index(void) const {
+	uint32_t bucket_index() const {
 		return _bucket_index;
 	}
 
-	size_t size(void) const {
+	size_t size() const {
 		return _set.size();
 	}
 
-	bool is_full(void) const {
+	bool is_full() const {
 		return size() >= _capacity;
 	}
 
-	bool empty(void) const {
-		return size() == 0;
+	bool empty() const {
+		return _set.empty();
 	}
 
 	std::pair<iterator, bool> insert(const T& val) {
 		return _set.insert(val);
 	}
 
-	size_t erase(const T& val) {
-		return _set.erase(val);
+	bool erase(const T& val) {
+		return _set.erase(val) > 0;
 	}
 
 	bool contains(const T& val) const {

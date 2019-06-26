@@ -23,7 +23,7 @@ public:
 
 	void erase(const Sha256_t& key) override;
 
-	void clear(void) override;
+	void clear() override;
 private:
 	TxNotSeenInBlocks_t& _tx_not_seen;
 };

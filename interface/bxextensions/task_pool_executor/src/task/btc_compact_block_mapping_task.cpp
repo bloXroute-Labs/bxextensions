@@ -25,5 +25,5 @@ void bind_btc_compact_block_mapping_task(py::module& m) {
 	  .def("init", &BtcCompactBlockMappingTask_t::init)
 	  .def("success", &BtcCompactBlockMappingTask_t::success)
 	  .def("compression_task", &BtcCompactBlockMappingTask_t::compression_task)
-	  .def("missing_indices", &BtcCompactBlockMappingTask_t::missing_indecies);
+	  .def("missing_indices", &BtcCompactBlockMappingTask_t::missing_indices);
 }

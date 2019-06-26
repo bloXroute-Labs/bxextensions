@@ -1,5 +1,6 @@
 #include <utils/crypto/hash_helper.h>
 #include <utils/concurrency/atomic_operation_helper.h>
+#include <utils/common/buffer_copy.h>
 
 #include "tpe/task/sub_task/btc_compact_tx_mapping_sub_task.h"
 #include "tpe/consts.h"
@@ -7,6 +8,7 @@
 namespace task {
 
 typedef utils::crypto::Sha256 Sha256_t;
+typedef utils::common::BufferCopy BufferCopy_t;
 
 BtcCompactTxMappingSubTask::BtcCompactTxMappingSubTask():
 		_compact_short_id_map(nullptr),
@@ -43,7 +45,11 @@ void BtcCompactTxMappingSubTask::_execute() {
 	const auto& sha_map = _tx_service->tx_hash_to_short_ids();
 	const auto& content_map = _tx_service->tx_hash_to_contents();
 	for (const Sha256_t& sha: *_bucket) {
-		uint32_t short_id = *sha_map.find(sha)->second.begin();
+	    auto sha_iter = sha_map.find(sha);
+	    if (sha_iter == sha_map.end()) {
+            continue;
+	    }
+		uint32_t short_id = *sha_iter->second.begin();
 		CompactShortId_t compact_short_id = std::move(
 				utils::crypto::to_compact_id(sha, *_key)
 		);
@@ -57,17 +63,23 @@ void BtcCompactTxMappingSubTask::_execute() {
 			bool duplicate_found = !utils::concurrency::compare_and_swap(
 					src_short_id, map_sid, short_id
 			);
-			if (duplicate_found) {
+			auto content_iter = content_map.find(sha);
+			if (duplicate_found || content_iter == content_map.end()) {
 				_unknown_indices->push_back(compact_pair.second);
 				placeholder.type =
 						service::TransactionPlaceholderType::missing_compact_id;
 				placeholder.sid = null_short_id;
-				_counter->fetch_add(-1);
+				if (duplicate_found) {
+                    _counter->fetch_add(-1);
+				}
 			} else {
 				placeholder.type = service::TransactionPlaceholderType::short_id;
 				placeholder.sid = short_id;
-				placeholder.contents = content_map.find(sha)->second;
-				_counter->fetch_add(1);
+
+                placeholder.contents = std::make_shared<BufferCopy_t>(
+                        *content_iter->second
+                );
+                _counter->fetch_add(1);
 			}
 		}
 		if (_counter->load() >= total_count) {

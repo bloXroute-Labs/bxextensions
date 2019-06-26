@@ -31,9 +31,6 @@ public:
 	BtcCompactBlockMessage(const BtcCompactBlockMessage& rhs);
 
 	size_t get_compact_txs_count(uint64_t& tx_count);
-	size_t get_next_compact_tx(
-	    const size_t offset
-    );
 	size_t get_pre_filled_txs_count(
 	    size_t offset,
 	    uint64_t& tx_count

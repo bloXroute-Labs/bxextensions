@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdint>
 #include <atomic>
+#include <mutex>
 
 #include <utils/protocols/bitcoin/btc_compact_block_message.h>
 
@@ -22,7 +23,6 @@ typedef utils::crypto::CompactShortId CompactShortId_t;
 typedef std::vector<uint64_t> UnknownTxIndices_t;
 typedef utils::crypto::Sha256Bucket_t Sha256Bucket_t;
 typedef std::atomic<uint64_t> CompactShortIdsCounter_t;
-typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
 typedef service::TransactionPlaceholder TransactionPlaceholder_t;
 typedef service::TransactionPlaceholderType TransactionPlaceholderType_t;
 typedef std::vector<TransactionPlaceholder_t> CompactTransactionPlaceholders_t;
@@ -43,7 +43,7 @@ public:
 
 	static const uint32_t null_short_id; // TODO: Need to take this from the BtcCompactBlockMessage
 protected:
-	void _execute(void) override;
+	void _execute() override;
 
 private:
 	CompactShortIdToShortIdMap_t* _compact_short_id_map;

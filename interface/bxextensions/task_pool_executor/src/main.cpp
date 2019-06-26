@@ -49,10 +49,6 @@ custom_bind_vector(py::handle scope, const std::string &name) {
 	return py::bind_vector<Vector, std::shared_ptr<Vector>>(scope, name);
 }
 
-void init(size_t task_pool_size) {
-	TaskPoolExecutor_t::instance().init(task_pool_size);
-}
-
 
 /**
  * Initializing the task_pool_executor module
@@ -70,8 +66,6 @@ PYBIND11_MODULE(task_pool_executor, m) {
 	custom_bind_vector<std::vector<unsigned int>>(m,"UIntList");
     custom_bind_map<service::Sha256ToContentMap_t>(m, "Sha256ToContentMap");
     custom_bind_map<service::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
-
-    m.def("init", &init);
 
     bind_byte_array(m);
 

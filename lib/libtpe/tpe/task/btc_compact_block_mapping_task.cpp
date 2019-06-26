@@ -11,7 +11,9 @@ namespace task {
 typedef service::CompactBlockDataService CompactBlockDataService_t;
 
 
-BtcCompactBlockMappingTask::BtcCompactBlockMappingTask(size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/):
+BtcCompactBlockMappingTask::BtcCompactBlockMappingTask(
+        size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/
+):
 		MainTaskBase(),
 		_block_buffer(nullptr),
         _tx_service(nullptr),
@@ -49,7 +51,7 @@ bool BtcCompactBlockMappingTask::success() {
 }
 
 PUnknownTxIndices_t
-BtcCompactBlockMappingTask::missing_indecies() {
+BtcCompactBlockMappingTask::missing_indices() {
 	assert_execution();
 	return _missing_indices;
 }
@@ -101,8 +103,6 @@ void BtcCompactBlockMappingTask::_execute(SubPool_t& sub_pool) {
 	}
 	_compression_task->init(std::move(service), _magic);
 	_tx_service->on_finished_reading_tx_pool();
-	_block_buffer = nullptr;
-	_tx_service = nullptr;
 }
 
 void BtcCompactBlockMappingTask::_init_sub_tasks(

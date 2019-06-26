@@ -34,23 +34,14 @@ void TaskPoolExecutor::init(size_t pool_size) {
 	});
 }
 
-size_t TaskPoolExecutor::try_init() {
-	if (!_is_initialized) {
-		int cpu_count = std::thread::hardware_concurrency();
-		init(std::max(cpu_count - 1, 1));
-	}
-	return size();
-}
-
 void TaskPoolExecutor::enqueue_task(
     std::shared_ptr<task::MainTaskBase> task
 )
 {
-	try_init(); // TODO : remove this once handled correctly in Python
 	_main_pool.enqueue_task(std::move(task));
 }
 
-size_t TaskPoolExecutor::size(void) const {
+size_t TaskPoolExecutor::size() const {
 	return _main_pool.size();
 }
 

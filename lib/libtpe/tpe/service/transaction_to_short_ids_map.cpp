@@ -25,7 +25,7 @@ void Sha256ToShortIdsMap::erase(const Sha256_t& key) {
 	_tx_not_seen.erase(key);
 }
 
-void Sha256ToShortIdsMap::clear(void) {
+void Sha256ToShortIdsMap::clear() {
 	_map.clear();
 	_tx_not_seen.clear();
 }

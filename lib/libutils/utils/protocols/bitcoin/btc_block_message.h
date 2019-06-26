@@ -22,9 +22,6 @@ public:
 
 	crypto::Sha256 block_hash(void) const;
 	crypto::Sha256 prev_block_hash(void) const;
-	uint32_t get_block_size(void) const;
-
-	bool is_sid_tx(size_t offset);
 
 private:
 	common::BufferView _buffer;

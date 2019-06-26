@@ -59,7 +59,7 @@ TEST_F(CompactBlockCompression, test_block_00000000000002466e6ff00b90b49f1588b44
     }
 
     // construct the transaction_service from the full block
-    PTransactionService_t tx_service = std::move(std::make_shared<TransactionService_t>());
+    PTransactionService_t tx_service = std::move(std::make_shared<TransactionService_t>(1));
     uint32_t short_id = 1;
 
     // loop over full block and insert the tx

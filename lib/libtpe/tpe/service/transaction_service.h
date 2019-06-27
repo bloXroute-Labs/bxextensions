@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <memory>
 #include <deque>
+#include <utility>
 
 #include <utils/common/buffer_view.h>
 
@@ -23,6 +24,7 @@ typedef std::unordered_map<unsigned int, PSha256_t> ShortIDToSha256Map_t;
 typedef utils::crypto::Sha256Map_t<PTxContents_t> Sha256ToContentMap_t;
 typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::vector<unsigned int> ShortIDs_t;
+typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 
 class TransactionService {
 public:
@@ -65,12 +67,12 @@ public:
 	void on_finished_reading_tx_pool();
 
 	void track_seen_transaction(const Sha256_t &sha);
-    ShortIDs_t track_seen_short_ids(const ShortIDs_t &short_ids);
+    TrackSeenResult_t track_seen_short_ids(const ShortIDs_t &short_ids);
     void set_final_tx_confirmations_count(size_t val);
 
 private:
 
-    void _remove_transaction_by_short_id(
+    size_t _remove_transaction_by_short_id(
             unsigned int short_id, ShortIDs_t& dup_sids
     );
 

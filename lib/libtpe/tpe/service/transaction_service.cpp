@@ -111,11 +111,12 @@ void TransactionService::track_seen_transaction(const Sha256_t &sha) {
 }
 
 // TODO : add a lock to this function to prevent a race condition between data structures
-ShortIDs_t TransactionService::track_seen_short_ids(
+TrackSeenResult_t TransactionService::track_seen_short_ids(
         const ShortIDs_t &short_ids
 )
 {
-    ShortIDs_t dup_sids;
+    TrackSeenResult_t result;
+    result.first = 0;
     _short_ids_seen_in_block.push_back(short_ids);
     for (const unsigned int& short_id: short_ids) {
         auto sha_itr = _short_id_to_tx_hash.find(short_id);
@@ -126,22 +127,24 @@ ShortIDs_t TransactionService::track_seen_short_ids(
     if (_short_ids_seen_in_block.size() >= _final_tx_confirmations_count) {
         auto& final_short_ids = _short_ids_seen_in_block.front();
         for (const unsigned int& short_id: final_short_ids) {
-            _remove_transaction_by_short_id(short_id, dup_sids);
+            result.first +=
+                    _remove_transaction_by_short_id(short_id, result.second);
         }
         _short_ids_seen_in_block.pop_front();
     }
-    return std::move(dup_sids);
+    return std::move(result);
 }
 
 void TransactionService::set_final_tx_confirmations_count(size_t val) {
     _final_tx_confirmations_count = val;
 }
 
-void TransactionService::_remove_transaction_by_short_id(
+size_t TransactionService::_remove_transaction_by_short_id(
         unsigned int short_id, ShortIDs_t& dup_sids
 )
 {
     auto sha_iter = _short_id_to_tx_hash.find(short_id);
+    size_t contents_len = 0;
     if (sha_iter != _short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
         auto& short_ids = _tx_hash_to_short_ids.at(sha);
@@ -153,9 +156,11 @@ void TransactionService::_remove_transaction_by_short_id(
             }
         }
         _tx_hash_to_short_ids.erase(sha);
+        contents_len = _tx_hash_to_contents.at(sha)->size();
         _tx_hash_to_contents.erase(sha);
         _short_id_to_tx_hash.erase(sha_iter);
     }
+    return contents_len;
 }
 
 } // service

@@ -52,24 +52,18 @@ BufferView::BufferView(const BufferView& other):
 {
 }
 
-BufferView::BufferView(BufferView&& rhs):
+BufferView::BufferView(BufferView&& rhs) noexcept:
 			_buffer(rhs._buffer),
 			_size(rhs._size),
 			_from(rhs._from)
 {
 }
 
-BufferView::~BufferView() {
-}
+BufferView::~BufferView() = default;
 
-BufferView& BufferView::operator=(const BufferView& other) {
-	_buffer = other._buffer;
-	_from = other._from;
-	_size = other._size;
-	return *this;
-}
+BufferView& BufferView::operator =(const BufferView& other) = default;
 
-BufferView& BufferView::operator=(BufferView&& other) {
+BufferView& BufferView::operator =(BufferView&& other) noexcept {
 	_buffer = other._buffer;
 	_from = other._from;
 	_size = other._size;
@@ -91,11 +85,11 @@ const uint8_t& BufferView::at(size_t idx) const {
 	return this->operator [](idx);
 }
 
-const char* BufferView::char_array(void) const {
+const char* BufferView::char_array() const {
 	return (const char*)&_buffer[_from];
 }
 
-const unsigned char* BufferView::byte_array(void) const {
+const unsigned char* BufferView::byte_array() const {
 	return &_buffer[_from];
 }
 
@@ -107,7 +101,7 @@ BufferView::const_iterator BufferView::end() const {
 	return const_iterator(_buffer + _from + _size);
 };
 
-size_t BufferView::size(void) const {
+size_t BufferView::size() const {
 	return _size;
 }
 

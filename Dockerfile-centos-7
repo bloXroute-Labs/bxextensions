@@ -1,0 +1,69 @@
+FROM centos
+
+ARG GID=503
+ARG UID=503
+
+RUN if [ $(grep ":${GID}:" /etc/group | wc -l) == 0 ]; then groupadd --system --gid ${GID} bxextensions; fi
+
+RUN if [ $(grep ":${UID}:" /etc/passwd | wc -l) == 0 ]; then useradd --uid ${UID} --system --gid ${GID} bxextensions; fi  && \
+    mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
+
+RUN yum -y update
+RUN yum -y install yum-utils
+RUN yum -y groupinstall development
+RUN yum -y install https://centos7.iuscommunity.org/ius-release.rpm
+RUN yum -y install python36-devel python36-pip
+RUN yum -y install \
+  libffi-devel \
+  zlib-devel \
+  bzip2-devel \
+  openssl-devel \
+  ncurses-devel \
+  sqlite-devel \
+  readline-devel \
+  tk-devel \
+  gdbm-devel \
+  db4-devel \
+  libpcap-devel \
+  xz-devel \
+  expat-devel \
+  postgresql-devel \
+  wget
+RUN yum -y install cmake3
+
+#install python 3.7.3
+WORKDIR /usr/src 
+RUN wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz 
+RUN tar xzf Python-3.7.3.tgz 
+WORKDIR /usr/src/Python-3.7.3 
+RUN ./configure --enable-optimizations 
+RUN make altinstall
+
+RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
+RUN yum -y install centos-release-scl devtoolset-7-gcc
+RUN yum -y install centos-release-scl-rh
+RUN yum -y --enablerepo=centos-sclo-rh-testing install devtoolset-7-gcc devtoolset-7-gcc-c++
+RUN /opt/rh/devtoolset-7/enable
+RUN g++ --version
+
+#upgrade pip
+RUN pip3.7 install --upgrade pip setuptools
+
+WORKDIR /app/bxextensions
+COPY interface/ interface/
+COPY lib/ lib/
+COPY build_extensions.py ./
+COPY CMakeLists.txt ./
+COPY docker-entrypoint.sh /usr/local/bin/
+
+WORKDIR /app/bxextensions/lib/third_party/libsodium-stable
+RUN autoreconf --force --install
+WORKDIR /app/bxextensions
+
+RUN chown -R ${UID}:${GID} /app/bxextensions
+
+ENV PYTHONPATH=/app/bxextensions
+ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
+ENV PYTHONS="python3 /usr/local/bin/python3.7"
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

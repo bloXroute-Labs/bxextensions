@@ -15,6 +15,7 @@
 namespace task {
 
 typedef service::TransactionService TransactionService_t;
+typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef utils::common::BufferView BlockBuffer_t;
 typedef utils::common::BufferView TxBuffer_t;
 typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
@@ -23,7 +24,7 @@ typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
 typedef std::list<std::pair<size_t, size_t>> TXOffsets_t;
 typedef std::shared_ptr<TXOffsets_t> POffests_t;
 typedef service::UnknownTxHashes_t UnknownTxHashes_t;
-typedef service::UnknownTxSIDs_t UnknownTxSIDs_t;
+typedef service::ShortIDs_t UnknownTxSIDs_t;
 typedef service::Sha256_t Sha256_t;
 typedef service::PSha256_t PSha256_t;
 typedef utils::common::ByteArray ByteArray_t;

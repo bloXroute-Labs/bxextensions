@@ -15,24 +15,21 @@ namespace pool {
 
 typedef TaskThreadPool<MainTaskBase> MainPool_t;
 
-class TaskPoolExecutor:
-    public utils::patterns::Singleton<TaskPoolExecutor> {
-
-    friend class utils::patterns::Singleton<TaskPoolExecutor>;
+class TaskPoolExecutor {
 
 public:
+    TaskPoolExecutor();
 
-  void init(size_t pool_size);
-  void enqueue_task(std::shared_ptr<MainTaskBase> task);
+    void init(size_t pool_size);
+    void enqueue_task(std::shared_ptr<MainTaskBase> task);
 
-protected:
-  TaskPoolExecutor();
+    size_t size() const;
 
 private:
 
-  bool _is_initialized;
-  SubPool_t _sub_pool;
-  MainPool_t _main_pool;
+    bool _is_initialized;
+    SubPool_t _sub_pool;
+    MainPool_t _main_pool;
 };
 } // pool
 } // task

@@ -17,13 +17,13 @@
 
 namespace task {
 
-typedef std::shared_ptr<BTCBlockDecompressionSubTask> PSubTask_t;
-typedef utils::protocols::BxBtcBlockMessage BxBtcBlockMessage_t;
+typedef std::shared_ptr<BtcBlockDecompressionSubTask> PSubTask_t;
+typedef utils::protocols::bitcoin::BxBtcBlockMessage BxBtcBlockMessage_t;
 
-class BTCBlockDecompressionTask : public MainTaskBase {
+class BtcBlockDecompressionTask : public MainTaskBase {
 
 public:
-	BTCBlockDecompressionTask(
+	BtcBlockDecompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
@@ -33,14 +33,13 @@ public:
 			PTransactionService_t tx_service
 	);
 
-	PByteArray_t btc_block(void);
-	const UnknownTxHashes_t& unknown_tx_hashes(void);
-	const UnknownTxSIDs_t& unknown_tx_sids(void);
-	PSha256_t block_hash(void);
-	bool success(void);
-	uint64_t tx_count(void);
-	const std::vector<unsigned int>& short_ids(void);
-
+	PByteArray_t btc_block();
+	const UnknownTxHashes_t& unknown_tx_hashes();
+	const UnknownTxSIDs_t& unknown_tx_sids();
+	PSha256_t block_hash();
+	bool success();
+	uint64_t tx_count();
+	const std::vector<unsigned int>& short_ids();
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

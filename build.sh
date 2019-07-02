@@ -4,7 +4,7 @@ set -e
 
 OS_RELEASE=${1:-alpine-3.8}
 
-if (( $(docker container ls -a | grep -c bxextensions_${OS_RELEASE}) > 0 )); then
+if (( $(docker container ls -a | grep -c "bxextensions_${OS_RELEASE} ") > 0 )); then
     echo "removing bxextensions_${OS_RELEASE} container"
     docker container rm bxextensions_${OS_RELEASE}
 else

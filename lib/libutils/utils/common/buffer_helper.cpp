@@ -1,3 +1,4 @@
+#include <iostream>
 #include <unordered_map>
 #include <functional>
 
@@ -23,7 +24,24 @@ namespace common {
 //
 //
 //}
+size_t get_compact_short_id(
+		const common::BufferView& buffer,
+		uint64_t& out_value,
+		const size_t offset
+)
+{
+	constexpr size_t source_size = 6;
 
+	std::array<uint8_t, sizeof(uint64_t)> val_array;
+    val_array.fill(0);
+	memcpy(
+			&val_array[0],
+			&buffer[offset],
+			source_size
+	);
+	out_value = *(uint64_t *) &val_array[0];
+	return offset + source_size;
+}
 
 } // common
 } // utils

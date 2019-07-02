@@ -2,6 +2,7 @@
 #include <array>
 
 #include <utils/common/buffer_helper.h>
+#include <utils/common/string_helper.h>
 
 template <typename T>
 static size_t set_le_val(
@@ -239,4 +240,15 @@ TEST_F(BufferHelperTest, test_set_little_endian_value) {
 	);
 
 	ASSERT_EQ(get_buf(), buf);
+}
+
+TEST_F(BufferHelperTest, test_get_compact_short_id) {
+    uint64_t desired = 0x1c31097bfc15;
+    uint64_t src = 0;
+    std::string source = "15fc7b09311c";
+    std::vector <uint8_t> source_vec;
+    utils::common::from_hex_string(source, source_vec);
+    utils::common::BufferView source_buffer_view(source_vec);
+    get_compact_short_id(source_buffer_view, src, 0);
+    ASSERT_EQ(desired, src);
 }

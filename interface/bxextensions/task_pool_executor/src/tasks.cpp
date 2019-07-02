@@ -3,9 +3,12 @@
 #include <tpe/task/w2_task.h>
 #include "src/task/btc_block_compression_task.h"
 #include "src/task/btc_block_decompression_task.h"
+#include "src/task/btc_compact_block_mapping_task.h"
+#include "src/task/btc_compact_block_compression_task.h"
 #include "src/task/task_base.h"
 #include "src/task/decryption_task.h"
 #include "src/task/encryption_task.h"
+#include "src/task/task_pool_executor.h"
 
 
 static void bind_test_task(py::module& m) {
@@ -34,17 +37,13 @@ void bind_tasks(py::module& m) {
   bind_decryption_task(m);
   bind_btc_block_compression_task(m);
   bind_btc_block_decompression_task(m);
+  bind_btc_compact_block_compression_task(m);
+  bind_btc_compact_block_mapping_task(m);
+  bind_tpe(m);
 #ifdef BUILD_TYPE
 	if (BUILD_TYPE == "TESTING") {
 		  bind_test_task(m);
 		  bind_w2_task(m);
 	}
 #endif
-  m.def("enqueue_task", &enqueue_task, R"pbdoc(
-	add task to a thread pool queue
-	)pbdoc");
-}
-
-void enqueue_task(PMainTaskBase_t task) {
-  TaskPoolExecutor_t::instance().enqueue_task(task);
 }

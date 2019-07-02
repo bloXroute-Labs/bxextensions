@@ -50,6 +50,7 @@ size_t get_big_endian_value(
 	);
 }
 
+
 template <typename T, class TBuffer>
 size_t set_little_endian_value(
 		TBuffer& buffer,
@@ -67,6 +68,11 @@ size_t set_little_endian_value(
 	return end;
 }
 
+size_t get_compact_short_id(
+		const common::BufferView& buffer,
+		uint64_t& out_value,
+		size_t offset
+);
 
 } // common
 } // utils

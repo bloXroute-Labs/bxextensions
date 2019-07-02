@@ -13,25 +13,25 @@ namespace common {
 class ByteArray {
 public:
   ByteArray();
-  ByteArray(size_t capacity);
+
+  explicit ByteArray(size_t capacity);
   ByteArray(const ByteArray& other) = delete;
-  ByteArray(ByteArray&& rhs);
+  ByteArray(ByteArray&& rhs) noexcept;
   ~ByteArray();
 
   ByteArray& operator=(const ByteArray& other) = delete;
-  ByteArray& operator=(ByteArray&& rhs);
-  uint8_t& operator[](const size_t idx);
+  ByteArray& operator =(ByteArray&& rhs) noexcept;
+  uint8_t& operator [](size_t idx);
   ByteArray& operator+=(const ByteArray& from);
   ByteArray& operator+=(const BufferView& from);
 
-  unsigned char* byte_array(void);
-  char* char_array(void);
+  unsigned char* byte_array();
+  char* char_array();
   uint8_t& at(size_t idx);
   const uint8_t& at(size_t idx) const;
-  const unsigned char* byte_array(void) const;
-  const char* char_array(void) const;
+  const unsigned char* byte_array() const;
 
-  std::vector<uint8_t>* transfer_ownership(void);
+    std::vector<uint8_t>* transfer_ownership();
 
   void reserve(size_t capacity);
   void from_str(const std::string& src, int initial_position = 0);
@@ -51,19 +51,19 @@ public:
 		  size_t offset,
 		  size_t from,
 		  size_t length);
-  void reset(void);
+  void reset();
   void resize(size_t length);
-  void clear(void);
+  void clear();
   void shift_left(int shift_count);
-  size_t extend_from(size_t offset, size_t length);
-  void set_output(void);
 
-  size_t size(void) const;
-  size_t length(void) const;
-  size_t capacity(void) const;
-  const std::vector<ssize_t>& shape(void) const;
-  static const std::vector<ssize_t>& strides(void);
-  const std::vector<uint8_t>& array(void) const;
+  void set_output();
+
+  size_t size() const;
+  size_t length() const;
+  size_t capacity() const;
+  const std::vector<ssize_t>& shape() const;
+  static const std::vector<ssize_t>& strides();
+  const std::vector<uint8_t>& array() const;
 
 private:
   std::vector<uint8_t> *_array;

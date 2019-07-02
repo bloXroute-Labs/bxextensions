@@ -16,7 +16,7 @@ public:
 							>
 	{
 	public:
-		const_iterator(const uint8_t *ptr): _ptr(ptr){}
+		explicit const_iterator(const uint8_t *ptr): _ptr(ptr){}
 		const_iterator(const const_iterator& other):
 			_ptr(other._ptr)
 		{
@@ -27,7 +27,7 @@ public:
 			++_ptr;
 			return tmp;
 		}
-		const_iterator operator++(int) {
+		const const_iterator operator++(int) {
 			++_ptr;
 			return *this;
 		}
@@ -47,38 +47,38 @@ public:
 		const uint8_t *_ptr;
 	};
 
-	BufferView();
+    BufferView();
 	BufferView(
 			const uint8_t* buffer,
 			size_t size,
 			size_t from = 0
 	);
-	BufferView(
+	explicit BufferView(
 			const std::vector<uint8_t>& buffer,
 			size_t length = 0,
 			size_t from = 0
 	);
 	BufferView(const BufferView& src, size_t length, size_t from);
 	BufferView(const BufferView&);
-	BufferView(BufferView&&);
+	BufferView(BufferView&&) noexcept;
 	virtual ~BufferView();
 
 	static BufferView empty();
 
-	BufferView& operator=(const BufferView& other);
-	BufferView& operator=(BufferView&& other);
-	operator bool() const;
+	BufferView& operator =(const BufferView& other);
+	BufferView& operator =(BufferView&& other) noexcept;
+	explicit operator bool() const;
 	const uint8_t& operator[](size_t idx) const;
 	const uint8_t& at(size_t idx) const;
-	const char* char_array(void) const;
-	const unsigned char* byte_array(void) const;
+	const char* char_array() const;
+	const unsigned char* byte_array() const;
 
-	const_iterator begin(void) const;
-	const_iterator end(void) const;
+	const_iterator begin() const;
+	const_iterator end() const;
 
-	size_t size(void) const;
+	size_t size() const;
 
-	void* ptr(void);
+	void* ptr();
 
 protected:
 	void _set_buffer(const uint8_t* buffer, size_t size);

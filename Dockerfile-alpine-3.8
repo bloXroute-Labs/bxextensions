@@ -54,4 +54,5 @@ RUN  chown -R ${UID}:${GID} /app/bxextensions
 
 
 ENV PYTHONPATH=/app/bxextensions
+ENV PYTHONS="python3"
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

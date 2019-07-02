@@ -9,8 +9,8 @@ namespace py = pybind11;
 #ifndef SRC_TASK_BTC_BLOCK_DECOMPRESSION_TASK_H_
 #define SRC_TASK_BTC_BLOCK_DECOMPRESSION_TASK_H_
 
-typedef task::BTCBlockDecompressionTask BTCBlockDecompressionTask_t;
-typedef std::shared_ptr<BTCBlockDecompressionTask_t> PBTCBlockDecompressionTask_t;
+typedef task::BtcBlockDecompressionTask BtcBlockDecompressionTask_t;
+typedef std::shared_ptr<BtcBlockDecompressionTask_t> PBtcBlockDecompressionTask_t;
 
 void bind_btc_block_decompression_task(py::module& m);
 

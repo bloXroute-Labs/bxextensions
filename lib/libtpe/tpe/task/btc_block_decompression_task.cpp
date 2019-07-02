@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "tpe/task/btc_block_decompression_task.h"
 
 #include <utils/common/buffer_helper.h>
@@ -6,7 +8,7 @@
 
 namespace task {
 
-BTCBlockDecompressionTask::BTCBlockDecompressionTask(
+BtcBlockDecompressionTask::BtcBlockDecompressionTask(
 		size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/,
 		size_t minimal_tx_count/* = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ) :
@@ -19,7 +21,7 @@ BTCBlockDecompressionTask::BTCBlockDecompressionTask(
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
-void BTCBlockDecompressionTask::init(
+void BtcBlockDecompressionTask::init(
 		BlockBuffer_t block_buffer,
 		PTransactionService_t tx_service
 )
@@ -40,89 +42,84 @@ void BTCBlockDecompressionTask::init(
 		_output_buffer->reset();
 	}
 	_unknown_tx_sids.clear();
-	_block_buffer = block_buffer;
+	_block_buffer = std::move(block_buffer);
 	_block_hash = nullptr;
-	_tx_service = tx_service;
+	_tx_service = std::move(tx_service);
 	_short_ids.clear();
 	_tx_count = 0;
 }
 
 PByteArray_t
-BTCBlockDecompressionTask::btc_block() {
+BtcBlockDecompressionTask::btc_block() {
 	assert_execution();
 	return _output_buffer;
 }
 
-const UnknownTxHashes_t& BTCBlockDecompressionTask::unknown_tx_hashes() {
+const UnknownTxHashes_t& BtcBlockDecompressionTask::unknown_tx_hashes() {
 	assert_execution();
 	return _unknown_tx_hashes;
 }
 
-const UnknownTxSIDs_t& BTCBlockDecompressionTask::unknown_tx_sids() {
+const UnknownTxSIDs_t& BtcBlockDecompressionTask::unknown_tx_sids() {
 	assert_execution();
 	return _unknown_tx_sids;
 }
 
-PSha256_t BTCBlockDecompressionTask::block_hash() {
+PSha256_t BtcBlockDecompressionTask::block_hash() {
 	assert_execution();
 	return _block_hash;
 }
 
-bool BTCBlockDecompressionTask::success() {
+bool BtcBlockDecompressionTask::success() {
 	assert_execution();
 	return _success;
 }
 
-uint64_t BTCBlockDecompressionTask::tx_count() {
+uint64_t BtcBlockDecompressionTask::tx_count() {
 	assert_execution();
 	return _tx_count;
 }
 
 const std::vector<unsigned int>&
-BTCBlockDecompressionTask::short_ids() {
+BtcBlockDecompressionTask::short_ids() {
 	assert_execution();
 	return _short_ids;
 }
 
-void BTCBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
+void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
-	utils::protocols::BxBtcBlockMessage msg(
+	BxBtcBlockMessage_t msg(
 			_parse_block_header(offset, _tx_count)
 	);
 	_success = _tx_service->get_missing_transactions(
 			_unknown_tx_hashes, _unknown_tx_sids, _short_ids
 	);
-	_block_hash = std::make_shared<Sha256_t>(
+    _block_hash = std::make_shared<Sha256_t>(
 			std::move(msg.block_message().block_hash())
 	);
-	if (!_success) {
-		return;
+    if (!_success) {
+        return;
 	}
 	size_t last_idx = _dispatch(msg, offset, sub_pool);
-	offset = _output_buffer->copy_from_buffer(
+    offset = _output_buffer->copy_from_buffer(
 			_block_buffer,
 			0,
-			msg.offset_diff,
-			offset - msg.offset_diff
+            BxBtcBlockMessage_t::offset_diff,
+			offset - BxBtcBlockMessage_t::offset_diff
 	);
-	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
+    for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
 		auto& task = _sub_tasks[idx];
 		task->wait();
-	}
+    }
 	_output_buffer->set_output();
 }
 
-void BTCBlockDecompressionTask::_init_sub_tasks(
+void BtcBlockDecompressionTask::_init_sub_tasks(
 		size_t pool_size
 )
 {
 	size_t sub_tasks_size = _sub_tasks.size();
 	if (sub_tasks_size < pool_size) {
-		size_t default_count = BTC_DEFAULT_TX_COUNT;
-		size_t capacity = std::max(
-				default_count,
-				(size_t) (_tx_count / pool_size)
-		) * BTC_DEFAULT_TX_SIZE;
 		for (
 				size_t i = sub_tasks_size ;
 				i < pool_size ;
@@ -130,7 +127,7 @@ void BTCBlockDecompressionTask::_init_sub_tasks(
 		)
 		{
 			_sub_tasks.push_back(
-					std::make_shared<BTCBlockDecompressionSubTask>()
+					std::make_shared<BtcBlockDecompressionSubTask>()
 			);
 		}
 	}
@@ -140,8 +137,8 @@ void BTCBlockDecompressionTask::_init_sub_tasks(
 	}
 }
 
-size_t BTCBlockDecompressionTask::_dispatch(
-		utils::protocols::BxBtcBlockMessage& msg,
+size_t BtcBlockDecompressionTask::_dispatch(
+		BxBtcBlockMessage_t& msg,
 		size_t offset,
 		SubPool_t& sub_pool
 )
@@ -154,7 +151,7 @@ size_t BTCBlockDecompressionTask::_dispatch(
 	);
 	size_t idx = 0;
 	size_t short_ids_offset = 0;
-	size_t output_offset = offset - msg.offset_diff;
+	size_t output_offset = offset - BxBtcBlockMessage_t::offset_diff;
 	size_t prev_output_offset = output_offset;
 	bool is_short;
 	for (int count = 0 ; count < _tx_count ; ++count) {
@@ -190,7 +187,7 @@ size_t BTCBlockDecompressionTask::_dispatch(
 	return prev_idx;
 }
 
-void BTCBlockDecompressionTask::_enqueue_task(
+void BtcBlockDecompressionTask::_enqueue_task(
 		size_t task_idx,
 		SubPool_t& sub_pool
 )
@@ -205,8 +202,8 @@ void BTCBlockDecompressionTask::_enqueue_task(
 	sub_pool.enqueue_task(task);
 }
 
-utils::protocols::BxBtcBlockMessage
-BTCBlockDecompressionTask::_parse_block_header(
+BxBtcBlockMessage_t
+BtcBlockDecompressionTask::_parse_block_header(
 		size_t& offset,
 		uint64_t& tx_count
 )
@@ -215,7 +212,7 @@ BTCBlockDecompressionTask::_parse_block_header(
 	offset = utils::common::get_little_endian_value<uint64_t>(
 			_block_buffer, short_ids_offset, 0
 	);
-	utils::protocols::BxBtcBlockMessage msg(
+	BxBtcBlockMessage_t msg(
 			_block_buffer, short_ids_offset
 	);
 	offset = msg.get_tx_count(tx_count);
@@ -223,7 +220,7 @@ BTCBlockDecompressionTask::_parse_block_header(
 	return msg;
 }
 
-void BTCBlockDecompressionTask::_extend_output_buffer(
+void BtcBlockDecompressionTask::_extend_output_buffer(
 		size_t output_offset
 )
 {

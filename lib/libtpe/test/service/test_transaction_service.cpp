@@ -11,6 +11,10 @@ typedef service::Sha256_t Sha256_t;
 class TransactionServiceTest : public ::testing::Test {
 public:
 
+    TransactionServiceTest(): _tx_service(1) {
+
+    }
+
 	static const Sha256_t sha256;
 
 	const TransactionService_t& tx_service() const {
@@ -19,7 +23,7 @@ public:
 
 protected:
 	void SetUp() override {
-		_tx_service.tx_hash_to_short_ids()[sha256].insert(SHORT_ID);
+		_tx_service.get_tx_hash_to_short_ids()[sha256].insert(SHORT_ID);
 	}
 
 private:

@@ -17,8 +17,8 @@
 
 namespace task {
 
-class BTCBlockCompressionTask : public MainTaskBase {
-	typedef std::shared_ptr<BTCBlockCompressionSubTask> PSubTask_t;
+class BtcBlockCompressionTask : public MainTaskBase {
+	typedef std::shared_ptr<BtcBlockCompressionSubTask> PSubTask_t;
 
 	struct TaskData {
 		TaskData(): sub_task(nullptr), offsets(nullptr) {}
@@ -34,7 +34,7 @@ class BTCBlockCompressionTask : public MainTaskBase {
 	typedef std::vector<TaskData> SubTasksData_t;
 
 public:
-	BTCBlockCompressionTask(
+	BtcBlockCompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
@@ -61,11 +61,11 @@ private:
 	void _init_sub_tasks(size_t pool_size, size_t tx_count);
 	size_t _dispatch(
 			size_t tx_count,
-			utils::protocols::BTCBlockMessage& msg,
+			utils::protocols::bitcoin::BtcBlockMessage& msg,
 			size_t offset,
 			SubPool_t& sub_pool
 	);
-	size_t _on_sub_task_completed(BTCBlockCompressionSubTask& tsk);
+	size_t _on_sub_task_completed(BtcBlockCompressionSubTask& tsk);
 	void _set_output_buffer(size_t output_offset);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
 

@@ -30,7 +30,7 @@ ByteArray::ByteArray(size_t capacity):
 	_shape.resize(1);
 }
 
-ByteArray::ByteArray(ByteArray&& rhs):
+ByteArray::ByteArray(ByteArray&& rhs) noexcept:
 	_has_ownership(true)
 {
 	_capacity = rhs._capacity;
@@ -46,7 +46,7 @@ ByteArray::~ByteArray() {
 	_array = nullptr;
 }
 
-ByteArray& ByteArray::operator=(ByteArray&& rhs) {
+ByteArray& ByteArray::operator =(ByteArray&& rhs) noexcept {
 	_capacity = rhs._capacity;
 	_array = rhs.transfer_ownership();
 	_length = rhs._length;
@@ -54,11 +54,11 @@ ByteArray& ByteArray::operator=(ByteArray&& rhs) {
 	return *this;
 }
 
-uint8_t& ByteArray::operator[](const size_t idx) {
+uint8_t& ByteArray::operator [](size_t idx) {
 	return at(idx);
 }
 
-ByteArray& ByteArray::operator+=(const ByteArray& from) {
+ByteArray& ByteArray::operator +=(const ByteArray& from) {
 	copy_from_array(*from._array,
 			_length,
 			0,
@@ -66,8 +66,8 @@ ByteArray& ByteArray::operator+=(const ByteArray& from) {
 	return *this;
 }
 
-ByteArray& ByteArray::operator+=(const BufferView& from) {
-	  size_t total_length = _length + from.size(), offset = _length;
+ByteArray& ByteArray::operator +=(const BufferView& from) {
+	  size_t total_length = _length + from.size();
 	  resize(total_length);
 	  memcpy(byte_array(), &from.at(0), total_length);
 	  return *this;
@@ -95,14 +95,11 @@ const uint8_t& ByteArray::at(size_t idx) const {
 	return _array->at(idx);
 }
 
-const unsigned char* ByteArray::byte_array(void) const {
+const unsigned char* ByteArray::byte_array() const {
 	return &at(0);
 }
-const char* ByteArray::char_array(void) const {
-	return (const char *)&at(0);
-}
 
-std::vector<uint8_t>* ByteArray::transfer_ownership() {
+    std::vector<uint8_t>* ByteArray::transfer_ownership() {
 	_has_ownership = false;
 	return _array;
 }
@@ -111,22 +108,22 @@ size_t ByteArray::length() const {
   return _length;
 }
 
-size_t ByteArray::capacity(void) const {
+size_t ByteArray::capacity() const {
 	return _capacity;
 }
 
-const std::vector<ssize_t>& ByteArray::shape(void) const {
+const std::vector<ssize_t>& ByteArray::shape() const {
 	return _shape;
 }
 
-const std::vector<ssize_t>& ByteArray::strides(void) {
+const std::vector<ssize_t>& ByteArray::strides() {
 	static const std::vector<ssize_t> strides = {
 			sizeof(unsigned char)
 	};
 	return strides;
 }
 
-const std::vector<uint8_t>& ByteArray::array(void) const {
+const std::vector<uint8_t>& ByteArray::array() const {
 	return *_array;
 }
 
@@ -206,18 +203,7 @@ void ByteArray::shift_left(int shift_count) {
   _length = _length - shift_count;
 }
 
-size_t ByteArray::extend_from(size_t offset, size_t length) {
-	std::vector<uint8_t>::iterator from_it =
-			_array->begin() + offset;
-	_length += length;
-	if (_capacity < _length) {
-		_capacity = _length;
-	}
-	_array->insert(from_it, length, 0);
-	return offset + length;
-}
-
-void ByteArray::set_output() {
+    void ByteArray::set_output() {
 	_shape[0] = size();
 }
 

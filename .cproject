@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
-    	
+
     <storageModule moduleId="org.eclipse.cdt.core.settings">
         		
         <cconfiguration id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.241932094">
@@ -242,5 +242,5 @@
     </storageModule>
     	
     <storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-    
+
 </cproject>

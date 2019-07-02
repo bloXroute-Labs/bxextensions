@@ -59,7 +59,7 @@ if(NOT ${${PROJECT_NAME}_TEST_MAIN} STREQUAL ${PROJECT_NAME}_TEST_MAIN-NOTFOUND)
 	)
     endif()
 
-    if(${INSTALL_TESTS} STREQUAL "TRUE")
+    if("${INSTALL_TESTS}" STREQUAL "TRUE")
         install(
                 TARGETS check_${PROJECT_NAME}
                 RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/tests

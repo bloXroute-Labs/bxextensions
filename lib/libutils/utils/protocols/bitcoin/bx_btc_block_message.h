@@ -7,6 +7,7 @@
 
 namespace utils {
 namespace protocols {
+namespace bitcoin {
 
 class BxBtcBlockMessage {
 public:
@@ -16,7 +17,7 @@ public:
 	size_t get_next_tx_offset(size_t offset, bool& is_short, int tail = -1);
 	bool is_short_transaction(size_t offset) const;
 
-	const BTCBlockMessage& block_message(void) const;
+	const BtcBlockMessage& block_message() const;
 	size_t get_tx_count(uint64_t& tx_count);
 	void deserialize_short_ids(std::vector<unsigned int>& short_ids);
 
@@ -27,9 +28,10 @@ public:
 private:
 	common::BufferView _bx_block;
 	uint64_t _short_ids_offset;
-	BTCBlockMessage _block_message;
+	BtcBlockMessage _block_message;
 };
 
+}
 } // protocols
 } // utils
 

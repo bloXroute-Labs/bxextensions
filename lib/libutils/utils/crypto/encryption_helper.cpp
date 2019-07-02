@@ -43,7 +43,7 @@ void encrypt(
 )
 {
 	if (cipher.cipher_array().length() < crypto_secretbox_BOXZEROBYTES) {
-	  throw std::runtime_error("cipher size is too small");
+	  throw std::runtime_error("cipher size is too small"); // TODO : replace with proper exception here
 	}
 	generate_key_array(key);
 	randombytes_buf(cipher.nonce_array().byte_array(),

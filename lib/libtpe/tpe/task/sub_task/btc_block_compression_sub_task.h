@@ -16,12 +16,10 @@
 
 namespace task {
 
-typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
-
-class BTCBlockCompressionSubTask : public SubTaskBase {
+class BtcBlockCompressionSubTask : public SubTaskBase {
 
 public:
-	BTCBlockCompressionSubTask(size_t capacity);
+	BtcBlockCompressionSubTask(size_t capacity);
 
 	void init(
 			PTransactionService_t tx_service,
@@ -29,12 +27,12 @@ public:
 			POffests_t tx_offsets
 	);
 
-	const utils::common::ByteArray& output_buffer(void);
-	const std::vector<unsigned int>& short_ids(void);
+	const utils::common::ByteArray& output_buffer();
+	const std::vector<unsigned int>& short_ids();
 
 
 protected:
-	void _execute(void) override;
+	void _execute() override;
 
 private:
 

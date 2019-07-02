@@ -54,20 +54,36 @@ void bind_transaction_service(py::module& m) {
 					return iter != map.end();
 			});
 	py::class_<TransactionService_t, PTransactionService_t>(m, "TransactionService")
-			.def(py::init<>())
+			.def(
+			        py::init<size_t, size_t, size_t>(),
+			        py::arg("pool_size"),
+                    py::arg("tx_bucket_capacity") = BTC_DEFAULT_TX_BUCKET_SIZE,
+                    py::arg("final_tx_confirmations_count") = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT)
 			.def(
 					"tx_hash_to_short_ids",
-					&TransactionService_t::tx_hash_to_short_ids,
+					&TransactionService_t::get_tx_hash_to_short_ids,
 					py::return_value_policy::reference
 			)
 			.def(
 					"short_id_to_tx_hash",
-					&TransactionService_t::short_id_to_tx_hash,
+					&TransactionService_t::get_short_id_to_tx_hash,
 					py::return_value_policy::reference
 			)
+            .def(
+                    "track_seen_transaction",
+                    &TransactionService_t::track_seen_transaction
+            )
+			.def(
+					"track_seen_short_ids",
+                    &TransactionService_t::track_seen_short_ids
+			)
+            .def(
+                    "set_final_tx_confirmations_count",
+                    &TransactionService_t::set_final_tx_confirmations_count
+            )
 			.def(
 					"tx_hash_to_contents",
-					&TransactionService_t::tx_hash_to_contents,
+					&TransactionService_t::get_tx_hash_to_contents,
 					py::return_value_policy::reference
 			);
 }

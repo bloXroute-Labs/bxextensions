@@ -26,10 +26,11 @@ do
   echo "Building container from $DOCKER_FILE"
   bash -c "docker build -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;\
            docker run --name bxextensions_${os} \
-               	--volume ${ROOT_DIR}/release/${os}:/app/bxextensions/release \
-         	--volume ${ROOT_DIR}/build/${os}:/app/bxextensions/build \
-        	--user $(id -u):$(id -g) \
-  	        bxextensions_${os}" &
+              --volume ${ROOT_DIR}/release/${os}:/app/bxextensions/release \
+              --volume ${ROOT_DIR}/build/${os}:/app/bxextensions/build \
+              --user $(id -u):$(id -g) \
+              bxextensions_${os}" &
+
   PIDS[$OS_COUNT]=$!
   echo "docker run of $os process id; ${PIDS[$OS_COUNT]}"
   ((OS_COUNT+=1))

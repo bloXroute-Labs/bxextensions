@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 OS_LIST=${1:-alpine-3.8}
+PARALLELISM=${2:-Yes}
 RETURN_CODE=0
 PIDS=""
 
@@ -29,10 +30,14 @@ do
                --user $(id -u):$(id -g) \
                bxextensions_${os}" 
   echo ${bash_cmd}
-  sh -c "${bash_cmd}" &
-  PID=$!
-  echo "docker run of $os process id ${PID}"
-  PIDS="$PIDS $!"
+  if [ ${PARALLELISM} == "Yes" ]; then
+    sh -c "${bash_cmd}" &
+    PID=$!
+    echo "docker run of $os process id ${PID}"
+    PIDS="$PIDS $!"
+  else
+    sh -c "${bash_cmd}"
+  fi
 done
 
 for pid in $PIDS

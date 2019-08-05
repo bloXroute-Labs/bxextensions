@@ -147,17 +147,23 @@ size_t TransactionService::_remove_transaction_by_short_id(
     size_t contents_len = 0;
     if (sha_iter != _short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
-        auto& short_ids = _tx_hash_to_short_ids.at(sha);
-        if (short_ids.size() > 1) {
-            short_ids.erase(short_id);
-            for (const unsigned int& dup_short_id : short_ids) {
-                _short_id_to_tx_hash.erase(dup_short_id);
-                dup_sids.push_back(dup_short_id);
+        auto short_ids_iter = _tx_hash_to_short_ids.find(sha);
+        if (short_ids_iter != _tx_hash_to_short_ids.end()) {
+            auto& short_ids = short_ids_iter->second;
+            if (short_ids.size() > 1) {
+                short_ids.erase(short_id);
+                for (const unsigned int& dup_short_id : short_ids) {
+                    _short_id_to_tx_hash.erase(dup_short_id);
+                    dup_sids.push_back(dup_short_id);
+                }
             }
+            _tx_hash_to_short_ids.erase(sha);
         }
-        _tx_hash_to_short_ids.erase(sha);
-        contents_len = _tx_hash_to_contents.at(sha)->size();
-        _tx_hash_to_contents.erase(sha);
+        auto content_iter = _tx_hash_to_contents.find(sha);
+        if (content_iter != _tx_hash_to_contents.end()) {
+            contents_len = content_iter->second->size();
+            _tx_hash_to_contents.erase(content_iter);
+        }
         _short_id_to_tx_hash.erase(sha_iter);
     }
     return contents_len;

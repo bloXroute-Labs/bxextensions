@@ -225,7 +225,7 @@ void BtcBlockDecompressionTask::_extend_output_buffer(
 )
 {
 	if (output_offset > _output_buffer->capacity()) {
-		std::string error = utils::common::concatinate(
+		std::string error = utils::common::concatenate(
 				"not enough space allocated to output buffer. \ncapacity - ",
 				_output_buffer->capacity(),
 				", required size - ",

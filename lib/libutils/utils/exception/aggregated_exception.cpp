@@ -1,3 +1,4 @@
+#include "utils/common/string_helper.h"
 #include "utils/exception/aggregated_exception.h"
 
 namespace utils {
@@ -16,24 +17,36 @@ AggregatedException::AggregatedException(
 		ErrorBase(ERROR_TYPE),
 		_nested(nested)
 {
-}
-
-const char* AggregatedException::what() const noexcept {
-	std::ostringstream ss;
-	ss << error_type() << ": " << std::endl <<
-			_get_backtrace();
+	_error_message = utils::common::concatenate(
+		error_type(),
+		": \n",
+		_get_backtrace()
+	);
 	if (_nested) {
 		try {
 			std::rethrow_exception(_nested);
 		} catch (const ErrorBase& e) {
-			ss << "is a direct cause of "<< e.error_type()
-					<<":"<< e.what() << std::endl;
+			_error_message = utils::common::concatenate(
+				_error_message,
+				"is a direct cause of ",
+				e.error_type(),
+				": ",
+				e.what(),
+				"\n"
+			); 
 		} catch (const std::exception& e) {
-			ss << "is a direct cause of: " << e.what() << std::endl;
+			_error_message = utils::common::concatenate(
+				_error_message,
+				"is a direct cause of: ",
+				e.what(),
+				"\n"
+			); 
 		}
-
 	}
-	return ss.str().c_str();
+}
+
+const char* AggregatedException::what() const noexcept {
+	return _error_message.c_str();
 }
 
 const std::string AggregatedException::ERROR_TYPE = "AggregatedException";

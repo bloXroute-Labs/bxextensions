@@ -1,6 +1,7 @@
 #include "utils/protocols/bitcoin/bx_btc_block_message.h"
 #include "utils/protocols/bitcoin/btc_consts.h"
 #include "utils/common/buffer_helper.h"
+#include <utils/common/string_helper.h>
 
 namespace utils {
 namespace protocols {
@@ -57,6 +58,14 @@ void BxBtcBlockMessage::deserialize_short_ids(
             short_ids_count,
             offset
     );
+    if (offset + (sizeof(uint32_t) * short_ids_count) > _bx_block.size()) {
+        std::string error = utils::common::concatenate(
+                "Message is improperly formatted. Expected ",
+                short_ids_count,
+                " short ids, but not enough space has been allocated."
+        );
+        throw std::runtime_error(error);
+    }
     short_ids.reserve(short_ids_count);
     for (uint32_t idx = 0; idx < short_ids_count; ++idx) {
         uint32_t short_id = 0;

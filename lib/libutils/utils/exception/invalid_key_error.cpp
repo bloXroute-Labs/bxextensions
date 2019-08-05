@@ -18,7 +18,7 @@ InvalidKeyError::InvalidKeyError():
 }
 
 const char* InvalidKeyError::what(void) const noexcept {
-	   return common::concatinate(
+	   return common::concatenate(
 			   "invalid key (", _key, ") length - ",
 			   "got ", _key.length(), " expecting ",
 			   _expected_length, ".\n",

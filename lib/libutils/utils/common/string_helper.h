@@ -24,7 +24,7 @@ static void add_to_stream(std::ostringstream& ss,
 }
 
 template<typename... Args>
-std::string concatinate(Args... a_args) {
+std::string concatenate(Args... a_args) {
   std::ostringstream ss;
   add_to_stream(ss, std::forward<Args>(a_args)...);
   return ss.str();

@@ -219,7 +219,7 @@ Sha256::reversed_sha256(void) const {
 
 std::string Sha256::repr(void) const
 {
-	return common::concatinate("Sha256: ", hex_string());
+	return common::concatenate("Sha256: ", hex_string());
 }
 
 std::string Sha256::hex_string(void) const

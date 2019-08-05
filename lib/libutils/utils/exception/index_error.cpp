@@ -19,7 +19,7 @@ IndexError::IndexError():
 }
 
 const char* IndexError::what(void) const noexcept {
-	   return common::concatinate(
+	   return common::concatenate(
 			   "index (", _idx, ") exceeded the array size (",
 			    _size, ") .\n",
 			   _get_backtrace()

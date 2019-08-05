@@ -9,7 +9,7 @@ EncryptionError::EncryptionError():
 }
 
 const char* EncryptionError::what(void) const noexcept {
-	return common::concatinate(
+	return common::concatenate(
 		  "Failed to encrypt message\n",
 		  _get_backtrace()
 	).c_str();

@@ -27,11 +27,11 @@ TEST(StringHelperTest, test_from_hex_string) {
 }
 
 /*
- * test concatinate strings
+ * test concatenate strings
  */
-TEST(StringHelperTest, test_concatinate) {
+TEST(StringHelperTest, test_concatenate) {
 	const std::string str1("foo "), str2("bar "), str3("...");
-	std::string concat = utils::common::concatinate(str1, str2, str3);
+	std::string concat = utils::common::concatenate(str1, str2, str3);
 	ASSERT_EQ(str1 + str2 + str3, concat);
 }
 

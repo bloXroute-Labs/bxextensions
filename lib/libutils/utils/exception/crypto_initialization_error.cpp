@@ -9,7 +9,7 @@ CryptoInitializationError::CryptoInitializationError():
 }
 
 const char* CryptoInitializationError::what(void) const noexcept  {
-	return common::concatinate(
+	return common::concatenate(
 		  "Failed initialize libsodium dependency\n",
 		  _get_backtrace()
 	).c_str();

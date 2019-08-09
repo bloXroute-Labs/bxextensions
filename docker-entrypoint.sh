@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 cd /app/bxextensions
+
 echo "building binaries...${PYTHONS}"
 for python_cmd in ${PYTHONS}
 do

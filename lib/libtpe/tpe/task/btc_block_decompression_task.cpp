@@ -42,7 +42,7 @@ void BtcBlockDecompressionTask::init(
 		_output_buffer->reset();
 	}
 	_unknown_tx_sids.clear();
-	_block_buffer = block_buffer;
+	_block_buffer = std::move(block_buffer);
 	_block_hash = nullptr;
 	_tx_service = std::move(tx_service);
 	_short_ids.clear();

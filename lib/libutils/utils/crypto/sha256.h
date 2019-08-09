@@ -93,7 +93,6 @@ using Sha256Map_t = std::unordered_map<
 		Sha256Equal>;
 
 
-
 template <
 	typename T
 >

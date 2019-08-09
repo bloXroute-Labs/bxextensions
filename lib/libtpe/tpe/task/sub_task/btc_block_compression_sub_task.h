@@ -27,12 +27,12 @@ public:
 			POffests_t tx_offsets
 	);
 
-	const utils::common::ByteArray& output_buffer(void);
-	const std::vector<unsigned int>& short_ids(void);
+	const utils::common::ByteArray& output_buffer();
+	const std::vector<unsigned int>& short_ids();
 
 
 protected:
-	void _execute(void) override;
+	void _execute() override;
 
 private:
 

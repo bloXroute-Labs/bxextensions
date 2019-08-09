@@ -20,8 +20,9 @@ public:
 	size_t get_next_tx_offset(size_t offset, int tail = -1);
 	size_t get_tx_count(uint64_t& tx_count);
 
-	crypto::Sha256 block_hash(void) const;
-	crypto::Sha256 prev_block_hash(void) const;
+	crypto::Sha256 block_hash() const;
+	crypto::Sha256 prev_block_hash() const;
+	uint32_t get_block_size() const;
 
 private:
 	common::BufferView _buffer;

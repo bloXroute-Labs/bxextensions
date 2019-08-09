@@ -4,14 +4,14 @@
 #include "src/task/main_task_base.h"
 #include "src/task/btc_compact_block_mapping_task.h"
 
-typedef task::UnknownTxIndices_t UnknownTxIndecies_t;
-typedef std::shared_ptr<UnknownTxIndecies_t> PUnknownTxIndecies_t;
+typedef task::UnknownTxIndices_t UnknownTxIndices_t;
+typedef std::shared_ptr<UnknownTxIndices_t> PUnknownTxIndices_t;
 
-PYBIND11_MAKE_OPAQUE(UnknownTxIndecies_t);
+PYBIND11_MAKE_OPAQUE(UnknownTxIndices_t);
 
 void bind_btc_compact_block_mapping_task(py::module& m) {
-	py::bind_vector<UnknownTxIndecies_t, PUnknownTxIndecies_t>(
-			m, "UnknownTxIndecies"
+	py::bind_vector<UnknownTxIndices_t, PUnknownTxIndices_t>(
+			m, "UnknownTxIndices"
 	);
 	py::class_<
 	BtcCompactBlockMappingTask_t,

@@ -41,13 +41,13 @@ public:
     }
   }
 
-  void stop_requested(void) {
+  void stop_requested() {
 	  for (auto& pthread: _pool) {
 		  pthread->stop_requested();
 	  }
   }
 
-  int get_available_queue(void) {
+  int get_available_queue() {
     size_t best_queue_idx = 0, best_queue_size = 0;
     for (size_t idx = 0 ; idx < _pool.size() ; ++idx) {
     	PThread_t& thread = _pool[idx];
@@ -62,7 +62,7 @@ public:
     return best_queue_idx;
   }
 
-  size_t size(void) const {
+  size_t size() const {
 	  return _pool.size();
   }
 

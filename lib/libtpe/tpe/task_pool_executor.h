@@ -18,7 +18,6 @@ typedef TaskThreadPool<MainTaskBase> MainPool_t;
 class TaskPoolExecutor {
 
 public:
-
     TaskPoolExecutor();
 
     void init(size_t pool_size);

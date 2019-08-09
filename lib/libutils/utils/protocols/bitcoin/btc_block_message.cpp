@@ -45,7 +45,6 @@ crypto::Sha256 BtcBlockMessage::prev_block_hash() const {
 	return std::move(get_prev_block_hash(_buffer));
 }
 
-
 } // bitcoin
 } // protocols
 } // utils

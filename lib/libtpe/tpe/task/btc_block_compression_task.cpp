@@ -27,13 +27,13 @@ void BtcBlockCompressionTask::init(
 )
 {
 	_tx_service = std::move(tx_service);
-	_block_buffer = block_buffer;
+	_block_buffer = std::move(block_buffer);
 	if (_output_buffer.use_count() > 1) {
 		_output_buffer =  std::make_shared<ByteArray_t>(
-				block_buffer.size()
+                _block_buffer.size()
 		);
 	} else {
-		_output_buffer->reserve(block_buffer.size());
+		_output_buffer->reserve(_block_buffer.size());
 		_output_buffer->reset();
 	}
 	_short_ids.clear();

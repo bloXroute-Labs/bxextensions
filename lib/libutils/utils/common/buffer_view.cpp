@@ -52,17 +52,18 @@ BufferView::BufferView(const BufferView& other):
 {
 }
 
-BufferView::BufferView(BufferView&& rhs):
+BufferView::BufferView(BufferView&& rhs) noexcept:
 			_buffer(rhs._buffer),
 			_size(rhs._size),
 			_from(rhs._from)
 {
 }
 
-BufferView::~BufferView() {
-}
+BufferView::~BufferView() = default;
 
-BufferView& BufferView::operator=(const BufferView& other) {
+BufferView& BufferView::operator =(const BufferView& other) = default;
+
+BufferView& BufferView::operator =(BufferView&& other) noexcept {
 	_buffer = other._buffer;
 	_from = other._from;
 	_size = other._size;

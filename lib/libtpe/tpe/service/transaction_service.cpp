@@ -156,12 +156,8 @@ size_t TransactionService::_remove_transaction_by_short_id(
             }
         }
         _tx_hash_to_short_ids.erase(sha);
-        auto tx_hash_iter = _tx_hash_to_contents.find(sha);
-        if (tx_hash_iter != _tx_hash_to_contents.end()) {
-            contents_len = (tx_hash_iter->second)->size();
-            _tx_hash_to_contents.erase(tx_hash_iter);
-        }
-        // TODO: if tx_hash_iter == _tx_hash_to_contents.end(): write error to the log
+        contents_len = _tx_hash_to_contents.at(sha)->size();
+        _tx_hash_to_contents.erase(sha);
         _short_id_to_tx_hash.erase(sha_iter);
     }
     return contents_len;

@@ -41,7 +41,6 @@ public:
 	uint64_t tx_count();
 	const std::vector<unsigned int>& short_ids();
 
-
 protected:
 	void _execute(SubPool_t& sub_pool) override;
 

@@ -21,7 +21,6 @@ struct default_item_factory {
 template<class TValue>
 using DefaultItemFactory_t = default_item_factory<TValue>;
 
-
 template <
 	class TKey,
 	class TValue,
@@ -33,15 +32,13 @@ class DefaultMap {
 public:
 	typedef std::unordered_map<TKey, TValue, THash, TPred> Map_t;
 
-	DefaultMap(
+	explicit DefaultMap(
 			ItemFactory item_factory = DefaultItemFactory_t<TValue>()
 	): _item_factory(item_factory)
 	{
 	}
 
-	virtual ~DefaultMap() {
-
-	}
+	virtual ~DefaultMap() = default;
 
 	typename Map_t::iterator begin() {
 		return _map.begin();

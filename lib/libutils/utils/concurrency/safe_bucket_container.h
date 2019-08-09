@@ -25,9 +25,8 @@ public:
 	typedef std::queue<T> ItemsToAdd_t;
 	typedef std::queue<std::pair<T, size_t>> ItemsToRemove_t;
 	typedef std::function<bool(const T&)> ItemRemovePredicate_t;
-	typedef std::queue<ItemRemovePredicate_t> PendingPredicates_t;
 
-	SafeBucketContainer(
+    SafeBucketContainer(
 			size_t bucket_capacity, uint32_t bucket_count
 	):
 		_reader_count(0),
@@ -44,9 +43,7 @@ public:
 		}
 	}
 
-	virtual ~SafeBucketContainer() {
-
-	}
+	virtual ~SafeBucketContainer() = default;
 
 	const Bucket_t& operator[](uint32_t idx) const {
 		return _buckets.at(idx);

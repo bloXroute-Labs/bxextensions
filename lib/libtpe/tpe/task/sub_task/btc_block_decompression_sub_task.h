@@ -30,7 +30,7 @@ public:
 			offsets = std::make_shared<TXOffsets_t>();
 		}
 
-		void clear(void) {
+		void clear() {
 			short_ids_offset = 0;
 			short_ids_len = 0;
 			output_offset = 0;
@@ -52,10 +52,10 @@ public:
 			const ShortIDs_t* short_ids
 	);
 
-	TaskData& task_data(void);
+	TaskData& task_data();
 
 protected:
-	void _execute(void) override;
+	void _execute() override;
 
 private:
 	PTransactionService_t _tx_service;
@@ -66,7 +66,5 @@ private:
 };
 
 } // task
-
-
 
 #endif /* TPE_TASK_SUB_TASK_BTC_BLOCK_DECOMPRESSION_SUB_TASK_H_ */

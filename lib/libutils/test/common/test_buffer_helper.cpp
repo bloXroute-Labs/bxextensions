@@ -148,64 +148,6 @@ TEST_F(BufferHelperTest, test_get_little_endian_value) {
 			buf, long_int_val, offset
 	);
 	ASSERT_EQ(min_long_int_val, long_int_val);
-	/*
-	const std::vector<uint8_t>& buf2 = {0, 1, 2, 3, 4, 5, 6, 7};
-
-	uint64_t val = 0x 07 06 05 04 03 02 01 00;
-
-	 */
-}
-
-
-TEST_F(BufferHelperTest, test_get_big_endian_value) {
-
-	size_t offset = 0;
-
-	// checking byte parsing (BE)
-	uint8_t val = 11;
-	const std::vector<uint8_t>& buf = get_be_buf();
-	offset = utils::common::get_big_endian_value<uint8_t>(
-			buf, val, base_offset
-	);
-	ASSERT_EQ(max_byte_val, val);
-	offset = utils::common::get_big_endian_value<uint8_t>(
-			buf, val, offset
-	);
-	ASSERT_EQ(min_byte_val, val);
-
-	// checking short parsing (BE)
-	short short_val = 11;
-	offset = utils::common::get_big_endian_value<short>(
-			buf, short_val, offset
-	);
-	ASSERT_EQ(max_short_val, short_val);
-	offset = utils::common::get_big_endian_value<short>(
-			buf, short_val, offset
-	);
-	ASSERT_EQ(min_short_val, short_val);
-
-	// checking integer parsing (BE)
-	int int_val = 11;
-	offset = utils::common::get_big_endian_value<int>(
-			buf, int_val, offset
-	);
-	ASSERT_EQ(max_int_val, int_val);
-	offset = utils::common::get_big_endian_value<int>(
-			buf, int_val, offset
-	);
-	ASSERT_EQ(min_int_val, int_val);
-
-
-	// checking 8 byte integer parsing (BE)
-	int64_t long_int_val = 11;
-	offset = utils::common::get_big_endian_value<int64_t>(
-			buf, long_int_val, offset
-	);
-	ASSERT_EQ(max_long_int_val, long_int_val);
-	offset = utils::common::get_big_endian_value<int64_t>(
-			buf, long_int_val, offset
-	);
-	ASSERT_EQ(min_long_int_val, long_int_val);
 }
 
 

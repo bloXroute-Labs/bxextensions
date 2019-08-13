@@ -70,13 +70,6 @@ BufferView& BufferView::operator =(BufferView&& other) noexcept {
 	return *this;
 }
 
-BufferView& BufferView::operator=(BufferView&& other) {
-	_buffer = other._buffer;
-	_from = other._from;
-	_size = other._size;
-	return *this;
-}
-
 BufferView::operator bool() const {
 	return _buffer != nullptr;
 }

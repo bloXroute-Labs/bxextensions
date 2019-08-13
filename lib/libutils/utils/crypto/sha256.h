@@ -7,6 +7,7 @@
 #include "utils/common/buffer_view.h"
 #include "utils/common/default_map.h"
 #include "utils/concurrency/safe_bucket_container.h"
+#include "utils/concurrency/concurrent_allocator.h"
 
 #ifndef UTILS_CRYPTO_SHA256_H_
 #define UTILS_CRYPTO_SHA256_H_
@@ -19,7 +20,7 @@ typedef common::BufferView BufferView_t;
 
 class Sha256 {
 public:
-	Sha256(const std::string& hex_string = "");
+	explicit Sha256(const std::string& hex_string = "");
 	Sha256(
 	    const std::vector<uint8_t>& data,
 		size_t from,
@@ -39,16 +40,16 @@ public:
 		size_t from
 	);
 
-	Sha256(const common::BufferView& data);
+	explicit Sha256(const common::BufferView& data);
 	Sha256(
 	    const common::BufferView& data,
 		std::initializer_list<FromLengthPair_t> extra_sources
 	);
-	Sha256(const std::vector<uint8_t>& sha);
+	explicit Sha256(const std::vector<uint8_t>& sha);
 	Sha256(const Sha256& other);
-	Sha256(Sha256&& other);
+	Sha256(Sha256&& other) noexcept;
 
-	const Sha256& operator=(const Sha256& other);
+	Sha256& operator=(const Sha256& other);
 	Sha256& operator=(Sha256&& other);
 	friend std::ostream& operator <<(std::ostream& out, const Sha256& sha);
 	bool operator==(const Sha256& other) const;
@@ -57,18 +58,18 @@ public:
 			size_t from,
 			size_t length);
 
-	void double_sha256(void);
-	void reverse(void);
-	void clear(void);
+	void double_sha256();
+	void reverse();
+	void clear();
 
-	common::BufferView sha256(void) const;
-	std::vector<uint8_t> reversed_sha256(void) const;
+	common::BufferView sha256() const;
+	std::vector<uint8_t> reversed_sha256() const;
 
-	size_t size(void) const;
-	size_t hash(void) const;
+	size_t size() const;
+	size_t hash() const;
 
-	std::string repr(void) const;
-	std::string hex_string(void) const;
+	std::string repr() const;
+	std::string hex_string() const;
 
 private:
 	std::vector<uint8_t> _sha256;
@@ -85,12 +86,18 @@ public:
 	bool operator()(const Sha256& lhs, const Sha256& rhs) const;
 };
 
+template <class T>
+using Sha256MapAllocator_t = concurrency::ConcurrentAllocator<std::pair<const Sha256, T>>;
+
+typedef concurrency::ConcurrentAllocator<Sha256> Sha256Allocator_t;
+
 template <typename T>
 using Sha256Map_t = std::unordered_map<
 		Sha256,
 		T,
 		Sha256Hasher,
-		Sha256Equal>;
+		Sha256Equal,
+        Sha256MapAllocator_t<T>>;
 
 
 template <
@@ -100,9 +107,10 @@ using Sha256DefaultMap_t = common::DefaultMap<
 		Sha256,
 		T,
 		Sha256Hasher,
-		Sha256Equal>;
-typedef concurrency::SafeBucketContainer<Sha256, Sha256Hasher, Sha256Equal> Sha256BucketContainer_t;
-typedef common::Bucket<Sha256, Sha256Hasher, Sha256Equal> Sha256Bucket_t;
+		Sha256Equal,
+        Sha256MapAllocator_t<T>>;
+typedef concurrency::SafeBucketContainer<Sha256, Sha256Hasher, Sha256Equal, Sha256Allocator_t> Sha256BucketContainer_t;
+typedef common::Bucket<Sha256, Sha256Hasher, Sha256Equal, Sha256Allocator_t> Sha256Bucket_t;
 
 class Sha256Context {
 public:

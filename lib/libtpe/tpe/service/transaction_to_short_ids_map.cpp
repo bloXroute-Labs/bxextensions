@@ -3,8 +3,8 @@
 namespace service {
 
 Sha256ToShortIdsMap::Sha256ToShortIdsMap(
-		TxNotSeenInBlocks_t& tx_not_seen
-): Sha256ToShortIDsMap_t(), _tx_not_seen(tx_not_seen)
+		TxNotSeenInBlocks_t& tx_not_seen, const Sha256ToShortIDsAllocator_t& allocator
+): Sha256ToShortIDsMap_t(allocator), _tx_not_seen(tx_not_seen)
 {
 }
 

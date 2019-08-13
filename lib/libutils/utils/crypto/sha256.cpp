@@ -143,12 +143,12 @@ Sha256::Sha256(const Sha256& other) {
 	_hash = other._hash;
 }
 
-Sha256::Sha256(Sha256&& other) {
+Sha256::Sha256(Sha256&& other) noexcept {
 	_sha256 = std::move(other._sha256);
 	_hash = other._hash;
 }
 
-const Sha256& Sha256::operator=(const Sha256& other)
+Sha256& Sha256::operator=(const Sha256& other)
 {
 	_sha256 = other._sha256;
 	_hash = other._hash;

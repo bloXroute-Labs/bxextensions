@@ -26,14 +26,16 @@ template <
 	class TValue,
 	class THash = std::hash<TKey>,
 	class TPred = std::equal_to<TKey>,
+    class TAllocator = std::allocator<std::pair<const TKey, TValue>>,
 	class ItemFactory = default_item_factory<TValue>
 >
 class DefaultMap {
 public:
-	typedef std::unordered_map<TKey, TValue, THash, TPred> Map_t;
+	typedef std::unordered_map<TKey, TValue, THash, TPred, TAllocator> Map_t;
 
 	explicit DefaultMap(
-			ItemFactory item_factory = DefaultItemFactory_t<TValue>()
+            TAllocator allocator = std::allocator<std::pair<const TKey, TValue>>(),
+            ItemFactory item_factory = DefaultItemFactory_t<TValue>()
 	): _item_factory(item_factory)
 	{
 	}

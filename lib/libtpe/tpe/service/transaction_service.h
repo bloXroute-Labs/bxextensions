@@ -89,6 +89,7 @@ public:
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
+    TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
 
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;

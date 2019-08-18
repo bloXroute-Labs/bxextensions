@@ -30,6 +30,10 @@ Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
 }
 
+TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {
+    return _containers.tx_not_seen_in_blocks;
+}
+
 const Sha256ToShortIDsMap_t&
 TransactionService::tx_hash_to_short_ids() const {
 	return _containers.tx_hash_to_short_ids;

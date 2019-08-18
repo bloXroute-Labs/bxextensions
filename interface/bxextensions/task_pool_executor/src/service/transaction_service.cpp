@@ -8,6 +8,7 @@ typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
 typedef std::unordered_set<unsigned int> ShortIDs_t;
 typedef service::Sha256_t Sha256_t;
+typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
 
 
 void bind_transaction_service(py::module& m) {
@@ -52,6 +53,10 @@ void bind_transaction_service(py::module& m) {
 					auto iter = map.find(key);
 					return iter != map.end();
 			});
+
+    py::class_<TxNotSeenInBlocks_t>(m, "TxNotSeenInBlocks")
+            .def("__len__", &TxNotSeenInBlocks_t::size);
+
 	py::class_<TransactionService_t, PTransactionService_t>(m, "TransactionService")
 			.def(
 			        py::init<size_t, size_t, size_t, size_t , size_t, int64_t>(),
@@ -87,5 +92,10 @@ void bind_transaction_service(py::module& m) {
 					"tx_hash_to_contents",
 					&TransactionService_t::get_tx_hash_to_contents,
 					py::return_value_policy::reference
-			);
+			).
+			def(
+                    "tx_not_seen_in_blocks",
+                    &TransactionService_t::tx_not_seen_in_blocks,
+                    py::return_value_policy::reference
+            );
 }

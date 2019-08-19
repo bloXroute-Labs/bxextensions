@@ -79,6 +79,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(['cmake', srcdir] + cmake_args, cwd=self.build_temp, env=env)
         subprocess.check_call(['make', 'install'] + build_args, cwd=self.build_temp)
 
+
 setup(
     name="bxextensions",
     version=get_version(os.path.abspath("")),

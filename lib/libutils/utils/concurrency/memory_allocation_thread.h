@@ -5,11 +5,11 @@
 #include <unordered_map>
 #include <thread>
 #include <memory>
+#include <queue>
+#include <vector>
 
 #ifndef UTILS_CONCURRENCY_MEMORY_ALLOCATION_THREAD_H_
 #define UTILS_CONCURRENCY_MEMORY_ALLOCATION_THREAD_H_
-
-#define ALLOCATION_LOOP_SLEEP_MICROSECONDS 1000
 
 namespace utils {
 namespace concurrency {
@@ -17,7 +17,7 @@ namespace concurrency {
 class MemoryAllocationThread {
 public:
 
-    MemoryAllocationThread(int64_t thread_loop_sleep_microseconds = ALLOCATION_LOOP_SLEEP_MICROSECONDS);
+    MemoryAllocationThread();
 
     ~MemoryAllocationThread();
 
@@ -25,7 +25,7 @@ public:
 
     void remove(uint32_t idx);
 
-    std::condition_variable& condition();
+    void notify(uint32_t idx);
 
 private:
 
@@ -37,7 +37,7 @@ private:
     uint32_t _last_idx;
     std::unordered_map<uint32_t, std::function<void(void)>> _callbacks;
     std::unique_ptr<std::thread> _thread;
-    const int64_t _thread_loop_sleep_microseconds;
+    std::queue<uint32_t> _events;
 };
 
 } // concurrency

@@ -82,8 +82,7 @@ public:
 	        size_t tx_bucket_capacity = BTC_DEFAULT_TX_BUCKET_SIZE,
 	        size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT,
 	        size_t max_allocation_pointer_count = MAX_ALLOCATION_POINTER_COUNT,
-	        size_t max_count_per_allocation = MAX_COUNT_PER_ALLOCATION,
-            int64_t thread_loop_sleep_microseconds = ALLOCATION_LOOP_SLEEP_MICROSECONDS
+	        size_t max_count_per_allocation = MAX_COUNT_PER_ALLOCATION
     );
 
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();

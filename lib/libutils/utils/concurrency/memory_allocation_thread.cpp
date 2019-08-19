@@ -4,10 +4,9 @@
 namespace utils {
 namespace concurrency {
 
-MemoryAllocationThread::MemoryAllocationThread(int64_t thread_loop_sleep_microseconds/* = ALLOCATION_LOOP_SLEEP_MICROSECONDS*/):
+MemoryAllocationThread::MemoryAllocationThread():
     _stop_requested(false),
-    _last_idx(0),
-    _thread_loop_sleep_microseconds(thread_loop_sleep_microseconds)
+    _last_idx(0)
 {
     _thread = std::unique_ptr<std::thread>(new std::thread([&]() {_thread_loop();}));
 }
@@ -32,19 +31,25 @@ void MemoryAllocationThread::remove(uint32_t idx) {
     _callbacks.erase(idx);
 }
 
-std::condition_variable& MemoryAllocationThread::condition() {
-    return _condition;
+void MemoryAllocationThread::notify(uint32_t idx) {
+    { // lock scope
+        std::lock_guard<std::mutex> lock(_mtx);
+        _events.push(idx);
+    }
+    _condition.notify_one();
 }
 
 void MemoryAllocationThread::_thread_loop() {
     std::unique_lock<std::mutex> lock(_mtx);
-    const auto duration = std::chrono::microseconds(_thread_loop_sleep_microseconds);
     while (!_stop_requested) {
-        _condition.wait_for(lock, duration);
-        if (!_callbacks.empty()) {
-            for (auto& pair: _callbacks) {
-                pair.second();
+        _condition.wait(lock);
+        while (!_events.empty()) {
+            uint32_t idx = _events.front();
+            auto callback_iter = _callbacks.find(idx);
+            if (callback_iter != _callbacks.end()) {
+                callback_iter->second();
             }
+            _events.pop();
         }
     }
 }

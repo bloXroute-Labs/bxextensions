@@ -25,8 +25,8 @@ public:
     typedef value_type& reference;
     typedef const value_type& const_reference;
     typedef size_t size_type;
-
-    typedef std::queue<std::pair<pointer, size_type>> DeallocationQueue_t;
+    typedef std::pair<pointer, size_type> QueueItem_t;
+    typedef std::queue<QueueItem_t> DeallocationQueue_t;
 
     const size_t max_allocation_pointer_count;
     const size_t max_count_per_allocation;
@@ -46,8 +46,10 @@ public:
             register_executor(executor);
         }
     };
+
     inline ConcurrentAllocator(const ConcurrentAllocator& other):
         _executor(other._executor),
+        _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
         _allocation_queues(max_count_per_allocation)
@@ -59,8 +61,9 @@ public:
     };
 
     template <class U>
-    inline ConcurrentAllocator(const ConcurrentAllocator<U>& other):
+    inline explicit ConcurrentAllocator(const ConcurrentAllocator<U>& other):
         _executor(other.executor()),
+        _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
         _allocation_queues(other.max_count_per_allocation)
@@ -196,7 +199,7 @@ private:
 
     void _notify() {
         if (_executor != nullptr) {
-            _executor->condition().notify_one();
+            _executor->notify(_idx);
         }
     }
 

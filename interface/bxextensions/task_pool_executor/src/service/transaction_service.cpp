@@ -59,13 +59,13 @@ void bind_transaction_service(py::module& m) {
 
 	py::class_<TransactionService_t, PTransactionService_t>(m, "TransactionService")
 			.def(
-			        py::init<size_t, size_t, size_t, size_t , size_t, int64_t>(),
+			        py::init<size_t, size_t, size_t, size_t , size_t>(),
 			        py::arg("pool_size"),
                     py::arg("tx_bucket_capacity") = BTC_DEFAULT_TX_BUCKET_SIZE,
                     py::arg("final_tx_confirmations_count") = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT,
                     py::arg("max_allocation_pointer_count") = MAX_ALLOCATION_POINTER_COUNT,
-                    py::arg("max_count_per_allocation") = MAX_COUNT_PER_ALLOCATION,
-                    py::arg("thread_loop_sleep_microseconds") = ALLOCATION_LOOP_SLEEP_MICROSECONDS)
+                    py::arg("max_count_per_allocation") = MAX_COUNT_PER_ALLOCATION
+            )
 			.def(
 					"tx_hash_to_short_ids",
 					&TransactionService_t::get_tx_hash_to_short_ids,

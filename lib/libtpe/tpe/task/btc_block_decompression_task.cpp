@@ -88,9 +88,7 @@ BtcBlockDecompressionTask::short_ids() {
 
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
-	BxBtcBlockMessage_t msg(
-			_parse_block_header(offset, _tx_count)
-	);
+	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
 	_success = _tx_service->get_missing_transactions(
 			_unknown_tx_hashes, _unknown_tx_sids, _short_ids
 	);
@@ -160,11 +158,21 @@ size_t BtcBlockDecompressionTask::_dispatch(
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
 		offset = msg.get_next_tx_offset(offset, is_short);
 		if (is_short) {
-			unsigned int short_id = _short_ids.at(
-					short_ids_offset + tdata.short_ids_len
-			);
-			tdata.short_ids_len += 1;
-			output_offset += _tx_service->get_tx_size(short_id);
+		    const size_t short_id_idx = short_ids_offset + tdata.short_ids_len;
+		    if (short_id_idx < _short_ids.size()) {
+                unsigned int short_id = _short_ids.at(short_id_idx);
+                tdata.short_ids_len += 1;
+                output_offset += _tx_service->get_tx_size(short_id);
+		    } else {
+		        throw std::runtime_error(utils::common::concatenate(
+		                "Message is improperly formatted, short id index (",
+		                short_id_idx,
+		                ") exceeded its array bounds (size: ",
+		                _short_ids.size(),
+		                ")"
+                ));  // TODO: throw proper exception here
+		    }
+
 		} else {
 			output_offset += (offset - from);
 		}
@@ -217,7 +225,7 @@ BtcBlockDecompressionTask::_parse_block_header(
 	);
 	offset = msg.get_tx_count(tx_count);
 	msg.deserialize_short_ids(_short_ids);
-	return msg;
+	return std::move(msg);
 }
 
 void BtcBlockDecompressionTask::_extend_output_buffer(

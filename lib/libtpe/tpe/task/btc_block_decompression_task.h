@@ -23,7 +23,7 @@ typedef utils::protocols::bitcoin::BxBtcBlockMessage BxBtcBlockMessage_t;
 class BtcBlockDecompressionTask : public MainTaskBase {
 
 public:
-	BtcBlockDecompressionTask(
+	explicit BtcBlockDecompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);

@@ -21,6 +21,20 @@ BxBtcBlockMessage::BxBtcBlockMessage(
 {
 }
 
+BxBtcBlockMessage::BxBtcBlockMessage(BxBtcBlockMessage&& rhs) noexcept:
+        _block_message(std::move(rhs._block_message)),
+        _bx_block(std::move(rhs._bx_block)),
+        _short_ids_offset(rhs._short_ids_offset)
+{
+}
+
+BxBtcBlockMessage& BxBtcBlockMessage::operator =(BxBtcBlockMessage&& rhs) noexcept {
+    _block_message = std::move(rhs._block_message);
+    _bx_block = std::move(rhs._bx_block);
+    _short_ids_offset = rhs._short_ids_offset;
+    return *this;
+}
+
 size_t BxBtcBlockMessage::get_next_tx_offset(
         size_t offset, bool &is_short, int tail/* = -1*/
 )

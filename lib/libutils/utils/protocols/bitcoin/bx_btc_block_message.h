@@ -14,6 +14,9 @@ public:
 	BxBtcBlockMessage(
 			const common::BufferView& buffer, uint64_t short_ids_offset
 	);
+    BxBtcBlockMessage(BxBtcBlockMessage&&) noexcept;
+    BxBtcBlockMessage& operator =(BxBtcBlockMessage&&) noexcept;
+
 	size_t get_next_tx_offset(size_t offset, bool& is_short, int tail = -1);
 	bool is_short_transaction(size_t offset) const;
 

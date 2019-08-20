@@ -15,6 +15,18 @@ BtcBlockMessage::BtcBlockMessage(
 {
 }
 
+BtcBlockMessage::BtcBlockMessage(BtcBlockMessage&& rhs) noexcept:
+        _buffer(std::move(rhs._buffer)),
+        _tx_in_block(std::move(rhs._tx_in_block))
+{
+}
+
+BtcBlockMessage& BtcBlockMessage::operator =(BtcBlockMessage&& rhs) noexcept {
+    _buffer = std::move(rhs._buffer);
+    _tx_in_block = std::move(rhs._tx_in_block);
+    return *this;
+}
+
 size_t BtcBlockMessage::get_next_tx_offset(
 	size_t offset,
     int tail/* = -1*/

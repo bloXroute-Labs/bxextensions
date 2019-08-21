@@ -44,7 +44,7 @@ static uint64_t sip_hash24(
 
     uint64_t d0, d1, d2, d3;
 
-    std::vector<uint8_t> reversed_sha256 = std::move(sha.reversed_sha256());
+    Sha256Binary_t reversed_sha256 = sha.reversed_binary();
     size_t offset = common::get_little_endian_value<uint64_t>(reversed_sha256, d0, 0);
     offset = common::get_little_endian_value<uint64_t>(reversed_sha256, d1, offset);
     offset = common::get_little_endian_value<uint64_t>(reversed_sha256, d2, offset);
@@ -105,8 +105,8 @@ CompactShortId::CompactShortId(
     _compact_short_id &= 0x0000FFFFFFFFFFFFL;
 }
 
-CompactShortId::CompactShortId(CompactShortId&& src):
-		_compact_short_id(std::move(src._compact_short_id))
+CompactShortId::CompactShortId(CompactShortId&& src) noexcept:
+		_compact_short_id(src._compact_short_id)
 {
 
 }
@@ -116,8 +116,8 @@ CompactShortId::CompactShortId(const CompactShortId& src):
 
 }
 
-CompactShortId& CompactShortId::operator =(CompactShortId&& src) {
-	_compact_short_id = std::move(src._compact_short_id);
+CompactShortId& CompactShortId::operator =(CompactShortId&& src) noexcept {
+	_compact_short_id = src._compact_short_id;
 	return *this;
 }
 
@@ -130,7 +130,7 @@ uint64_t CompactShortId::compact_short_id() const {
 	return _compact_short_id;
 }
 
-size_t CompactShortId::hash(void) const {
+size_t CompactShortId::hash() const {
 	return _compact_short_id;
 }
 

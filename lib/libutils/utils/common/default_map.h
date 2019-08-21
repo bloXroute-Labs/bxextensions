@@ -32,6 +32,7 @@ template <
 class DefaultMap {
 public:
 	typedef std::unordered_map<TKey, TValue, THash, TPred, TAllocator> Map_t;
+    using value_type = typename Map_t::value_type;
 
 	explicit DefaultMap(
             TAllocator allocator = std::allocator<std::pair<const TKey, TValue>>(),
@@ -96,6 +97,10 @@ public:
 
 	virtual void clear() {
 		_map.clear();
+	}
+
+	TAllocator get_allocator() const {
+        return _map.get_allocator();
 	}
 
 protected:

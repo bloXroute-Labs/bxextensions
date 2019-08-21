@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <array>
 #include <unordered_map>
 #include <cstdint>
 #include <initializer_list>
@@ -12,11 +13,14 @@
 #ifndef UTILS_CRYPTO_SHA256_H_
 #define UTILS_CRYPTO_SHA256_H_
 
+#define SHA256_BINARY_SIZE 32
+
 namespace utils {
 namespace crypto {
 
 typedef std::pair<size_t, size_t> FromLengthPair_t;
 typedef common::BufferView BufferView_t;
+typedef std::array<uint8_t, SHA256_BINARY_SIZE> Sha256Binary_t;
 
 class Sha256 {
 public:
@@ -49,8 +53,8 @@ public:
 	Sha256(const Sha256& other);
 	Sha256(Sha256&& other) noexcept;
 
-	Sha256& operator=(const Sha256& other);
-	Sha256& operator=(Sha256&& other);
+	Sha256& operator =(const Sha256& other);
+	Sha256& operator =(Sha256&& other) noexcept;
 	friend std::ostream& operator <<(std::ostream& out, const Sha256& sha);
 	bool operator==(const Sha256& other) const;
 	void operator()(
@@ -62,8 +66,8 @@ public:
 	void reverse();
 	void clear();
 
-	common::BufferView sha256() const;
-	std::vector<uint8_t> reversed_sha256() const;
+	common::BufferView binary() const;
+    Sha256Binary_t reversed_binary() const;
 
 	size_t size() const;
 	size_t hash() const;
@@ -72,7 +76,7 @@ public:
 	std::string hex_string() const;
 
 private:
-	std::vector<uint8_t> _sha256;
+    Sha256Binary_t _binary;
 	size_t _hash;
 };
 
@@ -129,7 +133,7 @@ public:
 			size_t length = 0
 	);
 
-	Sha256 digest(void);
+	Sha256 digest();
 
 private:
 	void *_ctx_ptr;

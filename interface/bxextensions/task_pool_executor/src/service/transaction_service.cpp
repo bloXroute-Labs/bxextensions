@@ -49,13 +49,20 @@ void bind_transaction_service(py::module& m) {
 					map.erase(key);
 				}
 			)
+            .def("get_bytes_length" , [](Sha256ToShortIDsMap_t& col) {
+                return sizeof(Sha256ToShortIDsMap_t) + col.get_allocator().total_bytes_allocated();
+            })
 			.def("__contains__", [](Sha256ToShortIDsMap_t& map, const Sha256_t& key) {
 					auto iter = map.find(key);
 					return iter != map.end();
 			});
 
     py::class_<TxNotSeenInBlocks_t>(m, "TxNotSeenInBlocks")
-            .def("__len__", &TxNotSeenInBlocks_t::size);
+            .def("__len__", &TxNotSeenInBlocks_t::size)
+            .def("get_bytes_length" , [](TxNotSeenInBlocks_t& col) {
+                return sizeof(TxNotSeenInBlocks_t) + (sizeof(TxNotSeenInBlocks_t::Bucket_t) * col.bucket_count()) +
+                        (sizeof(Sha256_t) * col.size());
+            });
 
 	py::class_<TransactionService_t, PTransactionService_t>(m, "TransactionService")
 			.def(

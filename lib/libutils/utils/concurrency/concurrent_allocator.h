@@ -40,25 +40,27 @@ public:
         max_allocation_pointer_count(max_allocation_pointer_count),
         max_count_per_allocation(max_count_per_allocation),
         _idx(0),
-        _allocation_queues(max_count_per_allocation)
+        _allocation_queues(max_count_per_allocation),
+        _total_bytes_allocated(0)
     {
         if (executor != nullptr) {
             register_executor(executor);
         }
-    };
+    }
 
     inline ConcurrentAllocator(const ConcurrentAllocator& other):
         _executor(other._executor),
         _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
-        _allocation_queues(max_count_per_allocation)
+        _allocation_queues(max_count_per_allocation),
+        _total_bytes_allocated(other.total_bytes_allocated())
 
     {
         if (_executor != nullptr) {
             register_executor(_executor);
         }
-    };
+    }
 
     template <class U>
     inline explicit ConcurrentAllocator(const ConcurrentAllocator<U>& other):
@@ -66,7 +68,8 @@ public:
         _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
-        _allocation_queues(other.max_count_per_allocation)
+        _allocation_queues(other.max_count_per_allocation),
+        _total_bytes_allocated(other.total_bytes_allocated())
 
     {
         if (_executor != nullptr) {
@@ -100,12 +103,16 @@ public:
         return &r;
     }
 
+    size_t total_bytes_allocated() const {
+        return _total_bytes_allocated;
+    }
+
 
     inline pointer allocate(size_type n, const_pointer hint = 0) {
         pointer p;
         bool should_notify = false;
         { // lock scope
-            std::lock_guard<std::mutex> lock(_mtx);
+            std::unique_lock<std::mutex> lock(_mtx);
             if (n <= max_count_per_allocation && !_allocation_queues.at(n - 1).empty()) {
                 p = _allocation_queues.at(n - 1).front();
                 _allocation_queues.at(n - 1).pop();
@@ -114,7 +121,10 @@ public:
                 if (n <= max_count_per_allocation && _allocation_queues.at(n - 1).empty()) {
                     should_notify = true;
                 }
+                lock.unlock(); // release the lock while allocating memory
                 p = reinterpret_cast<pointer>(::operator new(n * sizeof(T)));
+                lock.lock();
+                _total_bytes_allocated += (n * sizeof(T));
             }
         }
         if (should_notify) {
@@ -178,11 +188,13 @@ private:
             _deallocation_queue.swap(deallocation_queue_copy);
             for (size_t i = 0 ; i < max_count_per_allocation ; ++i) {
                 auto& allocation_queue = _allocation_queues.at(i);
+                const size_t n = i + 1;
                 for (size_t j = allocation_queue.size() ; j < max_allocation_pointer_count ; ++j) {
                     lock.unlock(); // release the lock while allocating memory
                     auto p = reinterpret_cast<pointer>(::operator new((i + 1) * sizeof(T)));
                     lock.lock();
                     allocation_queue.push(p);
+                    _total_bytes_allocated += (n * sizeof(T));
                 }
             }
         }
@@ -208,6 +220,7 @@ private:
     std::mutex _mtx;
     uint32_t _idx;
     MemoryAllocationThread* _executor;
+    volatile size_t _total_bytes_allocated;
 };
 
 } // concurrency

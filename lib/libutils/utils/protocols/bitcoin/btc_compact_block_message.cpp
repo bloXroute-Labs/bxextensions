@@ -61,7 +61,7 @@ crypto::SipKey_t BtcCompactBlockMessage::get_block_sip_key() const
         //  }
 	);
 
-    crypto::SipKey_t sip_key(*(uint64_t *) &sha.sha256()[0], *(uint64_t *) &sha.sha256()[8]);
+    crypto::SipKey_t sip_key(*(uint64_t *) &sha.binary()[0], *(uint64_t *) &sha.binary()[8]);
     return std::move(sip_key);
 }
 

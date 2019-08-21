@@ -33,6 +33,7 @@ typedef service::PSha256_t PSha256_t;
 template <typename Map, typename holder_type = std::unique_ptr<Map>>
 py::class_<Map, holder_type> custom_bind_map(py::handle scope, const std::string &name) {
 	using KeyType = typename Map::key_type;
+	using ValueType = typename Map::value_type;
 	py::class_<Map, holder_type> bound_map = py::bind_map<Map, holder_type>(scope, name);
 	bound_map.def(
 			"__contains__",
@@ -40,6 +41,10 @@ py::class_<Map, holder_type> custom_bind_map(py::handle scope, const std::string
 		auto iter = map.find(key);
 		return iter != map.end();
 	});
+	bound_map.def("get_bytes_length", [](Map& m) {
+        return sizeof(Map) + m.get_allocator().total_bytes_allocated();
+	});
+
 	return bound_map;
 }
 

@@ -9,6 +9,8 @@ typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
 typedef std::unordered_set<unsigned int> ShortIDs_t;
 typedef service::Sha256_t Sha256_t;
 typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
+typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
+typedef service::PTxContents_t PTxContents_t;
 
 
 void bind_transaction_service(py::module& m) {
@@ -56,6 +58,45 @@ void bind_transaction_service(py::module& m) {
 					auto iter = map.find(key);
 					return iter != map.end();
 			});
+
+    py::class_<Sha256ToContentMap_t>(m, "Sha256ToContentMap")
+            .def("__getitem__",
+                 [](
+                         Sha256ToContentMap_t& map,
+                         const Sha256_t& sha
+                 ) -> PTxContents_t& {
+                     return map[sha];
+                 },
+                 py::return_value_policy::reference_internal
+            )
+            .def("__len__", &Sha256ToContentMap_t::size)
+            .def("__iter__", [](Sha256ToContentMap_t& map) {
+                     return py::make_iterator(map.begin(), map.end());
+                 },
+                 py::keep_alive<0, 1>()
+            )
+            .def("__delitem__", [](Sha256ToContentMap_t& map, const Sha256_t& key) {
+                     map.erase(key);
+                 }
+            )
+            .def("__setitem__", [](Sha256ToContentMap_t& map, const Sha256_t& key, PTxContents_t p_contents) {
+                    auto iter = map.find(key);
+                    if (iter != map.end()) {
+                        iter->second = std::move(p_contents);
+                    } else {
+                        map.emplace(key, std::move(p_contents));
+                    }
+                 }
+            )
+            .def("get_bytes_length" , [](Sha256ToContentMap_t& col) {
+                return sizeof(Sha256ToContentMap_t) +
+                    col.get_allocator().total_bytes_allocated() +
+                    col.get_value_tracker().total_bytes_allocated();
+            })
+            .def("__contains__", [](Sha256ToContentMap_t& map, const Sha256_t& key) {
+                auto iter = map.find(key);
+                return iter != map.end();
+            });
 
     py::class_<TxNotSeenInBlocks_t>(m, "TxNotSeenInBlocks")
             .def("__len__", &TxNotSeenInBlocks_t::size)

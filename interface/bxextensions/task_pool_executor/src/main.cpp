@@ -13,7 +13,6 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<utils::crypto::Sha256>>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
 PYBIND11_MAKE_OPAQUE(std::unordered_set<unsigned int>);
-PYBIND11_MAKE_OPAQUE(service::Sha256ToContentMap_t);
 PYBIND11_MAKE_OPAQUE(service::ShortIDToSha256Map_t);
 
 #include <tpe/task/test_task.h>
@@ -69,7 +68,6 @@ PYBIND11_MODULE(task_pool_executor, m) {
     // binding custom STL types
 	custom_bind_vector<std::vector<PSha256_t>>(m,"Sha256List");
 	custom_bind_vector<std::vector<unsigned int>>(m,"UIntList");
-    custom_bind_map<service::Sha256ToContentMap_t>(m, "Sha256ToContentMap");
     custom_bind_map<service::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
 
     bind_byte_array(m);

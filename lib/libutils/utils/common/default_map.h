@@ -37,7 +37,7 @@ public:
 	explicit DefaultMap(
             TAllocator allocator = std::allocator<std::pair<const TKey, TValue>>(),
             ItemFactory item_factory = DefaultItemFactory_t<TValue>()
-	): _item_factory(item_factory)
+	): _item_factory(item_factory), _map(allocator)
 	{
 	}
 

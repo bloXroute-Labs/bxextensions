@@ -28,17 +28,80 @@ typedef utils::concurrency::ConcurrentAllocator<std::pair<const unsigned int, PS
 typedef utils::crypto::Sha256Allocator_t Sha256Allocator_t;
 typedef utils::crypto::Sha256MapAllocator_t<PTxContents_t> Sha256ContentMapAllocator_t;
 typedef std::unordered_map<unsigned int, PSha256_t, std::hash<unsigned int>, std::equal_to<unsigned int>, ShortIDToShaAllocator_t> ShortIDToSha256Map_t;
-typedef utils::crypto::Sha256Map_t<PTxContents_t> Sha256ToContentMap_t;
+typedef utils::crypto::Sha256MapWrapper_t<PTxContents_t> Sha256ToContentMap_t;
 typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::vector<unsigned int> ShortIDs_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::concurrency::MemoryAllocationThread MemoryAllocationThread_t;
+typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 
+struct PTxContentsAllocator: public AbstractValueTracker_t {
+
+    explicit PTxContentsAllocator(MemoryAllocationThread_t& memory_thread):
+        _memory_thread(memory_thread),
+        _total_bytes_allocated(0)
+    {
+        _idx = _register();
+    }
+
+    PTxContentsAllocator(const PTxContentsAllocator& other):
+        _memory_thread(other._memory_thread),
+        _total_bytes_allocated(other._total_bytes_allocated)
+    {
+        _idx = _register();
+    }
+
+    ~PTxContentsAllocator() override {
+        { // lock scope
+            std::lock_guard<std::mutex> lock(_mtx);
+            _memory_thread.remove(_idx);
+        }
+        _deallocation_queue.clear();
+    }
+
+    void on_value_removed(PTxContents_t&& p_contents) override {
+        { // lock scope
+            std::lock_guard<std::mutex> lock(_mtx);
+            _total_bytes_allocated -= (p_contents->size() + sizeof(PTxContents_t));
+            _deallocation_queue.emplace_back(std::move(p_contents));
+        }
+        _memory_thread.notify(_idx);
+    }
+
+    void on_value_added(const PTxContents_t& p_contents) override {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _total_bytes_allocated += (p_contents->size() + sizeof(PTxContents_t));
+    }
+
+    size_t total_bytes_allocated() const override {
+        return _total_bytes_allocated;
+    }
+
+private:
+
+    uint32_t _register() {
+        return _memory_thread.add([&](){
+            std::list<PTxContents_t> deallocation_queue_copy;
+            { // lock scope
+                std::lock_guard<std::mutex> lock(_mtx);
+                deallocation_queue_copy.swap(_deallocation_queue);
+            }
+            deallocation_queue_copy.clear();
+        });
+    }
+
+    MemoryAllocationThread_t& _memory_thread;
+    std::mutex _mtx;
+    std::list<PTxContents_t> _deallocation_queue;
+    uint32_t _idx;
+    volatile size_t _total_bytes_allocated;
+};
 
 struct Allocators {
     Allocators(
             size_t max_allocation_pointer_count, size_t max_allocations_by_size, MemoryAllocationThread_t* memory_thread
     ):
+            p_tx_contents_allocator(*memory_thread),
             sha256_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
             short_id_to_sha_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
             sha256_to_content_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
@@ -46,6 +109,7 @@ struct Allocators {
     {
 
     }
+    PTxContentsAllocator p_tx_contents_allocator;
     ShortIDToShaAllocator_t short_id_to_sha_allocator;
     Sha256Allocator_t sha256_allocator;
     Sha256ContentMapAllocator_t sha256_to_content_allocator;
@@ -61,7 +125,7 @@ struct Containers {
             Allocators& allocators
     ):
         tx_not_seen_in_blocks(tx_bucket_capacity, pool_size, allocators.sha256_allocator),
-        tx_hash_to_contents(allocators.sha256_to_content_allocator),
+        tx_hash_to_contents(allocators.p_tx_contents_allocator, allocators.sha256_to_content_allocator),
         short_id_to_tx_hash(allocators.short_id_to_sha_allocator),
         tx_hash_to_short_ids(tx_not_seen_in_blocks, allocators.sha256_to_short_ids_allocator)
     {

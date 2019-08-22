@@ -7,6 +7,7 @@
 
 #include "utils/common/buffer_view.h"
 #include "utils/common/default_map.h"
+#include "utils/common/map_wrapper.h"
 #include "utils/concurrency/safe_bucket_container.h"
 #include "utils/concurrency/concurrent_allocator.h"
 
@@ -101,6 +102,14 @@ using Sha256Map_t = std::unordered_map<
 		T,
 		Sha256Hasher,
 		Sha256Equal,
+        Sha256MapAllocator_t<T>>;
+
+template <typename T>
+using Sha256MapWrapper_t = common::MapWrapper<
+        Sha256,
+        T,
+        Sha256Hasher,
+        Sha256Equal,
         Sha256MapAllocator_t<T>>;
 
 

@@ -19,6 +19,8 @@ struct AbstractValueTracker {
 
     virtual void on_value_removed(TValue&& val) = 0;
 
+    virtual void on_container_cleared() = 0;
+
     virtual size_t total_bytes_allocated() const  = 0;
 
 };
@@ -34,12 +36,19 @@ struct DefaultValueTracker: public AbstractValueTracker<TValue> {
         _total_bytes_allocated += sizeof(TValue);
     }
 
-    virtual void on_value_removed(TValue&& val) override {
-        _total_bytes_allocated -= sizeof(TValue);
+    void on_value_removed(TValue&& val) override {
+        size_t byte_size = sizeof(TValue);
+        if (_total_bytes_allocated >= byte_size) {
+            _total_bytes_allocated -= byte_size;
+        }
     }
 
     size_t total_bytes_allocated() const override {
         return _total_bytes_allocated;
+    }
+
+    void on_container_cleared() override {
+        _total_bytes_allocated = 0;
     }
 
 private:
@@ -111,10 +120,12 @@ public:
     }
 
     std::pair<typename Map_t::iterator, bool> emplace(const TKey& key, TValue&& value){
+        _tracker.on_value_added(value);
         return _map.emplace(key, std::move(value));
     }
 
-    std::pair<typename Map_t::iterator, bool> emplace(const TKey& key, const TValue& value){
+    std::pair<typename Map_t::iterator, bool> emplace(const TKey& key, const TValue& value) {
+        _tracker.on_value_added(value);
         return _map.emplace(key, value);
     }
 
@@ -141,8 +152,9 @@ public:
         return _map.erase(iter);
     }
 
-    virtual void clear() {
+    void clear() {
         _map.clear();
+        _tracker.on_container_cleared();
     }
 
     TAllocator get_allocator() const {

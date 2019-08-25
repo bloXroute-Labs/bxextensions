@@ -62,7 +62,10 @@ struct PTxContentsAllocator: public AbstractValueTracker_t {
     void on_value_removed(PTxContents_t&& p_contents) override {
         { // lock scope
             std::lock_guard<std::mutex> lock(_mtx);
-            _total_bytes_allocated -= (p_contents->size() + sizeof(PTxContents_t));
+            size_t byte_size = p_contents->size();
+            if (_total_bytes_allocated >= byte_size) {
+                _total_bytes_allocated -= byte_size;
+            }
             _deallocation_queue.emplace_back(std::move(p_contents));
         }
         _memory_thread.notify(_idx);
@@ -70,11 +73,16 @@ struct PTxContentsAllocator: public AbstractValueTracker_t {
 
     void on_value_added(const PTxContents_t& p_contents) override {
         std::lock_guard<std::mutex> lock(_mtx);
-        _total_bytes_allocated += (p_contents->size() + sizeof(PTxContents_t));
+        _total_bytes_allocated += p_contents->size();
     }
 
     size_t total_bytes_allocated() const override {
         return _total_bytes_allocated;
+    }
+
+    void on_container_cleared() override {
+        std::lock_guard<std::mutex> lock(_mtx);
+        _total_bytes_allocated = 0;
     }
 
 private:

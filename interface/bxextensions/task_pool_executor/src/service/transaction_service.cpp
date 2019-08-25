@@ -43,7 +43,7 @@ void bind_transaction_service(py::module& m) {
 			)
 			.def("__len__", &Sha256ToShortIDsMap_t::size)
 			.def("__iter__", [](Sha256ToShortIDsMap_t& map) {
-					return py::make_iterator(map.begin(), map.end());
+					return py::make_key_iterator(map.begin(), map.end());
 				},
 				py::keep_alive<0, 1>()
 			)
@@ -71,7 +71,7 @@ void bind_transaction_service(py::module& m) {
             )
             .def("__len__", &Sha256ToContentMap_t::size)
             .def("__iter__", [](Sha256ToContentMap_t& map) {
-                     return py::make_iterator(map.begin(), map.end());
+                     return py::make_key_iterator(map.begin(), map.end());
                  },
                  py::keep_alive<0, 1>()
             )

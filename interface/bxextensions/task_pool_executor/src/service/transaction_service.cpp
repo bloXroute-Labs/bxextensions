@@ -51,6 +51,7 @@ void bind_transaction_service(py::module& m) {
 					map.erase(key);
 				}
 			)
+            .def("clear", &Sha256ToShortIDsMap_t::clear)
             .def("get_bytes_length" , [](Sha256ToShortIDsMap_t& col) {
                 return sizeof(Sha256ToShortIDsMap_t) + col.get_allocator().total_bytes_allocated();
             })
@@ -88,6 +89,7 @@ void bind_transaction_service(py::module& m) {
                     }
                  }
             )
+            .def("clear", &Sha256ToContentMap_t::clear)
             .def("get_bytes_length" , [](Sha256ToContentMap_t& col) {
                 return sizeof(Sha256ToContentMap_t) +
                     col.get_allocator().total_bytes_allocated() +

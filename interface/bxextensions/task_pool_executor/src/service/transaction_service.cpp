@@ -7,6 +7,7 @@ typedef service::TransactionService TransactionService_t;
 typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
 typedef std::unordered_set<unsigned int> ShortIDs_t;
+typedef std::shared_ptr<ShortIDs_t> PShortIDs_t;
 typedef service::Sha256_t Sha256_t;
 typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
 typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
@@ -14,7 +15,7 @@ typedef service::PTxContents_t PTxContents_t;
 
 
 void bind_transaction_service(py::module& m) {
-	py::class_<ShortIDs_t>(m, "UIntSet")
+	py::class_<ShortIDs_t, PShortIDs_t>(m, "UIntSet")
 			.def(py::init<>())
 			.def("clear", &ShortIDs_t::clear)
 			.def("add", [](ShortIDs_t& set, unsigned int val) {
@@ -36,7 +37,7 @@ void bind_transaction_service(py::module& m) {
 			        [](
 			        		Sha256ToShortIDsMap_t& map,
 							const Sha256_t& sha
-			        ) -> std::unordered_set<unsigned int>& {
+			        ) -> ShortIDs_t& {
 			            return map[sha];
 			        },
 			        py::return_value_policy::reference_internal
@@ -51,6 +52,11 @@ void bind_transaction_service(py::module& m) {
 					map.erase(key);
 				}
 			)
+			.def("pop", [](Sha256ToShortIDsMap_t& map, const Sha256_t& key) -> ShortIDs_t {
+			    auto val = std::move(map.at(key));
+			    map.erase(key);
+                return std::move(val);
+			})
             .def("clear", &Sha256ToShortIDsMap_t::clear)
             .def("get_bytes_length" , [](Sha256ToShortIDsMap_t& col) {
                 return sizeof(Sha256ToShortIDsMap_t) + col.get_allocator().total_bytes_allocated();

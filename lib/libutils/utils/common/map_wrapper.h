@@ -1,6 +1,6 @@
 #include <iostream>
 #include <unordered_map>
-#include <functional>
+#include <memory>
 
 #include "utils/exception/key_error.h"
 
@@ -66,13 +66,25 @@ template <
 class MapWrapper {
 public:
     typedef std::unordered_map<TKey, TValue, THash, TPred, TAllocator> Map_t;
+    typedef AbstractValueTracker<TValue> AbstractValueTracker_t;
+    typedef std::unique_ptr<AbstractValueTracker_t> PAbstractValueTracker_t;
+    typedef DefaultValueTracker<TValue> DefaultValueTracker_t;
     using value_type = typename Map_t::value_type;
 
     explicit MapWrapper(
-            AbstractValueTracker<TValue>& tracker = DefaultValueTracker<TValue>(),
-            TAllocator allocator = std::allocator<std::pair<const TKey, TValue>>()
-    ): _map(allocator), _tracker(tracker)
+            TAllocator allocator = TAllocator()
+    ): _map(allocator)
     {
+        _tracker = std::make_unique<DefaultValueTracker_t>(DefaultValueTracker_t());
+    }
+
+    template <class TValueTracker>
+    MapWrapper(
+            const TValueTracker& tracker,
+            TAllocator allocator = TAllocator()
+    ): _map(allocator)
+    {
+        _tracker = std::make_unique<TValueTracker>(tracker);
     }
 
     typename Map_t::iterator begin() {
@@ -120,12 +132,12 @@ public:
     }
 
     std::pair<typename Map_t::iterator, bool> emplace(const TKey& key, TValue&& value){
-        _tracker.on_value_added(value);
+        _tracker->on_value_added(value);
         return _map.emplace(key, std::move(value));
     }
 
     std::pair<typename Map_t::iterator, bool> emplace(const TKey& key, const TValue& value) {
-        _tracker.on_value_added(value);
+        _tracker->on_value_added(value);
         return _map.emplace(key, value);
     }
 
@@ -138,7 +150,7 @@ public:
         if (iter != _map.end()) {
             TValue temp_value(iter->second);
             _map.erase(iter);
-            _tracker.on_value_removed(std::move(temp_value));
+            _tracker->on_value_removed(std::move(temp_value));
         }
     }
 
@@ -146,7 +158,7 @@ public:
         if (iter != _map.end()) {
             TValue temp_value(iter->second);
             auto next_iter = _map.erase(iter);
-            _tracker.on_value_removed(std::move(temp_value));
+            _tracker->on_value_removed(std::move(temp_value));
             return next_iter;
         }
         return _map.erase(iter);
@@ -154,20 +166,20 @@ public:
 
     void clear() {
         _map.clear();
-        _tracker.on_container_cleared();
+        _tracker->on_container_cleared();
     }
 
     TAllocator get_allocator() const {
         return _map.get_allocator();
     }
 
-    const AbstractValueTracker<TValue>& get_value_tracker() {
-        return _tracker;
+    const AbstractValueTracker<TValue>& get_value_tracker() const {
+        return *_tracker;
     }
 
-protected:
+private:
     Map_t _map;
-    AbstractValueTracker<TValue>& _tracker;
+    PAbstractValueTracker_t _tracker;
 };
 
 } // common

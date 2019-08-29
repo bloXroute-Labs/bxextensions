@@ -6,12 +6,9 @@ namespace service {
 TransactionService::TransactionService(
         size_t pool_size,
         size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
-        size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/,
-        size_t max_allocation_pointer_count/* = MAX_ALLOCATION_POINTER_COUNT*/,
-        size_t max_count_per_allocation/* = MAX_COUNT_PER_ALLOCATION*/
+        size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
 ):
-        _allocators(max_allocation_pointer_count, max_count_per_allocation, &_allocation_thread),
-        _containers(pool_size, tx_bucket_capacity, _allocators),
+        _containers(pool_size, tx_bucket_capacity),
 		_final_tx_confirmations_count(final_tx_confirmations_count)
 {
 }

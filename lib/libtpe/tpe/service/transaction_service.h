@@ -8,8 +8,7 @@
 #include <thread>
 
 #include <utils/common/buffer_view.h>
-#include <utils/concurrency/memory_allocation_thread.h>
-#include <utils/concurrency/concurrent_allocator.h>
+#include <utils/common/tracked_allocator.h>
 
 #include "tpe/consts.h"
 #include "tpe/service/transaction_to_short_ids_map.h"
@@ -24,55 +23,32 @@ namespace service {
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef std::shared_ptr<Sha256_t> PSha256_t;
-typedef utils::concurrency::ConcurrentAllocator<std::pair<const unsigned int, PSha256_t>> ShortIDToShaAllocator_t;
-typedef utils::crypto::Sha256Allocator_t Sha256Allocator_t;
-typedef utils::crypto::Sha256MapAllocator_t<PTxContents_t> Sha256ContentMapAllocator_t;
+typedef utils::common::TrackedAllocator<std::pair<const unsigned int, PSha256_t>> ShortIDToShaAllocator_t;
 typedef std::unordered_map<unsigned int, PSha256_t, std::hash<unsigned int>, std::equal_to<unsigned int>, ShortIDToShaAllocator_t> ShortIDToSha256Map_t;
 typedef utils::crypto::Sha256MapWrapper_t<PTxContents_t> Sha256ToContentMap_t;
 typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::vector<unsigned int> ShortIDs_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
-typedef utils::concurrency::MemoryAllocationThread MemoryAllocationThread_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 
-struct PTxContentsAllocator: public AbstractValueTracker_t {
 
-    explicit PTxContentsAllocator(MemoryAllocationThread_t& memory_thread):
-        _memory_thread(memory_thread),
+struct PTxContentsTracker: public AbstractValueTracker_t {
+
+    PTxContentsTracker():
         _total_bytes_allocated(0)
     {
-        _idx = _register();
     }
 
-    PTxContentsAllocator(const PTxContentsAllocator& other):
-        _memory_thread(other._memory_thread),
+    PTxContentsTracker(const PTxContentsTracker& other):
         _total_bytes_allocated(other._total_bytes_allocated)
     {
-        _idx = _register();
-    }
-
-    ~PTxContentsAllocator() override {
-        { // lock scope
-            std::lock_guard<std::mutex> lock(_mtx);
-            _memory_thread.remove(_idx);
-        }
-        _deallocation_queue.clear();
     }
 
     void on_value_removed(PTxContents_t&& p_contents) override {
-        { // lock scope
-            std::lock_guard<std::mutex> lock(_mtx);
-            size_t byte_size = p_contents->size();
-            if (_total_bytes_allocated >= byte_size) {
-                _total_bytes_allocated -= byte_size;
-            }
-            _deallocation_queue.emplace_back(std::move(p_contents));
-        }
-        _memory_thread.notify(_idx);
+        _total_bytes_allocated -= p_contents->size();
     }
 
     void on_value_added(const PTxContents_t& p_contents) override {
-        std::lock_guard<std::mutex> lock(_mtx);
         _total_bytes_allocated += p_contents->size();
     }
 
@@ -81,61 +57,23 @@ struct PTxContentsAllocator: public AbstractValueTracker_t {
     }
 
     void on_container_cleared() override {
-        std::lock_guard<std::mutex> lock(_mtx);
         _total_bytes_allocated = 0;
     }
 
 private:
 
-    uint32_t _register() {
-        return _memory_thread.add([&](){
-            std::list<PTxContents_t> deallocation_queue_copy;
-            { // lock scope
-                std::lock_guard<std::mutex> lock(_mtx);
-                deallocation_queue_copy.swap(_deallocation_queue);
-            }
-            deallocation_queue_copy.clear();
-        });
-    }
-
-    MemoryAllocationThread_t& _memory_thread;
-    std::mutex _mtx;
-    std::list<PTxContents_t> _deallocation_queue;
-    uint32_t _idx;
     volatile size_t _total_bytes_allocated;
 };
-
-struct Allocators {
-    Allocators(
-            size_t max_allocation_pointer_count, size_t max_allocations_by_size, MemoryAllocationThread_t* memory_thread
-    ):
-            p_tx_contents_allocator(*memory_thread),
-            sha256_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
-            short_id_to_sha_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
-            sha256_to_content_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread),
-            sha256_to_short_ids_allocator(max_allocation_pointer_count, max_allocations_by_size, memory_thread)
-    {
-
-    }
-    PTxContentsAllocator p_tx_contents_allocator;
-    ShortIDToShaAllocator_t short_id_to_sha_allocator;
-    Sha256Allocator_t sha256_allocator;
-    Sha256ContentMapAllocator_t sha256_to_content_allocator;
-    Sha256ToShortIDsAllocator_t sha256_to_short_ids_allocator;
-
-};
-
 struct Containers {
 
     Containers(
             size_t pool_size,
-            size_t tx_bucket_capacity,
-            Allocators& allocators
+            size_t tx_bucket_capacity
     ):
-        tx_not_seen_in_blocks(tx_bucket_capacity, pool_size, allocators.sha256_allocator),
-        tx_hash_to_contents(allocators.p_tx_contents_allocator, allocators.sha256_to_content_allocator),
-        short_id_to_tx_hash(allocators.short_id_to_sha_allocator),
-        tx_hash_to_short_ids(tx_not_seen_in_blocks, allocators.sha256_to_short_ids_allocator)
+        tx_not_seen_in_blocks(tx_bucket_capacity, pool_size),
+        tx_hash_to_contents(PTxContentsTracker()),
+        short_id_to_tx_hash(),
+        tx_hash_to_short_ids(tx_not_seen_in_blocks)
     {
 
     }
@@ -152,9 +90,7 @@ public:
 	TransactionService(
 	        size_t pool_size,
 	        size_t tx_bucket_capacity = BTC_DEFAULT_TX_BUCKET_SIZE,
-	        size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT,
-	        size_t max_allocation_pointer_count = MAX_ALLOCATION_POINTER_COUNT,
-	        size_t max_count_per_allocation = MAX_COUNT_PER_ALLOCATION
+	        size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT
     );
 
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
@@ -201,8 +137,6 @@ private:
 
 	std::deque<ShortIDs_t> _short_ids_seen_in_block;
     size_t _final_tx_confirmations_count;
-    MemoryAllocationThread_t _allocation_thread;
-    Allocators _allocators;
     Containers _containers;
 };
 

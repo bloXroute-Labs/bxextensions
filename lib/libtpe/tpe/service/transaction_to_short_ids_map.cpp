@@ -8,6 +8,12 @@ Sha256ToShortIdsMap::Sha256ToShortIdsMap(
 {
 }
 
+Sha256ToShortIdsMap::Sha256ToShortIdsMap(TxNotSeenInBlocks_t& tx_not_seen):
+    Sha256ToShortIDsMap_t(), _tx_not_seen(tx_not_seen)
+{
+
+}
+
 TxShortIds_t& Sha256ToShortIdsMap::operator[](
 		const Sha256_t& key
 )

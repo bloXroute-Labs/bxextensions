@@ -21,6 +21,7 @@ public:
 	Sha256ToShortIdsMap(
 	        TxNotSeenInBlocks_t& tx_not_seen, const Sha256ToShortIDsAllocator_t& allocator
     );
+    explicit Sha256ToShortIdsMap(TxNotSeenInBlocks_t& tx_not_seen);
 
 	TxShortIds_t& operator[](const Sha256_t& key) override;
 

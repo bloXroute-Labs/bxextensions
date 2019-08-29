@@ -28,7 +28,7 @@ public:
 	typedef std::function<bool(const T&)> ItemRemovePredicate_t;
 
     SafeBucketContainer(
-			size_t bucket_capacity, uint32_t bucket_count, TAllocator allocator = std::allocator<T>()
+			size_t bucket_capacity, uint32_t bucket_count, TAllocator allocator = TAllocator()
 	):
 		_reader_count(0),
 		_bucket_capacity(bucket_capacity),

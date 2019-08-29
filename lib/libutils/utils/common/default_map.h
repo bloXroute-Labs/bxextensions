@@ -35,7 +35,7 @@ public:
     using value_type = typename Map_t::value_type;
 
 	explicit DefaultMap(
-            TAllocator allocator = std::allocator<std::pair<const TKey, TValue>>(),
+            TAllocator allocator = TAllocator(),
             ItemFactory item_factory = DefaultItemFactory_t<TValue>()
 	): _item_factory(item_factory), _map(allocator)
 	{

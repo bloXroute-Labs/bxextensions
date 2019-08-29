@@ -9,7 +9,7 @@
 #include "utils/common/default_map.h"
 #include "utils/common/map_wrapper.h"
 #include "utils/concurrency/safe_bucket_container.h"
-#include "utils/concurrency/concurrent_allocator.h"
+#include "utils/common/tracked_allocator.h"
 
 #ifndef UTILS_CRYPTO_SHA256_H_
 #define UTILS_CRYPTO_SHA256_H_
@@ -92,9 +92,9 @@ public:
 };
 
 template <class T>
-using Sha256MapAllocator_t = concurrency::ConcurrentAllocator<std::pair<const Sha256, T>>;
+using Sha256MapAllocator_t = common::TrackedAllocator<std::pair<const Sha256, T>>;
 
-typedef concurrency::ConcurrentAllocator<Sha256> Sha256Allocator_t;
+typedef common::TrackedAllocator<Sha256> Sha256Allocator_t;
 
 template <typename T>
 using Sha256Map_t = std::unordered_map<

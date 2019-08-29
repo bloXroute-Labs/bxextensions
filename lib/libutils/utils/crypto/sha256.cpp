@@ -110,7 +110,7 @@ Sha256::Sha256(
 		const common::BufferView& data
 ): _binary()
 {
-	memcpy(&_binary.at(0), &data.at(0), SHA256_BINARY_SIZE);
+	memcpy(_binary.data(), &data.at(0), SHA256_BINARY_SIZE);
 	_hash = get_hash(_binary);
 }
 
@@ -243,13 +243,13 @@ bool Sha256Equal::operator()(const Sha256& lhs, const Sha256& rhs) const
 }
 
 Sha256Context::Sha256Context() {
-	SHA256_CTX* ptr = new SHA256_CTX();
+	auto* ptr = new SHA256_CTX();
 	_ctx_ptr = ptr;
 	SHA256_Init(ptr);
 }
 
 Sha256Context::~Sha256Context() {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	delete(ptr);
 	_ctx_ptr = nullptr;
 	ptr = nullptr;
@@ -261,7 +261,7 @@ void Sha256Context::update(
 		size_t length/* = 0*/
 )
 {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	if (length == 0) {
 		length = data.size() - offset;
 	}
@@ -278,7 +278,7 @@ void Sha256Context::update(
 }
 
 Sha256 Sha256Context::digest() {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	std::vector<uint8_t> sha;
 	sha.resize(SHA256_DIGEST_LENGTH, '\0');
 	SHA256_Final(&sha[0], ptr);

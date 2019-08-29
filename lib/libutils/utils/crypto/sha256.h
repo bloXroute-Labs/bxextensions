@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <initializer_list>
 
+#include <utils/common/ordered_map.h>
 #include "utils/common/buffer_view.h"
 #include "utils/common/default_map.h"
 #include "utils/common/map_wrapper.h"
@@ -56,6 +57,7 @@ public:
 
 	Sha256& operator =(const Sha256& other);
 	Sha256& operator =(Sha256&& other) noexcept;
+
 	friend std::ostream& operator <<(std::ostream& out, const Sha256& sha);
 	bool operator==(const Sha256& other) const;
 	void operator()(
@@ -94,6 +96,9 @@ public:
 template <class T>
 using Sha256MapAllocator_t = common::TrackedAllocator<std::pair<const Sha256, T>>;
 
+template <class T>
+using Sha256OrderedMapAllocator_t = common::TrackedAllocator<std::pair<Sha256, T>>;
+
 typedef common::TrackedAllocator<Sha256> Sha256Allocator_t;
 
 template <typename T>
@@ -113,15 +118,23 @@ using Sha256MapWrapper_t = common::MapWrapper<
         Sha256MapAllocator_t<T>>;
 
 
-template <
-	typename T
->
+template <typename T>
 using Sha256DefaultMap_t = common::DefaultMap<
 		Sha256,
 		T,
 		Sha256Hasher,
-		Sha256Equal,
+        Sha256Equal,
         Sha256MapAllocator_t<T>>;
+
+template <typename T>
+using Sha256OrderedMap_t = common::OrderedMap<
+        Sha256,
+        T,
+        Sha256Hasher,
+        Sha256Equal,
+        Sha256OrderedMapAllocator_t<T>>;
+
+
 typedef concurrency::SafeBucketContainer<Sha256, Sha256Hasher, Sha256Equal, Sha256Allocator_t> Sha256BucketContainer_t;
 typedef common::Bucket<Sha256, Sha256Hasher, Sha256Equal, Sha256Allocator_t> Sha256Bucket_t;
 

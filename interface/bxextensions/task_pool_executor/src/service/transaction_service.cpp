@@ -134,10 +134,18 @@ void bind_transaction_service(py::module& m) {
                     "track_seen_transaction",
                     &TransactionService_t::track_seen_transaction
             )
+            .def(
+                    "remove_transaction_by_hash",
+                    &TransactionService_t::remove_transaction_by_hash
+            )
 			.def(
 					"track_seen_short_ids",
                     &TransactionService_t::track_seen_short_ids
 			)
+            .def(
+                    "on_block_cleaned_up",
+                    &TransactionService_t::on_block_cleaned_up
+            )
             .def(
                     "set_final_tx_confirmations_count",
                     &TransactionService_t::set_final_tx_confirmations_count
@@ -147,6 +155,10 @@ void bind_transaction_service(py::module& m) {
 					&TransactionService_t::get_tx_hash_to_contents,
 					py::return_value_policy::reference
 			).
+			def(
+                    "clear_short_ids_seen_in_block",
+                    &TransactionService_t::clear_short_ids_seen_in_block
+            ).
 			def(
                     "tx_not_seen_in_blocks",
                     &TransactionService_t::tx_not_seen_in_blocks,

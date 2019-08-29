@@ -44,15 +44,15 @@ public:
 			PTransactionService_t tx_service
 	);
 
-	PByteArray_t bx_block(void);
+	PByteArray_t bx_block();
 
-	PSha256_t prev_block_hash(void);
-	PSha256_t block_hash(void);
-	PSha256_t compressed_block_hash(void);
+	PSha256_t prev_block_hash();
+	PSha256_t block_hash();
+	PSha256_t compressed_block_hash();
 
-	size_t txn_count(void);
+	size_t txn_count();
 
-	const std::vector<unsigned int>& short_ids(void);
+	const std::vector<unsigned int>& short_ids();
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

@@ -14,6 +14,7 @@ PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<utils::crypto::Sha256>>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
 PYBIND11_MAKE_OPAQUE(std::unordered_set<unsigned int>);
 PYBIND11_MAKE_OPAQUE(service::ShortIDToSha256Map_t);
+PYBIND11_MAKE_OPAQUE(std::vector<utils::crypto::Sha256>);
 
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
@@ -67,6 +68,7 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     // binding custom STL types
 	custom_bind_vector<std::vector<PSha256_t>>(m,"Sha256List");
+	custom_bind_vector<std::vector<utils::crypto::Sha256>>(m, "Sha256CopyList");
 	custom_bind_vector<std::vector<unsigned int>>(m,"UIntList");
     custom_bind_map<service::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
 

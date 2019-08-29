@@ -114,35 +114,64 @@ void TransactionService::track_seen_transaction(const Sha256_t &sha) {
 
 // TODO : add a lock to this function to prevent a race condition between data structures
 TrackSeenResult_t TransactionService::track_seen_short_ids(
-        const ShortIDs_t &short_ids
+        const Sha256_t& block_hash, ShortIDs_t short_ids
 )
 {
     TrackSeenResult_t result;
     result.first = 0;
-    _short_ids_seen_in_block.push_back(short_ids);
-    for (const unsigned int& short_id: short_ids) {
+    _containers.short_ids_seen_in_block.emplace(block_hash, std::move(short_ids));
+    for (const unsigned int& short_id: _containers.short_ids_seen_in_block[block_hash]) {
         auto sha_itr = _containers.short_id_to_tx_hash.find(short_id);
         if (sha_itr != _containers.short_id_to_tx_hash.end()) {
             _containers.tx_not_seen_in_blocks.erase(*sha_itr->second);
         }
     }
-    if (_short_ids_seen_in_block.size() >= _final_tx_confirmations_count) {
-        auto& final_short_ids = _short_ids_seen_in_block.front();
-        for (const unsigned int& short_id: final_short_ids) {
+    if (_containers.short_ids_seen_in_block.size() >= _final_tx_confirmations_count) {
+        auto final_short_ids_iter = _containers.short_ids_seen_in_block.begin();
+        for (const unsigned int& short_id: final_short_ids_iter->second) {
             result.first +=
-                    _remove_transaction_by_short_id(short_id, result.second);
+                    remove_transaction_by_short_id(short_id, result.second);
         }
-        _short_ids_seen_in_block.pop_front();
+        _containers.short_ids_seen_in_block.erase(final_short_ids_iter->first);
     }
     return std::move(result);
+}
+
+void TransactionService::on_block_cleaned_up(const Sha256_t& block_hash) {
+    _containers.short_ids_seen_in_block.erase(block_hash);
 }
 
 void TransactionService::set_final_tx_confirmations_count(size_t val) {
     _final_tx_confirmations_count = val;
 }
 
-size_t TransactionService::_remove_transaction_by_short_id(
-        unsigned int short_id, ShortIDs_t& dup_sids
+size_t TransactionService::remove_transactions_by_hashes(const std::vector<Sha256_t>& tx_hashes) {
+    size_t  total_content_length = 0;
+    for (const Sha256_t& sha: tx_hashes) {
+        total_content_length += remove_transaction_by_hash(sha);
+    }
+    return total_content_length;
+}
+
+size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
+    auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
+    if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
+        for (const uint32_t& short_id: short_ids_iter->second) {
+            _containers.short_id_to_tx_hash.erase(short_id);
+        }
+        _containers.tx_hash_to_short_ids.erase(sha);
+    }
+    auto content_iter = _containers.tx_hash_to_contents.find(sha);
+    size_t content_length = 0;
+    if (content_iter != _containers.tx_hash_to_contents.end()) {
+        content_length = content_iter->second->size();
+        _containers.tx_hash_to_contents.erase(content_iter);
+    }
+    return content_length;
+}
+
+size_t TransactionService::remove_transaction_by_short_id(
+        unsigned int short_id, ShortIDs_t &dup_sids
 )
 {
     auto sha_iter = _containers.short_id_to_tx_hash.find(short_id);
@@ -169,6 +198,10 @@ size_t TransactionService::_remove_transaction_by_short_id(
         _containers.short_id_to_tx_hash.erase(sha_iter);
     }
     return contents_len;
+}
+
+void TransactionService::clear_short_ids_seen_in_block() {
+    _containers.short_ids_seen_in_block.clear();
 }
 
 } // service

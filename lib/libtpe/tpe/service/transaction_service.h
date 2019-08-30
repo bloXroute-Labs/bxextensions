@@ -69,6 +69,7 @@ private:
 
     volatile size_t _total_bytes_allocated;
 };
+
 struct Containers {
 
     Containers(

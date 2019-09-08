@@ -45,6 +45,8 @@ py::class_<Map, holder_type> custom_bind_map(py::handle scope, const std::string
         return sizeof(Map) + m.get_allocator().total_bytes_allocated();
 	});
 
+	bound_map.def("clear", &Map::clear);
+
 	return bound_map;
 }
 

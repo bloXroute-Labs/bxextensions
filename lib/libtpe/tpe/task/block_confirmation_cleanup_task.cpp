@@ -34,6 +34,11 @@ const std::vector<uint32_t>& BlockConfirmationCleanupTask::short_ids() {
     return _short_ids;
 }
 
+size_t BlockConfirmationCleanupTask::get_task_byte_size() const {
+    return sizeof(BlockConfirmationCleanupTask) + _short_ids.size() * sizeof(uint32_t) +
+        _msg_buffer.size();
+}
+
 void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
     BlockConfirmationMessage_t msg(_msg_buffer);
     size_t offset = msg.parse_block_hash(_block_hash);
@@ -53,6 +58,7 @@ void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
     }
     _tx_count = tx_hash_count + short_ids_count;
     _tx_service->on_block_cleaned_up(_block_hash);
+    _msg_buffer = BufferView_t::empty();
 }
 
 } // task

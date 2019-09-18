@@ -61,6 +61,11 @@ PCompressionTask_t BtcCompactBlockMappingTask::compression_task() {
 	return _compression_task;
 }
 
+size_t BtcCompactBlockMappingTask::get_task_byte_size() const {
+    return sizeof(BtcCompactBlockMappingTask) + _compression_task->get_task_byte_size() +
+        (_sub_tasks.size() * (sizeof(BtcCompactTxMappingSubTask) + sizeof(PMappingSubTask_t)));
+}
+
 void BtcCompactBlockMappingTask::_execute(SubPool_t& sub_pool) {
 	CompactBlockDataService_t service(
 			_block_buffer, &_tx_service->tx_hash_to_short_ids()

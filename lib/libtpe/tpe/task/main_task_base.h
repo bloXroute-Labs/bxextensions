@@ -14,6 +14,8 @@ public:
 
   void execute(SubPool_t& sub_pool);
 
+  virtual size_t get_task_byte_size() const;
+
 protected:
   virtual void _execute(SubPool_t& sub_pool) = 0;
 };

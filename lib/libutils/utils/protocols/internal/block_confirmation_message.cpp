@@ -3,6 +3,7 @@
 
 #define HEADER_LENGTH 20
 #define NETWORK_NUM_LEN sizeof(uint32_t)
+#define NODE_ID_LENGTH 16
 
 namespace utils {
 namespace protocols {
@@ -13,9 +14,9 @@ BlockConfirmationMessage::BlockConfirmationMessage(const BufferView_t &msg) : _m
 }
 
 size_t BlockConfirmationMessage::parse_block_hash(Sha256_t &out_sha) {
-    size_t offset = HEADER_LENGTH + NETWORK_NUM_LEN;
+    size_t offset = HEADER_LENGTH;
     out_sha = std::move(Sha256_t(_msg, offset));
-    return offset + SHA256_BINARY_SIZE;
+    return offset + NETWORK_NUM_LEN + SHA256_BINARY_SIZE + NODE_ID_LENGTH;
 }
 
 size_t BlockConfirmationMessage::parse_short_ids_count(size_t offset, uint32_t &out_short_id_count) {

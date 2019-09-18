@@ -25,6 +25,7 @@ public:
     const std::vector<Sha256_t>& unknown_tx_hashes();
     uint64_t tx_count();
     size_t total_content_removed();
+    size_t get_task_byte_size() const override;
 
 protected:
     void _execute(SubPool_t& sub_pool) override;

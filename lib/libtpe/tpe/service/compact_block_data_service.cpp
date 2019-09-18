@@ -24,7 +24,7 @@ CompactBlockDataService::CompactBlockDataService(
 
 CompactBlockDataService::CompactBlockDataService(
 		CompactBlockDataService&& rhs
-):
+) noexcept :
 		_msg(std::move(rhs._msg)),
 		_short_id_map(rhs._short_id_map),
 		_total_tx_count(rhs._total_tx_count),
@@ -36,7 +36,7 @@ CompactBlockDataService::CompactBlockDataService(
 }
 
 CompactBlockDataService&
-CompactBlockDataService::operator =(CompactBlockDataService&& rhs) {
+CompactBlockDataService::operator =(CompactBlockDataService&& rhs) noexcept {
 	_short_id_map = rhs._short_id_map;
 	_msg = std::move(rhs._msg);
 	_block_buffer = std::move(rhs._block_buffer);
@@ -96,7 +96,7 @@ const BtcCompactBlockMessage_t& CompactBlockDataService::msg() const {
 	return *_msg;
 }
 
-size_t CompactBlockDataService::size(void) const {
+size_t CompactBlockDataService::size() const {
 	return _block_buffer->size();
 }
 
@@ -122,6 +122,14 @@ void CompactBlockDataService::on_compression_completed() {
 	_block_buffer = nullptr;
 	_msg = nullptr;
 	_short_id_map = nullptr;
+}
+
+size_t CompactBlockDataService::byte_size() const {
+    size_t tx_placeholders_size = 0;
+    for (const TransactionPlaceholder& placeholder: _tx_placeholders) {
+        tx_placeholders_size += placeholder.byte_size();
+    }
+    return sizeof(CompactBlockDataService) + tx_placeholders_size;
 }
 
 uint64_t CompactBlockDataService::_fill_compact_ids(

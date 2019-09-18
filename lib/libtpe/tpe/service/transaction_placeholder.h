@@ -26,6 +26,14 @@ struct TransactionPlaceholder {
 	{
 	}
 
+	size_t byte_size() const {
+	    size_t contents_size = 0;
+	    if (contents != nullptr) {
+            contents_size = contents->size();
+	    }
+        return sizeof(TransactionPlaceholder) + contents_size;
+	}
+
 	TransactionPlaceholderType type;
 	PCompactShortId_t cmpt;
 	PTxContents_t contents;

@@ -41,6 +41,8 @@ public:
 	uint64_t tx_count();
 	const std::vector<unsigned int>& short_ids();
 
+    size_t get_task_byte_size() const override;
+
 protected:
 	void _execute(SubPool_t& sub_pool) override;
 

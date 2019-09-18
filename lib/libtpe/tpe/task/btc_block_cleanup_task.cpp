@@ -49,6 +49,12 @@ size_t BtcBlockCleanupTask::total_content_removed() {
     return _total_content_removed;
 }
 
+size_t BtcBlockCleanupTask::get_task_byte_size() const {
+    return sizeof(BtcBlockCleanupTask) +
+        (_all_tx_hashes.size() + _unknown_tx_hashes.size()) * sizeof(Sha256_t) +
+        _short_ids.size() * sizeof(uint32_t) + _block_buffer.size();
+}
+
 void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
     utils::protocols::bitcoin::BtcBlockMessage msg(_block_buffer);
     size_t offset = msg.get_tx_count(_tx_count);
@@ -99,6 +105,7 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
         pending_sub_task->wait();
     }
     _clean_transactions();
+    _block_buffer = BlockBuffer_t::empty();
 }
 
 void BtcBlockCleanupTask::_clean_transactions() {

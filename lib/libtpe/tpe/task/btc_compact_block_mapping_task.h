@@ -18,7 +18,7 @@ typedef std::shared_ptr<UnknownTxIndices_t> PUnknownTxIndices_t;
 class BtcCompactBlockMappingTask : public MainTaskBase {
 public:
 
-	BtcCompactBlockMappingTask(size_t capacity = BTC_DEFAULT_BLOCK_SIZE);
+	explicit BtcCompactBlockMappingTask(size_t capacity = BTC_DEFAULT_BLOCK_SIZE);
 
 	void init(
 			PBlockBuffer_t block_buffer,
@@ -31,6 +31,8 @@ public:
 	PUnknownTxIndices_t missing_indices();
 
 	PCompressionTask_t compression_task();
+
+    size_t get_task_byte_size() const override;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

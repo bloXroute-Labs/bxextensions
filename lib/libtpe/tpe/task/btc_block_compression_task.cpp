@@ -75,6 +75,16 @@ BtcBlockCompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t BtcBlockCompressionTask::get_task_byte_size() const {
+    size_t sub_tasks_size = 0;
+    for (const TaskData& sub_task_data: _sub_tasks) {
+        const PSubTask_t& p_task = sub_task_data.sub_task;
+        sub_tasks_size += (p_task->output_buffer().capacity() + sizeof(p_task) + sizeof(BtcBlockCompressionSubTask));
+    }
+    return sizeof(BtcBlockCompressionTask) + _output_buffer->capacity() + _block_buffer.size() +
+            sizeof(_short_ids) + (_short_ids.size() * sizeof(uint32_t)) + sub_tasks_size;
+}
+
 void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	utils::protocols::bitcoin::BtcBlockMessage msg(_block_buffer);
 	_prev_block_hash = std::make_shared<Sha256_t>(
@@ -107,6 +117,7 @@ void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 					_output_buffer->size()
 			)
 	));
+	_block_buffer = BlockBuffer_t::empty();
 }
 
 void BtcBlockCompressionTask::_init_sub_tasks(

@@ -22,7 +22,7 @@ class BtcBlockCompressionTask : public MainTaskBase {
 
 	struct TaskData {
 		TaskData(): sub_task(nullptr), offsets(nullptr) {}
-		TaskData(TaskData&& other) {
+		TaskData(TaskData&& other) noexcept {
 			sub_task = std::move(other.sub_task);
 			offsets = std::move(other.offsets);
 		}
@@ -34,7 +34,7 @@ class BtcBlockCompressionTask : public MainTaskBase {
 	typedef std::vector<TaskData> SubTasksData_t;
 
 public:
-	BtcBlockCompressionTask(
+	explicit BtcBlockCompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
@@ -53,6 +53,8 @@ public:
 	size_t txn_count();
 
 	const std::vector<unsigned int>& short_ids();
+
+	size_t get_task_byte_size() const override;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

@@ -19,7 +19,7 @@ typedef service::CompactBlockDataService CompactBlockDataService_t;
 class BtcCompactBlockCompressionTask : public MainTaskBase {
 public:
 
-	BtcCompactBlockCompressionTask(
+	explicit BtcCompactBlockCompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE
 	);
 
@@ -41,6 +41,8 @@ public:
 	uint64_t txn_count();
 
 	const std::vector<uint32_t>& short_ids();
+
+    size_t get_task_byte_size() const override;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;

@@ -86,6 +86,16 @@ BtcBlockDecompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t BtcBlockDecompressionTask::get_task_byte_size() const {
+    size_t sub_tasks_size = 0;
+    for (const auto& p_task: _sub_tasks) {
+        sub_tasks_size +=
+                (sizeof(p_task) + sizeof(BtcBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
+                    p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
+    }
+    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + _block_buffer.size() + sub_tasks_size;
+}
+
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
 	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
@@ -110,6 +120,7 @@ void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 		task->wait();
     }
 	_output_buffer->set_output();
+    _block_buffer = BufferView_t::empty();
 }
 
 void BtcBlockDecompressionTask::_init_sub_tasks(

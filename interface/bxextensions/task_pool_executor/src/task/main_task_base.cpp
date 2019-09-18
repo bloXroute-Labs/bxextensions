@@ -5,5 +5,6 @@ void bind_main_task_base(py::module& m) {
   py::class_<
     MainTaskBase_t,
     TaskBase_t,
-    PMainTaskBase_t>(m, "MainTaskBase");
+    PMainTaskBase_t>(m, "MainTaskBase")
+    .def("get_task_byte_size", &MainTaskBase_t::get_task_byte_size);
 }

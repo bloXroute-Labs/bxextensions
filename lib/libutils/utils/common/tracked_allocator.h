@@ -22,11 +22,14 @@ public:
     {
     }
 
-    TrackedAllocator(const TrackedAllocator& other) = default;
+    TrackedAllocator(const TrackedAllocator& other):
+        _total_bytes_allocated(other.total_bytes_allocated())
+    {
+    }
 
     template <class U>
     explicit TrackedAllocator(const TrackedAllocator<U>& other):
-            _total_bytes_allocated(0)
+            _total_bytes_allocated(other.total_bytes_allocated())
     {
     }
 

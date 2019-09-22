@@ -58,7 +58,6 @@ void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
     }
     _tx_count = tx_hash_count + short_ids_count;
     _tx_service->on_block_cleaned_up(_block_hash);
-    _msg_buffer = BufferView_t::empty();
 }
 
 } // task

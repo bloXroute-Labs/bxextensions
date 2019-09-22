@@ -105,7 +105,7 @@ void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 			offset
 	);
 	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
-		TaskData& data = _sub_tasks[idx];
+		TaskData& data = _sub_tasks.at(idx);
 		data.sub_task->wait();
 		output_offset = _on_sub_task_completed(*data.sub_task);
 	}
@@ -117,7 +117,6 @@ void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 					_output_buffer->size()
 			)
 	));
-	_block_buffer = BlockBuffer_t::empty();
 }
 
 void BtcBlockCompressionTask::_init_sub_tasks(

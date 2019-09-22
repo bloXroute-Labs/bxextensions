@@ -120,7 +120,6 @@ void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 		task->wait();
     }
 	_output_buffer->set_output();
-    _block_buffer = BufferView_t::empty();
 }
 
 void BtcBlockDecompressionTask::_init_sub_tasks(

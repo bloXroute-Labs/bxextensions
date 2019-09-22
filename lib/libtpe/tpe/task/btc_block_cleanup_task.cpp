@@ -105,7 +105,6 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
         pending_sub_task->wait();
     }
     _clean_transactions();
-    _block_buffer = BlockBuffer_t::empty();
 }
 
 void BtcBlockCleanupTask::_clean_transactions() {

@@ -18,18 +18,19 @@ BtcBlockDecompressionTask::BtcBlockDecompressionTask(
 		_success(false),
 		_tx_count(0)
 {
+    _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void BtcBlockDecompressionTask::init(
-		BlockBuffer_t block_buffer,
+        PBlockBuffer_t block_buffer,
 		PTransactionService_t tx_service
 )
 {
 	_unknown_tx_hashes.clear();
 	const uint32_t output_size = std::max(
 			(size_t)BxBtcBlockMessage_t::get_original_block_size(
-					block_buffer
+					*block_buffer
 			),
 			_output_buffer->capacity()
 	);
@@ -93,7 +94,7 @@ size_t BtcBlockDecompressionTask::get_task_byte_size() const {
                 (sizeof(p_task) + sizeof(BtcBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
                     p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
     }
-    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + _block_buffer.size() + sub_tasks_size;
+    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + _block_buffer->size() + sub_tasks_size;
 }
 
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
@@ -110,7 +111,7 @@ void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	}
 	size_t last_idx = _dispatch(msg, offset, sub_pool);
     offset = _output_buffer->copy_from_buffer(
-			_block_buffer,
+			*_block_buffer,
 			0,
             BxBtcBlockMessage_t::offset_diff,
 			offset - BxBtcBlockMessage_t::offset_diff
@@ -213,7 +214,7 @@ void BtcBlockDecompressionTask::_enqueue_task(
 	auto task = _sub_tasks[task_idx];
 	task->init(
 			_tx_service,
-			&_block_buffer,
+			_block_buffer.get(),
 			_output_buffer.get(),
 			&_short_ids
 	);
@@ -228,10 +229,10 @@ BtcBlockDecompressionTask::_parse_block_header(
 {
 	uint64_t short_ids_offset;
 	offset = utils::common::get_little_endian_value<uint64_t>(
-			_block_buffer, short_ids_offset, 0
+			*_block_buffer, short_ids_offset, 0
 	);
 	BxBtcBlockMessage_t msg(
-			_block_buffer, short_ids_offset
+			*_block_buffer, short_ids_offset
 	);
 	offset = msg.get_tx_count(tx_count);
 	msg.deserialize_short_ids(_short_ids);

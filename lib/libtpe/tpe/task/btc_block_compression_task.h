@@ -40,7 +40,7 @@ public:
 	);
 
 	void init(
-			BlockBuffer_t block_buffer,
+			PBlockBuffer_t block_buffer,
 			PTransactionService_t tx_service
 	);
 
@@ -73,7 +73,7 @@ private:
 
 
 
-	BlockBuffer_t _block_buffer;
+    PBlockBuffer_t _block_buffer;
 	PByteArray_t _output_buffer;
 	PTransactionService_t _tx_service;
 	SubTasksData_t _sub_tasks;

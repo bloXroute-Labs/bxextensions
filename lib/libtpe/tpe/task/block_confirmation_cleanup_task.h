@@ -7,6 +7,7 @@
 namespace task {
 
 typedef utils::common::BufferView BufferView_t;
+typedef std::shared_ptr<BufferView_t> PBufferView_t;
 typedef service::TransactionService TransactionService_t;
 typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef utils::crypto::Sha256 Sha256_t;
@@ -14,7 +15,9 @@ typedef utils::crypto::Sha256 Sha256_t;
 class BlockConfirmationCleanupTask: public MainTaskBase {
 public:
 
-    void init(BufferView_t msg_buffer, PTransactionService_t tx_service);
+    BlockConfirmationCleanupTask();
+
+    void init(PBufferView_t msg_buffer, PTransactionService_t tx_service);
 
     const Sha256_t& block_hash();
 
@@ -28,7 +31,7 @@ protected:
 
 private:
 
-    BufferView_t _msg_buffer;
+    PBufferView_t _msg_buffer;
     PTransactionService_t _tx_service;
     Sha256_t _block_hash;
     size_t _total_content_removed;

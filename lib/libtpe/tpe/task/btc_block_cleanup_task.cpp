@@ -13,11 +13,12 @@ BtcBlockCleanupTask::BtcBlockCleanupTask(
     _minimal_tx_count(minimal_tx_count),
     _tx_count(0)
 {
+    _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
 }
 
 
 void BtcBlockCleanupTask::init(
-        BlockBuffer_t block_buffer,
+        PBlockBuffer_t block_buffer,
         PTransactionService_t tx_service
 )
 {
@@ -51,12 +52,12 @@ size_t BtcBlockCleanupTask::total_content_removed() {
 
 size_t BtcBlockCleanupTask::get_task_byte_size() const {
     return sizeof(BtcBlockCleanupTask) +
-        (_all_tx_hashes.size() + _unknown_tx_hashes.size()) * sizeof(Sha256_t) +
-        _short_ids.size() * sizeof(uint32_t) + _block_buffer.size();
+        (_all_tx_hashes.capacity() + _unknown_tx_hashes.capacity()) * sizeof(Sha256_t) +
+        _short_ids.capacity() * sizeof(uint32_t) + _block_buffer->size();
 }
 
 void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
-    utils::protocols::bitcoin::BtcBlockMessage msg(_block_buffer);
+    utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
     size_t offset = msg.get_tx_count(_tx_count);
     size_t from;
     _short_ids.reserve(_tx_count);
@@ -78,7 +79,7 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
         if(idx > prev_idx) {
             auto sub_task = std::make_shared<BtcBlockCleanupSubTask>(
                   _tx_service,
-                  _block_buffer,
+                  *_block_buffer,
                   std::move(offsets),
                   _short_ids,
                   _all_tx_hashes,
@@ -92,7 +93,7 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
     }
     auto sub_task = std::make_shared<BtcBlockCleanupSubTask>(
             _tx_service,
-            _block_buffer,
+            *_block_buffer,
             std::move(offsets),
             _short_ids,
             _all_tx_hashes,

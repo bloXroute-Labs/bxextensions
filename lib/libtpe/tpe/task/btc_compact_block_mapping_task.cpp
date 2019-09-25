@@ -63,7 +63,7 @@ PCompressionTask_t BtcCompactBlockMappingTask::compression_task() {
 
 size_t BtcCompactBlockMappingTask::get_task_byte_size() const {
     return sizeof(BtcCompactBlockMappingTask) + _compression_task->get_task_byte_size() +
-        (_sub_tasks.size() * (sizeof(BtcCompactTxMappingSubTask) + sizeof(PMappingSubTask_t)));
+        (_sub_tasks.capacity() * (sizeof(BtcCompactTxMappingSubTask) + sizeof(PMappingSubTask_t)));
 }
 
 void BtcCompactBlockMappingTask::_execute(SubPool_t& sub_pool) {

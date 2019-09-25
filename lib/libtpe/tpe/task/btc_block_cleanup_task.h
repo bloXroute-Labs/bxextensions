@@ -17,7 +17,7 @@ public:
     explicit BtcBlockCleanupTask(size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT);
 
     void init(
-            BlockBuffer_t block_buffer,
+            PBlockBuffer_t block_buffer,
             PTransactionService_t tx_service
     );
 
@@ -33,7 +33,7 @@ protected:
 private:
     void _clean_transactions();
 
-    BlockBuffer_t _block_buffer;
+    PBlockBuffer_t _block_buffer;
     PTransactionService_t _tx_service;
     std::vector<unsigned int> _short_ids;
     std::vector<Sha256_t> _all_tx_hashes;

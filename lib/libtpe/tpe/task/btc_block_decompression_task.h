@@ -29,7 +29,7 @@ public:
 	);
 
 	void init(
-			BlockBuffer_t block_buffer,
+            PBlockBuffer_t block_buffer,
 			PTransactionService_t tx_service
 	);
 
@@ -63,7 +63,7 @@ private:
 	void _extend_output_buffer(size_t output_offset);
 
 
-	BlockBuffer_t _block_buffer;
+    PBlockBuffer_t _block_buffer;
 	PByteArray_t _output_buffer;
 	UnknownTxHashes_t _unknown_tx_hashes;
 	UnknownTxSIDs_t _unknown_tx_sids;

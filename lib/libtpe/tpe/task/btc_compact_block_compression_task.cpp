@@ -103,7 +103,7 @@ size_t BtcCompactBlockCompressionTask::get_task_byte_size() const {
         }
     }
     return sizeof(BtcCompactBlockCompressionTask) + _output_buffer->capacity() + recovered_tx_size +
-            _block_header.size() + (_short_ids.size() * sizeof(uint32_t) + _data_service.byte_size());
+            _block_header.size() + (_short_ids.capacity() * sizeof(uint32_t) + _data_service.byte_size());
 }
 
 void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {

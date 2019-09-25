@@ -17,6 +17,7 @@ namespace task {
 typedef service::TransactionService TransactionService_t;
 typedef std::shared_ptr<TransactionService_t> PTransactionService_t;
 typedef utils::common::BufferView BlockBuffer_t;
+typedef std::shared_ptr<BlockBuffer_t> PBlockBuffer_t;
 typedef utils::common::BufferView TxBuffer_t;
 typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
 typedef service::ShortIDToSha256Map_t ShortIDToSha256Map_t;

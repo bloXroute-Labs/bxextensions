@@ -5,7 +5,15 @@ namespace task {
 
 typedef utils::protocols::internal::BlockConfirmationMessage BlockConfirmationMessage_t;
 
-void BlockConfirmationCleanupTask::init(BufferView_t msg_buffer, PTransactionService_t tx_service) {
+BlockConfirmationCleanupTask::BlockConfirmationCleanupTask():
+        _tx_service(nullptr),
+        _tx_count(0),
+        _total_content_removed(0)
+{
+    _msg_buffer = std::make_shared<BufferView_t>(BufferView_t::empty());
+}
+
+void BlockConfirmationCleanupTask::init(PBufferView_t msg_buffer, PTransactionService_t tx_service) {
     _msg_buffer = std::move(msg_buffer);
     _tx_service = std::move(tx_service);
     _block_hash.clear();
@@ -35,12 +43,12 @@ const std::vector<uint32_t>& BlockConfirmationCleanupTask::short_ids() {
 }
 
 size_t BlockConfirmationCleanupTask::get_task_byte_size() const {
-    return sizeof(BlockConfirmationCleanupTask) + _short_ids.size() * sizeof(uint32_t) +
-        _msg_buffer.size();
+    return sizeof(BlockConfirmationCleanupTask) + _short_ids.capacity() * sizeof(uint32_t) +
+        _msg_buffer->size();
 }
 
 void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
-    BlockConfirmationMessage_t msg(_msg_buffer);
+    BlockConfirmationMessage_t msg(*_msg_buffer);
     size_t offset = msg.parse_block_hash(_block_hash);
     uint32_t short_ids_count, tx_hash_count, short_id;
     Sha256_t sha;

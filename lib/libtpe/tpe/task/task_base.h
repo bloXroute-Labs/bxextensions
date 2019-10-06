@@ -8,24 +8,24 @@ namespace task {
 class TaskBase {
 public:
 
-  virtual ~TaskBase() {}
+  virtual ~TaskBase() = default;
 
-  unsigned long long get_id(void);
+  unsigned long long get_id();
 
   void before_execution(int current_queue_idx);
 
   void after_execution(std::exception_ptr error = nullptr);
 
-  bool is_completed(void);
+  bool is_completed();
 
-  int current_queue_idx(void);
+  int current_queue_idx();
 
-  void assert_execution(void);
+  void assert_execution();
 
 protected:
   TaskBase();
 
-  void _check_error(void);
+  void _check_error();
 
   unsigned long long _task_id;
   volatile bool _is_completed;
@@ -33,8 +33,8 @@ protected:
 private:
   std::exception_ptr _error;
   volatile int _current_queue_idx;
-  unsigned long long _last_executed_id;
-  bool _is_initialized;
+  volatile unsigned long long _last_executed_id;
+  volatile bool _is_initialized;
   static unsigned long long _TASK_ID_CTR;
 };
 }

@@ -97,6 +97,12 @@ size_t BtcBlockDecompressionTask::get_task_byte_size() const {
     return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + _block_buffer->size() + sub_tasks_size;
 }
 
+void BtcBlockDecompressionTask::cleanup() {
+    assert_execution();
+    _block_buffer = nullptr;
+    _tx_service = nullptr;
+}
+
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
 	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));

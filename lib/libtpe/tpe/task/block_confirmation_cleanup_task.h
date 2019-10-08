@@ -26,6 +26,8 @@ public:
     const std::vector<uint32_t>& short_ids();
     size_t get_task_byte_size() const override;
 
+    void cleanup() override;
+
 protected:
     void _execute(SubPool_t& sub_pool) override;
 

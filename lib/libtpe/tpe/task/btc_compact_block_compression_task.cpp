@@ -106,6 +106,11 @@ size_t BtcCompactBlockCompressionTask::get_task_byte_size() const {
             _block_header.size() + (_short_ids.capacity() * sizeof(uint32_t) + _data_service.byte_size());
 }
 
+void BtcCompactBlockCompressionTask::cleanup() {
+    assert_execution();
+    _data_service.on_compression_completed();
+}
+
 void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	_txn_count = _data_service.total_tx_count();
 	size_t offset = _set_header();
@@ -130,7 +135,6 @@ void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 			sub_task->payload_length(),
 			sub_task->checksum()
 	);
-	_data_service.on_compression_completed();
 }
 
 size_t BtcCompactBlockCompressionTask::_set_header() {

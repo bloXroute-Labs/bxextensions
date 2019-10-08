@@ -27,6 +27,8 @@ public:
     size_t total_content_removed();
     size_t get_task_byte_size() const override;
 
+    void cleanup() override;
+
 protected:
     void _execute(SubPool_t& sub_pool) override;
 

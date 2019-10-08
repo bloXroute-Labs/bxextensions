@@ -47,7 +47,8 @@ size_t BlockConfirmationCleanupTask::get_task_byte_size() const {
         _msg_buffer->size();
 }
 
-void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
+void BlockConfirmationCleanupTask::cleanup() {
+    assert_execution();
     BlockConfirmationMessage_t msg(*_msg_buffer);
     size_t offset = msg.parse_block_hash(_block_hash);
     uint32_t short_ids_count, tx_hash_count, short_id;
@@ -66,6 +67,9 @@ void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
     }
     _tx_count = tx_hash_count + short_ids_count;
     _tx_service->on_block_cleaned_up(_block_hash);
+}
+
+void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
 }
 
 } // task

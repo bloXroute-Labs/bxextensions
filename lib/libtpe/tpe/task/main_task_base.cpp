@@ -26,4 +26,8 @@ size_t MainTaskBase::get_task_byte_size() const {
     return sizeof(*this);
 }
 
+void MainTaskBase::cleanup() {
+    // do nothing
+}
+
 }

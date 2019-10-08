@@ -86,6 +86,12 @@ size_t BtcBlockCompressionTask::get_task_byte_size() const {
             (_short_ids.capacity() * sizeof(uint32_t)) + sub_tasks_size;
 }
 
+void BtcBlockCompressionTask::cleanup() {
+    assert_execution();
+    _block_buffer = nullptr;
+    _tx_service = nullptr;
+}
+
 void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
 	_prev_block_hash = std::make_shared<Sha256_t>(

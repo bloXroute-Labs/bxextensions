@@ -82,7 +82,11 @@ size_t BtcBlockCompressionTask::get_task_byte_size() const {
         const PSubTask_t& p_task = sub_task_data.sub_task;
         sub_tasks_size += (p_task->output_buffer().capacity() + sizeof(p_task) + sizeof(BtcBlockCompressionSubTask));
     }
-    return sizeof(BtcBlockCompressionTask) + _output_buffer->capacity() + _block_buffer->size() +
+    size_t block_buffer_size = 0;
+    if (_block_buffer != nullptr) {
+        block_buffer_size = _block_buffer->size();
+    }
+    return sizeof(BtcBlockCompressionTask) + _output_buffer->capacity() + block_buffer_size +
             (_short_ids.capacity() * sizeof(uint32_t)) + sub_tasks_size;
 }
 

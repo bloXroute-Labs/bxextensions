@@ -51,9 +51,13 @@ size_t BtcBlockCleanupTask::total_content_removed() {
 }
 
 size_t BtcBlockCleanupTask::get_task_byte_size() const {
+    size_t block_buffer_size = 0;
+    if (_block_buffer != nullptr) {
+        block_buffer_size = _block_buffer->size();
+    }
     return sizeof(BtcBlockCleanupTask) +
         (_all_tx_hashes.capacity() + _unknown_tx_hashes.capacity()) * sizeof(Sha256_t) +
-        _short_ids.capacity() * sizeof(uint32_t) + _block_buffer->size();
+        _short_ids.capacity() * sizeof(uint32_t) + block_buffer_size;
 }
 
 void BtcBlockCleanupTask::cleanup() {
@@ -67,7 +71,7 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
     utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
     size_t offset = msg.get_tx_count(_tx_count);
     size_t from;
-    _short_ids.reserve(_tx_count);
+    _short_ids.reserve(_tx_count * MAX_DUPLICATES_SIDS);
     _all_tx_hashes.reserve(_tx_count);
     _unknown_tx_hashes.reserve(_tx_count);
     const size_t pool_size = sub_pool.size();

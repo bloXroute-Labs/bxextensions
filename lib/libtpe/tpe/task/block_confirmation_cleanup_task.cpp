@@ -43,8 +43,12 @@ const std::vector<uint32_t>& BlockConfirmationCleanupTask::short_ids() {
 }
 
 size_t BlockConfirmationCleanupTask::get_task_byte_size() const {
+    size_t msg_buffer_size = 0;
+    if (_msg_buffer != nullptr) {
+        msg_buffer_size = _msg_buffer->size();
+    }
     return sizeof(BlockConfirmationCleanupTask) + _short_ids.capacity() * sizeof(uint32_t) +
-        _msg_buffer->size();
+            msg_buffer_size;
 }
 
 void BlockConfirmationCleanupTask::cleanup() {
@@ -67,6 +71,8 @@ void BlockConfirmationCleanupTask::cleanup() {
     }
     _tx_count = tx_hash_count + short_ids_count;
     _tx_service->on_block_cleaned_up(_block_hash);
+    _msg_buffer = nullptr;
+    _tx_service = nullptr;
 }
 
 void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {

@@ -28,7 +28,9 @@ void BtcBlockCleanupSubTask::_execute() {
                 _block_buffer, from, to - from
         )));
         if (_tx_service->has_short_id(sha)) {
-            _short_ids.push_back(_tx_service->get_short_id(sha));
+            for (unsigned int short_id: _tx_service->tx_hash_to_short_ids()[sha]) {
+                _short_ids.push_back(short_id);
+            }
         } else {
             _unknown_tx_hashes.push_back(sha);
         }

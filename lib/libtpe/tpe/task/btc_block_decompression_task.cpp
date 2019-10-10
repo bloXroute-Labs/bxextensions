@@ -94,7 +94,11 @@ size_t BtcBlockDecompressionTask::get_task_byte_size() const {
                 (sizeof(p_task) + sizeof(BtcBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
                     p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
     }
-    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + _block_buffer->size() + sub_tasks_size;
+    size_t block_buffer_size = 0;
+    if (_block_buffer != nullptr) {
+        block_buffer_size = _block_buffer->size();
+    }
+    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + block_buffer_size + sub_tasks_size;
 }
 
 void BtcBlockDecompressionTask::cleanup() {

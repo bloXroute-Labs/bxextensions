@@ -9,6 +9,8 @@
 #ifndef TPE_TASK_BTC_BLOCK_CLEANUP_TASK_H_
 #define TPE_TASK_BTC_BLOCK_CLEANUP_TASK_H_
 
+#define MAX_DUPLICATES_SIDS 4
+
 namespace task {
 
 class BtcBlockCleanupTask : public MainTaskBase {

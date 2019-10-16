@@ -1,5 +1,7 @@
 #include "tpe/task/sub_task/btc_block_cleanup_sub_task.h"
 
+#include <utils/protocols/bitcoin/btc_message_helper.h>
+
 namespace task {
 
 BtcBlockCleanupSubTask::BtcBlockCleanupSubTask(
@@ -22,10 +24,11 @@ BtcBlockCleanupSubTask::BtcBlockCleanupSubTask(
 
 void BtcBlockCleanupSubTask::_execute() {
     for (const auto& offsets: *_tx_offsets) {
-        size_t from = offsets.first;
-        size_t to = offsets.second;
-        const Sha256_t sha(std::move(utils::crypto::double_sha256(
-                _block_buffer, from, to - from
+        size_t from = std::get<0>(offsets);
+        size_t witness_offset = std::get<1>(offsets);
+        size_t to = std::get<2>(offsets);
+        const Sha256_t sha(std::move(utils::protocols::bitcoin::get_tx_id(
+                _block_buffer, from, witness_offset, to
         )));
         if (_tx_service->has_short_id(sha)) {
             for (unsigned int short_id: _tx_service->tx_hash_to_short_ids()[sha]) {

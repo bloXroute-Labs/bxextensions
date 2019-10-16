@@ -36,14 +36,15 @@ BxBtcBlockMessage& BxBtcBlockMessage::operator =(BxBtcBlockMessage&& rhs) noexce
 }
 
 size_t BxBtcBlockMessage::get_next_tx_offset(
-        size_t offset, bool &is_short, int tail/* = -1*/
+        size_t offset, bool &is_short, size_t& witness_offset
 )
 {
     is_short = is_short_transaction(offset);
     if (is_short) {
         offset += sizeof(unsigned char);
+        witness_offset = 0;
     } else {
-        offset = _block_message.get_next_tx_offset(offset - offset_diff, tail);
+        offset = _block_message.get_next_tx_offset(offset - offset_diff, witness_offset);
         offset += offset_diff;
     }
     return offset;

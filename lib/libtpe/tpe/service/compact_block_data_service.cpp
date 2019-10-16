@@ -62,12 +62,14 @@ void CompactBlockDataService::parse() {
 	for( ; idx < pre_filled_tx_count ; ++idx) {
 		uint64_t diff;
 		Sha256_t prefilled_sha;
+		size_t witness_offset;
 		TransactionPlaceholder prefilled_placeholder;
 		prefilled_placeholder.contents = std::move(
 				_msg->get_next_pre_filled_tx(
 					offset,
 					diff,
-					prefilled_sha
+					prefilled_sha,
+                    witness_offset
 				)
 		);
 		auto iter = _short_id_map->find(prefilled_sha);

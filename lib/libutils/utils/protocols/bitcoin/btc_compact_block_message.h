@@ -26,8 +26,8 @@ typedef std::shared_ptr<BufferView_t> PBufferView_t;
 class BtcCompactBlockMessage {
 public:
     // TODO implement empty constructor & copy constructor
-	BtcCompactBlockMessage(const BufferView_t& buffer);
-	BtcCompactBlockMessage(BtcCompactBlockMessage&& rhs);
+	explicit BtcCompactBlockMessage(const BufferView_t& buffer);
+	BtcCompactBlockMessage(BtcCompactBlockMessage&& rhs) noexcept;
 	BtcCompactBlockMessage(const BtcCompactBlockMessage& rhs);
 
 	size_t get_compact_txs_count(uint64_t& tx_count);
@@ -40,15 +40,15 @@ public:
 	    size_t& offset,
 		uint64_t& diff,
 		Sha256_t& sha,
-	    int tail = -1
+        size_t& witness_offset
     ) const;
 
-	BufferView_t get_block_header(void) const;
+	BufferView_t get_block_header() const;
 
 	PCompactShortId_t get_next_compact_short_id(size_t& offset) const;
 
-    crypto::Sha256 block_hash(void) const;
-    crypto::Sha256 prev_block_hash(void) const;
+    crypto::Sha256 block_hash() const;
+    crypto::Sha256 prev_block_hash() const;
     crypto::SipKey_t get_block_sip_key() const;
 
     static const uint32_t null_tx_sid;

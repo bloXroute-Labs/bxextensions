@@ -85,8 +85,9 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
     for (int count = 0 ; count < _tx_count ; ++count) {
         from = offset;
         idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-        offset = msg.get_next_tx_offset(offset);
-        offsets->push_back(std::make_pair(from, offset));
+        size_t witness_offset;
+        offset = msg.get_next_tx_offset(offset, witness_offset);
+        offsets->push_back(std::make_tuple(from, witness_offset, offset));
         if(idx > prev_idx) {
             auto sub_task = std::make_shared<BtcBlockCleanupSubTask>(
                   _tx_service,

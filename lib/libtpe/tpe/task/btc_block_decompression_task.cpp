@@ -177,7 +177,8 @@ size_t BtcBlockDecompressionTask::_dispatch(
 		size_t from = offset;
 		auto& tdata = _sub_tasks[idx]->task_data();
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-		offset = msg.get_next_tx_offset(offset, is_short);
+		size_t witness_offset;
+		offset = msg.get_next_tx_offset(offset, is_short, witness_offset);
 		if (is_short) {
 		    const size_t short_id_idx = short_ids_offset + tdata.short_ids_len;
 		    if (short_id_idx < _short_ids.size()) {
@@ -198,7 +199,7 @@ size_t BtcBlockDecompressionTask::_dispatch(
 			output_offset += (offset - from);
 		}
 		tdata.offsets->push_back(
-				std::pair<size_t, size_t>(from, offset));
+				std::make_tuple(from, witness_offset, offset));
 		if(idx > prev_idx) {
 			tdata.output_offset = prev_output_offset;
 			tdata.short_ids_offset = short_ids_offset;

@@ -108,12 +108,13 @@ TEST_F(BtcCompactBlockMessageTest, test_block1)
     utils::crypto::Sha256 sha;
     offset = btc_compact_block_message.get_pre_filled_txs_count(offset, pre_filled_txs_count);
     ASSERT_EQ(pre_filled_txs_count,1); //we except 1 pre_filled txs
-
+    size_t witness_offset;
     utils::protocols::bitcoin::PBufferView_t pre_filled_tx_bf = std::move(
         btc_compact_block_message.get_next_pre_filled_tx(
 	        offset,
 		    diff,
-		    sha
+		    sha,
+            witness_offset
         )
     );
     ASSERT_EQ(diff, 0);

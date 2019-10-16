@@ -179,9 +179,10 @@ size_t BtcBlockCompressionTask::_dispatch(
 	for (int count = 0 ; count < tx_count ; ++count) {
 		size_t from = offset;
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-		offset = msg.get_next_tx_offset(offset);
+		size_t witness_offset;
+		offset = msg.get_next_tx_offset(offset, witness_offset);
 		_sub_tasks[idx].offsets->push_back(
-				std::pair<size_t, size_t>(from, offset));
+				std::make_tuple(from, witness_offset, offset));
 		if(idx > prev_idx) {
 			_enqueue_task(prev_idx, sub_pool);
 		}

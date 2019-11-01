@@ -15,19 +15,20 @@ namespace concurrency {
 template <
 	class T,
 	class THash = std::hash<T>,
-	class TPred = std::equal_to<T>
+	class TPred = std::equal_to<T>,
+    class TAllocator = std::allocator<T>
 >
 class SafeBucketContainer {
 public:
 
-	typedef common::Bucket<T, THash, TPred> Bucket_t;
+	typedef common::Bucket<T, THash, TPred, TAllocator> Bucket_t;
 	typedef std::vector<Bucket_t> Buckets_t;
 	typedef std::queue<T> ItemsToAdd_t;
 	typedef std::queue<std::pair<T, size_t>> ItemsToRemove_t;
 	typedef std::function<bool(const T&)> ItemRemovePredicate_t;
 
     SafeBucketContainer(
-			size_t bucket_capacity, uint32_t bucket_count
+			size_t bucket_capacity, uint32_t bucket_count, TAllocator allocator = TAllocator()
 	):
 		_reader_count(0),
 		_bucket_capacity(bucket_capacity),
@@ -38,7 +39,7 @@ public:
 	{
 		for (size_t idx = 0 ; idx < _bucket_count ; ++idx) {
 			_buckets.push_back(
-					std::move(Bucket_t(bucket_capacity, idx))
+					std::move(Bucket_t(bucket_capacity, idx, allocator))
 			);
 		}
 	}

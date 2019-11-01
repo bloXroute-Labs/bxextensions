@@ -29,7 +29,7 @@ public:
 
 protected:
 
-	void _execute(void) override;
+	void _execute() override;
 
 private:
 

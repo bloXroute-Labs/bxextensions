@@ -34,10 +34,11 @@ BtcBlockDecompressionSubTask::task_data() {
 void BtcBlockDecompressionSubTask::_execute() {
 	size_t short_id_idx = _task_data.short_ids_offset;
 	size_t output_offset = _task_data.output_offset;
-	for (auto& pair : *_task_data.offsets) {
+	for (auto& offsets : *_task_data.offsets) {
 		service::PTxContents_t content = nullptr;
         const service::TxContents_t* p_contents = nullptr;
-		const size_t from = pair.first, to = pair.second;
+        size_t from = std::get<0>(offsets);
+        size_t to = std::get<2>(offsets);
 		size_t size = to - from;
 		if (size == 1) {
 			unsigned int short_id = _short_ids->at(short_id_idx);

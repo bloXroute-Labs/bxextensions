@@ -18,18 +18,19 @@ BtcBlockDecompressionTask::BtcBlockDecompressionTask(
 		_success(false),
 		_tx_count(0)
 {
+    _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void BtcBlockDecompressionTask::init(
-		BlockBuffer_t block_buffer,
+        PBlockBuffer_t block_buffer,
 		PTransactionService_t tx_service
 )
 {
 	_unknown_tx_hashes.clear();
 	const uint32_t output_size = std::max(
 			(size_t)BxBtcBlockMessage_t::get_original_block_size(
-					block_buffer
+					*block_buffer
 			),
 			_output_buffer->capacity()
 	);
@@ -86,11 +87,29 @@ BtcBlockDecompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t BtcBlockDecompressionTask::get_task_byte_size() const {
+    size_t sub_tasks_size = 0;
+    for (const auto& p_task: _sub_tasks) {
+        sub_tasks_size +=
+                (sizeof(p_task) + sizeof(BtcBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
+                    p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
+    }
+    size_t block_buffer_size = 0;
+    if (_block_buffer != nullptr) {
+        block_buffer_size = _block_buffer->size();
+    }
+    return sizeof(BtcBlockDecompressionTask) + _output_buffer->capacity() + block_buffer_size + sub_tasks_size;
+}
+
+void BtcBlockDecompressionTask::cleanup() {
+    assert_execution();
+    _block_buffer = nullptr;
+    _tx_service = nullptr;
+}
+
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
-	BxBtcBlockMessage_t msg(
-			_parse_block_header(offset, _tx_count)
-	);
+	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
 	_success = _tx_service->get_missing_transactions(
 			_unknown_tx_hashes, _unknown_tx_sids, _short_ids
 	);
@@ -102,7 +121,7 @@ void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	}
 	size_t last_idx = _dispatch(msg, offset, sub_pool);
     offset = _output_buffer->copy_from_buffer(
-			_block_buffer,
+			*_block_buffer,
 			0,
             BxBtcBlockMessage_t::offset_diff,
 			offset - BxBtcBlockMessage_t::offset_diff
@@ -158,18 +177,29 @@ size_t BtcBlockDecompressionTask::_dispatch(
 		size_t from = offset;
 		auto& tdata = _sub_tasks[idx]->task_data();
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-		offset = msg.get_next_tx_offset(offset, is_short);
+		size_t witness_offset;
+		offset = msg.get_next_tx_offset(offset, is_short, witness_offset);
 		if (is_short) {
-			unsigned int short_id = _short_ids.at(
-					short_ids_offset + tdata.short_ids_len
-			);
-			tdata.short_ids_len += 1;
-			output_offset += _tx_service->get_tx_size(short_id);
+		    const size_t short_id_idx = short_ids_offset + tdata.short_ids_len;
+		    if (short_id_idx < _short_ids.size()) {
+                unsigned int short_id = _short_ids.at(short_id_idx);
+                tdata.short_ids_len += 1;
+                output_offset += _tx_service->get_tx_size(short_id);
+		    } else {
+		        throw std::runtime_error(utils::common::concatenate(
+		                "Message is improperly formatted, short id index (",
+		                short_id_idx,
+		                ") exceeded its array bounds (size: ",
+		                _short_ids.size(),
+		                ")"
+                ));  // TODO: throw proper exception here
+		    }
+
 		} else {
 			output_offset += (offset - from);
 		}
 		tdata.offsets->push_back(
-				std::pair<size_t, size_t>(from, offset));
+				std::make_tuple(from, witness_offset, offset));
 		if(idx > prev_idx) {
 			tdata.output_offset = prev_output_offset;
 			tdata.short_ids_offset = short_ids_offset;
@@ -195,7 +225,7 @@ void BtcBlockDecompressionTask::_enqueue_task(
 	auto task = _sub_tasks[task_idx];
 	task->init(
 			_tx_service,
-			&_block_buffer,
+			_block_buffer.get(),
 			_output_buffer.get(),
 			&_short_ids
 	);
@@ -210,14 +240,14 @@ BtcBlockDecompressionTask::_parse_block_header(
 {
 	uint64_t short_ids_offset;
 	offset = utils::common::get_little_endian_value<uint64_t>(
-			_block_buffer, short_ids_offset, 0
+			*_block_buffer, short_ids_offset, 0
 	);
 	BxBtcBlockMessage_t msg(
-			_block_buffer, short_ids_offset
+			*_block_buffer, short_ids_offset
 	);
 	offset = msg.get_tx_count(tx_count);
 	msg.deserialize_short_ids(_short_ids);
-	return msg;
+	return std::move(msg);
 }
 
 void BtcBlockDecompressionTask::_extend_output_buffer(
@@ -225,7 +255,7 @@ void BtcBlockDecompressionTask::_extend_output_buffer(
 )
 {
 	if (output_offset > _output_buffer->capacity()) {
-		std::string error = utils::common::concatinate(
+		std::string error = utils::common::concatenate(
 				"not enough space allocated to output buffer. \ncapacity - ",
 				_output_buffer->capacity(),
 				", required size - ",

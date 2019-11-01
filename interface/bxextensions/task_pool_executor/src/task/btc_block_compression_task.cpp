@@ -9,7 +9,7 @@ void bind_btc_block_compression_task(py::module& m) {
 			.def("__repr__", &utils::crypto::Sha256::repr)
 			.def(
 					"binary",
-					 &utils::crypto::Sha256::sha256
+                    &utils::crypto::Sha256::binary
 			)
 			.def("__len__", &utils::crypto::Sha256::size)
 			.def("hex_string", &utils::crypto::Sha256::hex_string);

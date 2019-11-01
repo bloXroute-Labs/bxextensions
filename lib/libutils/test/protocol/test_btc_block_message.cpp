@@ -6,10 +6,11 @@
 #include <algorithm>
 #include <string>
 
-#include "utils/common/string_helper.h"
-#include "utils/crypto/hash_helper.h"
-#include "utils/protocols/bitcoin/btc_consts.h"
-#include "utils/protocols/bitcoin/btc_block_message.h"
+#include <utils/common/string_helper.h>
+#include <utils/crypto/hash_helper.h>
+#include <utils/protocols/bitcoin/btc_consts.h>
+#include <utils/protocols/bitcoin/btc_block_message.h>
+#include <utils/protocols/bitcoin/btc_message_helper.h>
 #include <utils/common/buffer_view.h>
 
 typedef utils::common::BufferView BufferView_t;
@@ -76,12 +77,14 @@ TEST_F(BtcBlockMessageTest, test_block1)
 
     for (size_t i = 0; i < txs_count; ++i)
     {
-        offset = btc_block_message.get_next_tx_offset(off);
+        size_t witness_offset;
+        offset = btc_block_message.get_next_tx_offset(off, witness_offset);
         utils::crypto::Sha256 sha = std::move(
-				utils::crypto::double_sha256(
+				utils::protocols::bitcoin::get_tx_id(
 						block_message,
 						off,
-						offset - off
+						witness_offset,
+						offset
 				)
         );
         ASSERT_EQ(*desired_sha_iter, sha.hex_string());

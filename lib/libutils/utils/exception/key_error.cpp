@@ -17,7 +17,7 @@ KeyError::KeyError():
 }
 
 const char* KeyError::what(void) const noexcept {
-	   return common::concatinate(
+	   return common::concatenate(
 			   "key (", _key, ") is missing.\n",
 			   _get_backtrace()
 	   ).c_str();

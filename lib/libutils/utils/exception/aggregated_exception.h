@@ -22,6 +22,7 @@ public:
 private:
 
 	std::exception_ptr _nested;
+	std::string _error_message;
 };
 
 } // exception

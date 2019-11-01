@@ -9,7 +9,7 @@ DecryptionError::DecryptionError():
 }
 
 const char* DecryptionError::what(void) const noexcept  {
-    return common::concatinate(
+    return common::concatenate(
   		  "Failed to decrypt message\n",
 		  _get_backtrace()
     ).c_str();

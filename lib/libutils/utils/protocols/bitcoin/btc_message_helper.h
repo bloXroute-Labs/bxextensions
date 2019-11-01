@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdint>
-#include <functional>
+#include <utility>
 
 #include "utils/crypto/hash_helper.h"
 #include "utils/common/buffer_helper.h"
@@ -97,7 +97,8 @@ size_t set_varint(
 
 template <class TBuffer>
 crypto::Sha256 generate_block_hash(
-    const TBuffer& buffer)
+        const TBuffer& buffer
+)
 {
 	return std::move(
 			crypto::double_sha256(
@@ -109,11 +110,51 @@ crypto::Sha256 generate_block_hash(
 
 template <class TBuffer>
 crypto::Sha256 get_prev_block_hash(
-    const TBuffer& buffer)
+        const TBuffer& buffer
+)
 {
 	crypto::Sha256 sha(buffer, BTC_PREV_BLOCK_OFFSET);
 	sha.reverse();
 	return std::move(sha);
+}
+
+template <class TBuffer>
+std::pair<bool, size_t> get_segwit(
+        const TBuffer& data,
+        size_t offset
+)
+{
+    uint16_t segwit_flag; // not initializing, since it will be passed by ref in the following line.
+    size_t segwit_offset = common::get_big_endian_value<uint16_t> (
+            data,
+            segwit_flag, // by ref
+            offset
+    );
+    bool is_segwit = segwit_flag == BTC_TX_SEGWIT_FLAG_VALUE;
+    if (is_segwit) {
+        offset = segwit_offset;
+    }
+    return std::make_pair(is_segwit, offset);
+}
+
+template <class TBuffer>
+crypto::Sha256 get_tx_id(
+        const TBuffer& data,
+        size_t offset,
+        size_t witness_offset,
+        size_t end
+)
+{
+    crypto::Sha256Context ctx;
+    ctx.update(data, offset, BTC_TX_VERSION_SIZE);
+    auto segwit = get_segwit(data, offset + BTC_TX_VERSION_SIZE);
+    offset = segwit.second;
+    ctx.update(data, offset, witness_offset - offset);
+    ctx.update(data, end - BTC_TX_LOCK_TIME_SIZE, BTC_TX_LOCK_TIME_SIZE);
+    crypto::Sha256 tx_hash = std::move(ctx.digest());
+    tx_hash.double_sha256();
+    tx_hash.reverse();
+    return std::move(tx_hash);
 }
 
 } // bitcoin

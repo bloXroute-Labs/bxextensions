@@ -22,7 +22,7 @@ class BtcBlockCompressionTask : public MainTaskBase {
 
 	struct TaskData {
 		TaskData(): sub_task(nullptr), offsets(nullptr) {}
-		TaskData(TaskData&& other) {
+		TaskData(TaskData&& other) noexcept {
 			sub_task = std::move(other.sub_task);
 			offsets = std::move(other.offsets);
 		}
@@ -34,25 +34,29 @@ class BtcBlockCompressionTask : public MainTaskBase {
 	typedef std::vector<TaskData> SubTasksData_t;
 
 public:
-	BtcBlockCompressionTask(
+	explicit BtcBlockCompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
 
 	void init(
-			BlockBuffer_t block_buffer,
+			PBlockBuffer_t block_buffer,
 			PTransactionService_t tx_service
 	);
 
-	PByteArray_t bx_block(void);
+	PByteArray_t bx_block();
 
-	PSha256_t prev_block_hash(void);
-	PSha256_t block_hash(void);
-	PSha256_t compressed_block_hash(void);
+	PSha256_t prev_block_hash();
+	PSha256_t block_hash();
+	PSha256_t compressed_block_hash();
 
-	size_t txn_count(void);
+	size_t txn_count();
 
-	const std::vector<unsigned int>& short_ids(void);
+	const std::vector<unsigned int>& short_ids();
+
+	size_t get_task_byte_size() const override;
+
+	void cleanup() override;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
@@ -71,7 +75,7 @@ private:
 
 
 
-	BlockBuffer_t _block_buffer;
+    PBlockBuffer_t _block_buffer;
 	PByteArray_t _output_buffer;
 	PTransactionService_t _tx_service;
 	SubTasksData_t _sub_tasks;

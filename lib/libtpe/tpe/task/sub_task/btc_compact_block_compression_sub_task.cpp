@@ -55,7 +55,7 @@ void BtcCompactBlockCompressionSubTask::_execute() {
 	Sha256_t sha = std::move(sha_ctx.digest());
 	sha.double_sha256();
 	utils::common::get_little_endian_value<uint32_t>(
-			sha.sha256(), _checksum, 0
+            sha.binary(), _checksum, 0
 	);
 }
 

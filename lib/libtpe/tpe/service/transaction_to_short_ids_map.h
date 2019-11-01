@@ -12,12 +12,16 @@ typedef std::unordered_set<unsigned int> TxShortIds_t;
 typedef utils::crypto::Sha256 Sha256_t;
 typedef utils::crypto::Sha256Hasher Sha256Hasher_t;
 typedef utils::crypto::Sha256Equal Sha256Equal_t;
-typedef utils::common::DefaultMap<Sha256_t, TxShortIds_t, Sha256Hasher_t, Sha256Equal_t> Sha256ToShortIDsMap_t;
+typedef utils::crypto::Sha256MapAllocator_t<TxShortIds_t> Sha256ToShortIDsAllocator_t;
+typedef utils::common::DefaultMap<Sha256_t, TxShortIds_t, Sha256Hasher_t, Sha256Equal_t, Sha256ToShortIDsAllocator_t> Sha256ToShortIDsMap_t;
 
 
 class Sha256ToShortIdsMap : public Sha256ToShortIDsMap_t {
 public:
-	Sha256ToShortIdsMap(TxNotSeenInBlocks_t& tx_not_seen);
+	Sha256ToShortIdsMap(
+	        TxNotSeenInBlocks_t& tx_not_seen, const Sha256ToShortIDsAllocator_t& allocator
+    );
+    explicit Sha256ToShortIdsMap(TxNotSeenInBlocks_t& tx_not_seen);
 
 	TxShortIds_t& operator[](const Sha256_t& key) override;
 

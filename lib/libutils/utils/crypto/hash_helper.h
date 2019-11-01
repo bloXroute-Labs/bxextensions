@@ -50,7 +50,11 @@ Sha256 several_sources_sha256(
     return std::move(hash);
 }
 
-size_t sha256_size(void);
+size_t sha256_size();
+
+CompactShortId to_compact_id(
+		const Sha256& sha, const SipKey_t& key
+);
 
 CompactShortId to_compact_id(
 		const Sha256& sha, const SipKey_t& key

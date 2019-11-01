@@ -1,6 +1,7 @@
 #include <utils/common/buffer_helper.h>
 #include <utils/protocols/bitcoin/btc_block_message.h>
 #include <utils/crypto/hash_helper.h>
+#include <utils/protocols/bitcoin/btc_message_helper.h>
 
 #include "tpe/consts.h"
 #include "tpe/task/sub_task/btc_block_compression_sub_task.h"
@@ -46,13 +47,16 @@ BtcBlockCompressionSubTask::short_ids() {
 
 void BtcBlockCompressionSubTask::_execute()  {
 	size_t output_offset = 0;
-	for (auto& pair : *_tx_offsets) {
-		size_t from = pair.first, offset = pair.second;
+	for (auto& offsets : *_tx_offsets) {
+        size_t from = std::get<0>(offsets);
+        size_t witness_offset = std::get<1>(offsets);
+        size_t offset = std::get<2>(offsets);
 		const utils::crypto::Sha256 sha = std::move(
-				utils::crypto::double_sha256(
+				utils::protocols::bitcoin::get_tx_id(
 						*_block_buffer,
 						from,
-						offset - from
+						witness_offset,
+						offset
 		));
 		if (_tx_service->has_short_id(sha)) {
 			unsigned int short_id = _tx_service->get_short_id(sha);

@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <vector>
 
+#include <stdio.h>
+#include <iomanip>
+
 
 #ifndef UTILS_COMMON_STRING_HELPER_H_
 #define UTILS_COMMON_STRING_HELPER_H_
@@ -24,15 +27,24 @@ static void add_to_stream(std::ostringstream& ss,
 }
 
 template<typename... Args>
-std::string concatinate(Args... a_args) {
+std::string concatenate(Args... a_args) {
   std::ostringstream ss;
   add_to_stream(ss, std::forward<Args>(a_args)...);
   return ss.str();
 }
 
+template <class TBytes>
 std::string to_hex_string(
-    const std::vector<uint8_t>& bytes
-);
+    const TBytes& bytes
+)
+{
+    std::ostringstream ss;
+    ss << std::hex;
+    for (unsigned char byte : bytes) {
+        ss << std::setw(2) << std::setfill('0') << (short) byte;
+    }
+    return std::move(ss.str());
+}
 
 void from_hex_string(
     const std::string& hex_str,

@@ -16,7 +16,7 @@ TaskNotExecuted::TaskNotExecuted():
 }
 
 const char* TaskNotExecuted::what(void) const noexcept {
-	  return utils::common::concatinate(
+	  return utils::common::concatenate(
 			  	  "task ",
 				  _task_id,
 				  " was never executed!\n",

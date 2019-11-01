@@ -95,6 +95,22 @@ BtcCompactBlockCompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t BtcCompactBlockCompressionTask::get_task_byte_size() const {
+    size_t recovered_tx_size = 0;
+    if (_recovered_transactions != nullptr) {
+        for (const PTxBuffer_t &recovered_tx: *_recovered_transactions) {
+            recovered_tx_size += (sizeof(PTxBuffer_t) + sizeof(TxBuffer_t) + recovered_tx->size());
+        }
+    }
+    return sizeof(BtcCompactBlockCompressionTask) + _output_buffer->capacity() + recovered_tx_size +
+            _block_header.size() + (_short_ids.capacity() * sizeof(uint32_t) + _data_service.byte_size());
+}
+
+void BtcCompactBlockCompressionTask::cleanup() {
+    assert_execution();
+    _data_service.on_compression_completed();
+}
+
 void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	_txn_count = _data_service.total_tx_count();
 	size_t offset = _set_header();
@@ -119,7 +135,6 @@ void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 			sub_task->payload_length(),
 			sub_task->checksum()
 	);
-	_data_service.on_compression_completed();
 }
 
 size_t BtcCompactBlockCompressionTask::_set_header() {

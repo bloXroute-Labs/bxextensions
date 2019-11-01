@@ -20,6 +20,7 @@ DEFAULT_BUILD_TYPE = "Release"
 VERSION = "v0.0.0.0"
 DEFAULT_RUN_TESTS = True
 DEFAULT_PACKAGE_INSTALLATION = False
+DEFAULT_NO_CACHE = False
 MANIFEST_FILE_NAME = "MANIFEST.MF"
 
 
@@ -43,10 +44,15 @@ def str_to_bool(v):
 
 
 def main(
-        src_dir, build_dir, output_dir, extensions_list, build_type, run_tests, packages_installation
+        src_dir, build_dir, output_dir, extensions_list, build_type, run_tests, packages_installation, no_cache
 ):
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
+    elif no_cache:
+        cache_file_path = os.path.join(build_dir, "CMakeCache.txt")
+        if os.path.exists(cache_file_path) and os.path.isfile(cache_file_path):
+            os.remove(cache_file_path)
+
     extensions_dir = os.path.join(src_dir, "interface", "bxextensions")
     ext_module_dirs = ";".join(os.path.join(extensions_dir, ext) for ext in extensions_list)
     cmake_args = [
@@ -121,6 +127,12 @@ if __name__ == "__main__":
         action="store_true",
         default=DEFAULT_PACKAGE_INSTALLATION
     )
+    parser.add_argument(
+        "--no-cache",
+        help="don't use cache when building the extensions (default: {})".format(DEFAULT_NO_CACHE),
+        action="store_true",
+        default=DEFAULT_NO_CACHE
+    )
     args = parser.parse_args()
 
     main(
@@ -130,5 +142,6 @@ if __name__ == "__main__":
         args.extensions_list.split(";"),
         args.build_type,
         args.run_tests,
-        args.package_installation
+        args.package_installation,
+        args.no_cache
     )

@@ -13,8 +13,8 @@ namespace py = pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<std::shared_ptr<utils::crypto::Sha256>>);
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned int>);
 PYBIND11_MAKE_OPAQUE(std::unordered_set<unsigned int>);
-PYBIND11_MAKE_OPAQUE(service::Sha256ToContentMap_t);
 PYBIND11_MAKE_OPAQUE(service::ShortIDToSha256Map_t);
+PYBIND11_MAKE_OPAQUE(std::vector<utils::crypto::Sha256>);
 
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
@@ -33,6 +33,7 @@ typedef service::PSha256_t PSha256_t;
 template <typename Map, typename holder_type = std::unique_ptr<Map>>
 py::class_<Map, holder_type> custom_bind_map(py::handle scope, const std::string &name) {
 	using KeyType = typename Map::key_type;
+	using ValueType = typename Map::value_type;
 	py::class_<Map, holder_type> bound_map = py::bind_map<Map, holder_type>(scope, name);
 	bound_map.def(
 			"__contains__",
@@ -40,6 +41,12 @@ py::class_<Map, holder_type> custom_bind_map(py::handle scope, const std::string
 		auto iter = map.find(key);
 		return iter != map.end();
 	});
+	bound_map.def("get_bytes_length", [](Map& m) {
+        return sizeof(Map) + m.get_allocator().total_bytes_allocated();
+	});
+
+	bound_map.def("clear", &Map::clear);
+
 	return bound_map;
 }
 
@@ -63,8 +70,8 @@ PYBIND11_MODULE(task_pool_executor, m) {
 
     // binding custom STL types
 	custom_bind_vector<std::vector<PSha256_t>>(m,"Sha256List");
+	custom_bind_vector<std::vector<utils::crypto::Sha256>>(m, "Sha256CopyList");
 	custom_bind_vector<std::vector<unsigned int>>(m,"UIntList");
-    custom_bind_map<service::Sha256ToContentMap_t>(m, "Sha256ToContentMap");
     custom_bind_map<service::ShortIDToSha256Map_t>(m, "ShortIDToSha256Map");
 
     bind_byte_array(m);

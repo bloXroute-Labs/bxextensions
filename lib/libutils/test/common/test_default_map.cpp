@@ -48,7 +48,8 @@ struct nested_vector_factory {
 	}
 };
 
-typedef utils::common::DefaultMap<int, std::vector<std::string>, std::hash<int>, std::equal_to<int>, nested_vector_factory> DefaultFactoryMap_t;
+typedef std::allocator<std::pair<const int, std::vector<std::string>>> Allocator_t;
+typedef utils::common::DefaultMap<int, std::vector<std::string>, std::hash<int>, std::equal_to<int>, Allocator_t, nested_vector_factory> DefaultFactoryMap_t;
 
 
 TEST_F(DefaultMapTest, test_indexing) {
@@ -68,7 +69,7 @@ TEST_F(DefaultMapTest, test_nested) {
 
 TEST_F(DefaultMapTest, test_value_factory) {
 	nested_vector_factory factory;
-	DefaultFactoryMap_t map(factory);
+	DefaultFactoryMap_t map(Allocator_t(), factory);
 	EXPECT_EQ(map[5], factory());
 }
 

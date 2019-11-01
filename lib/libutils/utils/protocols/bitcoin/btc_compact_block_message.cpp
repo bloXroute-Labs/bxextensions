@@ -23,9 +23,9 @@ BtcCompactBlockMessage::BtcCompactBlockMessage(
 
 BtcCompactBlockMessage::BtcCompactBlockMessage(
 		BtcCompactBlockMessage&& rhs
-):
+) noexcept:
     _buffer(rhs._buffer),
-    _tx_in_block(rhs._tx_in_block)
+    _tx_in_block(std::move(rhs._tx_in_block))
 {
 }
 
@@ -61,7 +61,7 @@ crypto::SipKey_t BtcCompactBlockMessage::get_block_sip_key() const
         //  }
 	);
 
-    crypto::SipKey_t sip_key(*(uint64_t *) &sha.sha256()[0], *(uint64_t *) &sha.sha256()[8]);
+    crypto::SipKey_t sip_key(*(uint64_t *) &sha.binary()[0], *(uint64_t *) &sha.binary()[8]);
     return std::move(sip_key);
 }
 
@@ -93,7 +93,7 @@ PBufferView_t BtcCompactBlockMessage::get_next_pre_filled_tx(
 	    size_t& offset,
 		uint64_t& diff,
 		Sha256_t& sha,
-		int tail/* = -1*/
+		size_t& witness_offset
 ) const
 {
     size_t off = get_varint(
@@ -105,9 +105,9 @@ PBufferView_t BtcCompactBlockMessage::get_next_pre_filled_tx(
 	// skip the transaction
     offset = _tx_in_block.get_next_tx_offset(
         off,
-        tail
+        witness_offset
     );
-    sha = std::move(crypto::double_sha256(_buffer, off, offset - off));
+    sha = std::move(protocols::bitcoin::get_tx_id(_buffer, off, witness_offset, offset));
     PBufferView_t tx_content = std::make_shared<BufferView_t>(
     		_buffer, offset - off, off
     );

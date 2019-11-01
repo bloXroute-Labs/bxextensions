@@ -3,7 +3,6 @@
 #include <memory>
 
 #include <utils/concurrency/queue_thread.h>
-#include <utils/patterns/singleton.h>
 
 #include "tpe/task/main_task_base.h"
 

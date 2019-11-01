@@ -29,22 +29,24 @@ public:
 			PBufferView_t block_buffer,
 			const Sha256ToShortIDsMap_t* short_id_map
 	);
-	CompactBlockDataService(CompactBlockDataService&& rhs);
+	CompactBlockDataService(CompactBlockDataService&& rhs) noexcept ;
 
-	CompactBlockDataService& operator =(CompactBlockDataService&& rhs);
+	CompactBlockDataService& operator =(CompactBlockDataService&& rhs) noexcept ;
 
-	void parse(void);
+	void parse();
 
-	const SipKey_t& sip_key(void) const;
-	const BtcCompactBlockMessage_t& msg(void) const;
-	size_t size(void) const;
-	uint64_t total_tx_count(void) const;
-	uint64_t compact_tx_count(void) const;
+	const SipKey_t& sip_key() const;
+	const BtcCompactBlockMessage_t& msg() const;
+	size_t size() const;
+	uint64_t total_tx_count() const;
+	uint64_t compact_tx_count() const;
 
-	CompactTransactionPlaceholders_t& tx_placeholders(void);
-	CompactShortIdToShortIdMap_t& compact_map(void);
+	size_t byte_size() const;
 
-	void on_compression_completed(void);
+	CompactTransactionPlaceholders_t& tx_placeholders();
+	CompactShortIdToShortIdMap_t& compact_map();
+
+	void on_compression_completed();
 
 private:
 

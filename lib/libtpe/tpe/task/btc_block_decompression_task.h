@@ -23,13 +23,13 @@ typedef utils::protocols::bitcoin::BxBtcBlockMessage BxBtcBlockMessage_t;
 class BtcBlockDecompressionTask : public MainTaskBase {
 
 public:
-	BtcBlockDecompressionTask(
+	explicit BtcBlockDecompressionTask(
 			size_t capacity = BTC_DEFAULT_BLOCK_SIZE,
 			size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
 	);
 
 	void init(
-			BlockBuffer_t block_buffer,
+            PBlockBuffer_t block_buffer,
 			PTransactionService_t tx_service
 	);
 
@@ -40,6 +40,10 @@ public:
 	bool success();
 	uint64_t tx_count();
 	const std::vector<unsigned int>& short_ids();
+
+    size_t get_task_byte_size() const override;
+
+    void cleanup() override;
 
 protected:
 	void _execute(SubPool_t& sub_pool) override;
@@ -61,7 +65,7 @@ private:
 	void _extend_output_buffer(size_t output_offset);
 
 
-	BlockBuffer_t _block_buffer;
+    PBlockBuffer_t _block_buffer;
 	PByteArray_t _output_buffer;
 	UnknownTxHashes_t _unknown_tx_hashes;
 	UnknownTxSIDs_t _unknown_tx_sids;

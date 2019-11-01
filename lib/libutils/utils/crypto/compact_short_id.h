@@ -27,13 +27,13 @@ public:
 	    const Sha256& data
 	);
 
-	CompactShortId(CompactShortId&& src);
+	CompactShortId(CompactShortId&& src) noexcept;
 	CompactShortId(const CompactShortId& src);
 
-	CompactShortId& operator =(CompactShortId&& src);
+	CompactShortId& operator =(CompactShortId&& src) noexcept;
 	CompactShortId& operator =(const CompactShortId& src);
 
-	size_t hash(void) const;
+	size_t hash() const;
 	uint64_t compact_short_id() const;
 	static const size_t size;
 

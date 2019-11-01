@@ -18,11 +18,12 @@ BtcBlockCompressionTask::BtcBlockCompressionTask(
 				_minimal_tx_count(minimal_tx_count),
 				_txn_count(0)
 {
-	_output_buffer = std::make_shared<ByteArray_t>(capacity);
+    _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
+    _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void BtcBlockCompressionTask::init(
-		BlockBuffer_t block_buffer,
+		PBlockBuffer_t block_buffer,
 		PTransactionService_t tx_service
 )
 {
@@ -30,10 +31,10 @@ void BtcBlockCompressionTask::init(
 	_block_buffer = std::move(block_buffer);
 	if (_output_buffer.use_count() > 1) {
 		_output_buffer =  std::make_shared<ByteArray_t>(
-                _block_buffer.size()
+                _block_buffer->size()
 		);
 	} else {
-		_output_buffer->reserve(_block_buffer.size());
+		_output_buffer->reserve(_block_buffer->size());
 		_output_buffer->reset();
 	}
 	_short_ids.clear();
@@ -75,8 +76,28 @@ BtcBlockCompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t BtcBlockCompressionTask::get_task_byte_size() const {
+    size_t sub_tasks_size = 0;
+    for (const TaskData& sub_task_data: _sub_tasks) {
+        const PSubTask_t& p_task = sub_task_data.sub_task;
+        sub_tasks_size += (p_task->output_buffer().capacity() + sizeof(p_task) + sizeof(BtcBlockCompressionSubTask));
+    }
+    size_t block_buffer_size = 0;
+    if (_block_buffer != nullptr) {
+        block_buffer_size = _block_buffer->size();
+    }
+    return sizeof(BtcBlockCompressionTask) + _output_buffer->capacity() + block_buffer_size +
+            (_short_ids.capacity() * sizeof(uint32_t)) + sub_tasks_size;
+}
+
+void BtcBlockCompressionTask::cleanup() {
+    assert_execution();
+    _block_buffer = nullptr;
+    _tx_service = nullptr;
+}
+
 void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
-	utils::protocols::bitcoin::BtcBlockMessage msg(_block_buffer);
+	utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
 	_prev_block_hash = std::make_shared<Sha256_t>(
 			std::move(msg.prev_block_hash())
 	);
@@ -89,13 +110,13 @@ void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
 	size_t output_offset = sizeof(uint64_t);
 	output_offset = _output_buffer->copy_from_buffer(
-			_block_buffer,
+			*_block_buffer,
 			output_offset,
 			0,
 			offset
 	);
 	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
-		TaskData& data = _sub_tasks[idx];
+		TaskData& data = _sub_tasks.at(idx);
 		data.sub_task->wait();
 		output_offset = _on_sub_task_completed(*data.sub_task);
 	}
@@ -158,9 +179,10 @@ size_t BtcBlockCompressionTask::_dispatch(
 	for (int count = 0 ; count < tx_count ; ++count) {
 		size_t from = offset;
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-		offset = msg.get_next_tx_offset(offset);
+		size_t witness_offset;
+		offset = msg.get_next_tx_offset(offset, witness_offset);
 		_sub_tasks[idx].offsets->push_back(
-				std::pair<size_t, size_t>(from, offset));
+				std::make_tuple(from, witness_offset, offset));
 		if(idx > prev_idx) {
 			_enqueue_task(prev_idx, sub_pool);
 		}
@@ -222,7 +244,7 @@ void BtcBlockCompressionTask::_enqueue_task(
 	TaskData& data = _sub_tasks[task_idx];
 	data.sub_task->init(
 			_tx_service,
-			&_block_buffer,
+			_block_buffer.get(),
 			data.offsets
 	);
 	sub_pool.enqueue_task(data.sub_task);

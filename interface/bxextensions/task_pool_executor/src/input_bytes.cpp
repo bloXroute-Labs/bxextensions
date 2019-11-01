@@ -8,7 +8,6 @@ typedef std::shared_ptr<BufferView_t> PBufferView_t;
 class InputBytes : public BufferView_t {
 public:
 	InputBytes(py::buffer buf);
-	~InputBytes();
 
 	py::buffer_info request();
 private:
@@ -18,15 +17,10 @@ private:
 typedef std::shared_ptr<InputBytes> PInputBytes;
 
 InputBytes::InputBytes(py::buffer buf) :
-	_buf(buf)
+	_buf(std::move(buf))
 {
-	buf.inc_ref();
 	py::buffer_info binfo = std::move(request());
 	_set_buffer((uint8_t*)binfo.ptr, (size_t)binfo.size);
-}
-
-InputBytes::~InputBytes() {
-	_buf.dec_ref();
 }
 
 py::buffer_info InputBytes::request() {

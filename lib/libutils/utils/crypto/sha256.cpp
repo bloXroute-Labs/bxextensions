@@ -9,8 +9,7 @@
 namespace utils {
 namespace crypto {
 
-
-static size_t get_hash(const std::vector<uint8_t>& sha256) {
+static size_t get_hash(const Sha256Binary_t& sha256) {
 	size_t hash = 0;
 	for (const uint8_t& byte: sha256) {
 		hash = (hash * 31) ^ byte;
@@ -23,21 +22,21 @@ static void calculate_sha256(
 		const TBuffer& data,
 		size_t from,
 		size_t length,
-		std::vector<uint8_t>& out_sha256,
+        Sha256Binary_t& out_binary,
 		size_t& out_hash
 )
 {
 	SHA256_CTX sha256;
 	SHA256_Init(&sha256);
 	SHA256_Update(&sha256, &data[from], length);
-	SHA256_Final(&out_sha256[0], &sha256);
-	out_hash = get_hash(out_sha256);
+	SHA256_Final(out_binary.data(), &sha256);
+	out_hash = get_hash(out_binary);
 }
 
 template <class TBuffer>
 static void calculate_sha256_several_sources(
 		const TBuffer& data,
-		std::vector<uint8_t>& out_sha256,
+        Sha256Binary_t& out_binary,
 		size_t& out_hash,
 		std::initializer_list<FromLengthPair_t> sources
 )
@@ -47,19 +46,21 @@ static void calculate_sha256_several_sources(
 	for (const FromLengthPair_t& src : sources) {
     	SHA256_Update(&sha256, &data[src.first], src.second);
 	}
-	SHA256_Final(&out_sha256[0], &sha256);
-	out_hash = get_hash(out_sha256);
+	SHA256_Final(out_binary.data(), &sha256);
+	out_hash = get_hash(out_binary);
 }
 
 Sha256::Sha256(const std::string& hex_string/* = ""*/):
-    _sha256(0),
+    _binary(),
     _hash(0)
 {
 	if (hex_string.size() == 2 * SHA256_DIGEST_LENGTH) {
-		common::from_hex_string(hex_string, _sha256);
-		_hash = get_hash(_sha256);
+	    std::vector<uint8_t> sha_vector;
+		common::from_hex_string(hex_string, sha_vector);
+        memcpy(_binary.data(), &sha_vector.at(0), SHA256_BINARY_SIZE);
+		_hash = get_hash(_binary);
 	} else {
-		_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
+        _binary.fill('\0');
 	}
 }
 
@@ -68,11 +69,11 @@ Sha256::Sha256(
     size_t from,
     size_t length
 ) :
-    _sha256(SHA256_DIGEST_LENGTH),
+    _binary(),
     _hash(0)
 {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
-	calculate_sha256(data, from, length, _sha256, _hash);
+	_binary.fill('\0');
+	calculate_sha256(data, from, length, _binary, _hash);
 }
 
 Sha256::Sha256(
@@ -80,84 +81,76 @@ Sha256::Sha256(
     size_t from,
     size_t length
 ) :
-    _sha256(SHA256_DIGEST_LENGTH),
+    _binary(),
     _hash(0)
 {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
-	calculate_sha256(data, from, length, _sha256, _hash);
+	_binary.fill('\0');
+	calculate_sha256(data, from, length, _binary, _hash);
 }
 
 Sha256::Sha256(
     const std::vector<uint8_t>& data,
     size_t from
-) :
-    _sha256(
-        data.begin() + from,
-        data.begin() + from + SHA256_DIGEST_LENGTH
-	)
+): _binary()
 {
-	_hash = get_hash(_sha256);
+    memcpy(_binary.data(), &data.at(from), SHA256_BINARY_SIZE);
+	_hash = get_hash(_binary);
 }
 
 Sha256::Sha256(
 		const common::BufferView& data,
 		size_t from
-):
-    _sha256(SHA256_DIGEST_LENGTH)
+): _binary()
 {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
-	memcpy(&_sha256.at(0), &data.at(from), SHA256_DIGEST_LENGTH);
-	_hash = get_hash(_sha256);
+	memcpy(_binary.data(), &data.at(from), SHA256_BINARY_SIZE);
+	_hash = get_hash(_binary);
 }
 
 Sha256::Sha256(
 		const common::BufferView& data
-) :
-    _sha256(SHA256_DIGEST_LENGTH)
+): _binary()
 {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
-	memcpy(&_sha256.at(0), &data.at(0), SHA256_DIGEST_LENGTH);
-	_hash = get_hash(_sha256);
+	memcpy(_binary.data(), &data.at(0), SHA256_BINARY_SIZE);
+	_hash = get_hash(_binary);
 }
 
 Sha256::Sha256(
 	    const common::BufferView& data,
 		std::initializer_list<FromLengthPair_t> sources
-) :
-    _sha256(SHA256_DIGEST_LENGTH),
+):
+    _binary(),
     _hash(0)
 {
-	_sha256.resize(SHA256_DIGEST_LENGTH, '\0');
-	calculate_sha256_several_sources(data, _sha256, _hash, sources);
+	calculate_sha256_several_sources(data, _binary, _hash, sources);
 	reverse();
 }
 
-Sha256::Sha256(const std::vector<uint8_t>& sha):
-		_sha256(sha.begin(), sha.begin() + SHA256_DIGEST_LENGTH)
+Sha256::Sha256(const std::vector<uint8_t>& sha): _binary()
 {
-	_hash = get_hash(_sha256);
+    memcpy(_binary.data(), &sha.at(0), SHA256_BINARY_SIZE);
+    _hash = get_hash(_binary);
 }
 
-Sha256::Sha256(const Sha256& other) {
-	_sha256 = other._sha256;
+Sha256::Sha256(const Sha256& other): _binary() {
+	_binary = other._binary;
 	_hash = other._hash;
 }
 
-Sha256::Sha256(Sha256&& other) {
-	_sha256 = std::move(other._sha256);
+Sha256::Sha256(Sha256&& other) noexcept: _binary() {
+	_binary = other._binary;
 	_hash = other._hash;
 }
 
-const Sha256& Sha256::operator=(const Sha256& other)
+Sha256& Sha256::operator =(const Sha256& other)
 {
-	_sha256 = other._sha256;
+	_binary = other._binary;
 	_hash = other._hash;
 	return *this;
 }
 
-Sha256& Sha256::operator=(Sha256&& other)
+Sha256& Sha256::operator =(Sha256&& other) noexcept
 {
-	_sha256 = std::move(other._sha256);
+	_binary = other._binary;
 	_hash = other._hash;
 	return *this;
 }
@@ -165,23 +158,23 @@ Sha256& Sha256::operator=(Sha256&& other)
 void Sha256::double_sha256()
 {
 	calculate_sha256(
-			_sha256,
+			_binary,
 			0,
 			SHA256_DIGEST_LENGTH,
-			_sha256,
+			_binary,
 			_hash
 	);
 }
 
 void Sha256::reverse()
 {
-	std::reverse(_sha256.begin(), _sha256.end());
-	_hash = get_hash(_sha256);
+	std::reverse(_binary.begin(), _binary.end());
+	_hash = get_hash(_binary);
 }
 
 void Sha256::clear()
 {
-	_sha256.clear();
+	_binary.fill('\0');
 	_hash = 0;
 }
 
@@ -198,33 +191,33 @@ void Sha256::operator() (
 		size_t length
 )
 {
-	calculate_sha256(data, from, length, _sha256, _hash);
+	calculate_sha256(data, from, length, _binary, _hash);
 }
 
 bool Sha256::operator==(const Sha256& other) const {
-	return memcmp(&_sha256.at(0), &other._sha256.at(0), SHA256_DIGEST_LENGTH) == 0;
+	return memcmp(_binary.data(), other._binary.data(), SHA256_DIGEST_LENGTH) == 0;
 }
 
-common::BufferView Sha256::sha256() const
+common::BufferView Sha256::binary() const
 {
-	return std::move(common::BufferView(_sha256));
+	return std::move(common::BufferView(_binary.data(), SHA256_BINARY_SIZE));
 }
 
-std::vector<uint8_t>
-Sha256::reversed_sha256(void) const {
-	std::vector<uint8_t> reversed(SHA256_DIGEST_LENGTH);
-	std::reverse_copy(std::begin(_sha256), std::end(_sha256), std::begin(reversed));
-	return std::move(reversed);
+Sha256Binary_t
+Sha256::reversed_binary() const {
+    Sha256Binary_t reversed;
+	std::reverse_copy(std::begin(_binary), std::end(_binary), std::begin(reversed));
+	return reversed;
 }
 
-std::string Sha256::repr(void) const
+std::string Sha256::repr() const
 {
-	return common::concatinate("Sha256: ", hex_string());
+	return common::concatenate("Sha256: ", hex_string());
 }
 
-std::string Sha256::hex_string(void) const
+std::string Sha256::hex_string() const
 {
-	return common::to_hex_string(_sha256);
+	return std::move(common::to_hex_string(_binary));
 }
 
 
@@ -250,13 +243,13 @@ bool Sha256Equal::operator()(const Sha256& lhs, const Sha256& rhs) const
 }
 
 Sha256Context::Sha256Context() {
-	SHA256_CTX* ptr = new SHA256_CTX();
+	auto* ptr = new SHA256_CTX();
 	_ctx_ptr = ptr;
 	SHA256_Init(ptr);
 }
 
 Sha256Context::~Sha256Context() {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	delete(ptr);
 	_ctx_ptr = nullptr;
 	ptr = nullptr;
@@ -268,7 +261,7 @@ void Sha256Context::update(
 		size_t length/* = 0*/
 )
 {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	if (length == 0) {
 		length = data.size() - offset;
 	}
@@ -285,7 +278,7 @@ void Sha256Context::update(
 }
 
 Sha256 Sha256Context::digest() {
-	SHA256_CTX* ptr = (SHA256_CTX*) _ctx_ptr;
+	auto* ptr = (SHA256_CTX*) _ctx_ptr;
 	std::vector<uint8_t> sha;
 	sha.resize(SHA256_DIGEST_LENGTH, '\0');
 	SHA256_Final(&sha[0], ptr);

@@ -10,17 +10,19 @@ namespace common {
 template <
 	class T,
 	class THash = std::hash<T>,
-	class TPred = std::equal_to<T>
+	class TPred = std::equal_to<T>,
+    class TAllocator = std::allocator<T>
 >
 class Bucket {
 public:
-	typedef std::unordered_set<T, THash, TPred> Set_t;
+	typedef std::unordered_set<T, THash, TPred, TAllocator> Set_t;
 	typedef typename Set_t::iterator iterator;
 	typedef typename Set_t::const_iterator const_iterator;
 
-	Bucket(size_t capacity, uint32_t bucket_index):
+	Bucket(size_t capacity, uint32_t bucket_index, TAllocator allocator = std::allocator<T>()):
 		_capacity(capacity),
-		_bucket_index(bucket_index)
+		_bucket_index(bucket_index),
+		_set(allocator)
 	{
 		_set.reserve(capacity);
 	}

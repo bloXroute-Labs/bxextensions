@@ -33,10 +33,10 @@ void TaskBase::before_execution(int current_queue_idx) {
 
 void TaskBase::after_execution(
     std::exception_ptr error/* = nullptr*/) {
-  _error = error;
-  _is_completed = true;
-  _current_queue_idx = -1;
-  _last_executed_id = _task_id;
+    _error = error;
+    _last_executed_id = _task_id;
+    _current_queue_idx = -1;
+    _is_completed = true;
 }
 
 int TaskBase::current_queue_idx() {

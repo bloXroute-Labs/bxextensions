@@ -15,9 +15,12 @@ namespace bitcoin {
 
 class BtcBlockMessage {
 public:
-	BtcBlockMessage(const common::BufferView& buffer);
+	explicit BtcBlockMessage(const common::BufferView& buffer);
+    BtcBlockMessage(BtcBlockMessage&&) noexcept;
 
-	size_t get_next_tx_offset(size_t offset, int tail = -1);
+    BtcBlockMessage& operator =(BtcBlockMessage&&) noexcept;
+
+	size_t get_next_tx_offset(size_t offset, size_t& witness_offset);
 	size_t get_tx_count(uint64_t& tx_count);
 
 	crypto::Sha256 block_hash() const;

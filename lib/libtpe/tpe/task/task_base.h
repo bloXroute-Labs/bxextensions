@@ -22,8 +22,6 @@ public:
 
   void assert_execution();
 
-  void assert_execution(void);
-
 protected:
   TaskBase();
 

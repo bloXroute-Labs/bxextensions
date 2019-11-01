@@ -56,12 +56,6 @@ CompactShortId to_compact_id(
 		const Sha256& sha, const SipKey_t& key
 );
 
-CompactShortId to_compact_id(
-		const Sha256& sha, const SipKey_t& key
-);
-
-
-
 } // crypto
 } // utils
 

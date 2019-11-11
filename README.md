@@ -42,7 +42,9 @@ $ apk add --no-cache build-base musl automake autoconf libtool openssl-dev cmake
 ### Mac:
 **a. Install dependencies:**
 ```bash
-$ brew install cmake automake autogen libtool autoconf autogen
+$ brew install cmake automake autogen libtool autoconf autogen openssl@1.1
+$ echo 'export OPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1"' >> ~/.bash_profile
+$ echo 'export OPENSSL_INCLUDE_DIR="/usr/local/opt/openssl@1.1/include"' >> ~/.bash_profile
 ```
 
 **b. Install [XCode command line tools](https://www.ics.uci.edu/~pattis/common/handouts/macmingweclipse/allexperimental/macxcodecommandlinetools.html).**
@@ -71,6 +73,6 @@ $ python setup.py install
 ```bash
 $ git clone --recursive https://github.com/bloXroute-Labs/bxextensions.git
 $ cd bxextensions/
-$ python build_extensions.py
+$ python build_extensions.py --build-type Debug
 ```
-**add bxextensions/ to your $PYTHONPATH**
+**add bxextensions/ to your `$PYTHONPATH`**

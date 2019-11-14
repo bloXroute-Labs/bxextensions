@@ -100,10 +100,10 @@ jobs:
             }
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxcommon."
-                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon-private.git bxcommon
             } || { # catch
                 echo "Trying bxcommon develop branch, could not find identical branch name '$CIRCLE_BRANCH'."
-                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon.git
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxcommon-private.git bxcommon
             }
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH' from bxrelay."
@@ -114,10 +114,10 @@ jobs:
             }
             { # try
                 echo "Trying to clone identical branch name '$CIRCLE_BRANCH  from bxgateway."
-                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway.git
+                git clone -b $CIRCLE_BRANCH --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway-private.git bxgateway
             } || { # catch
                 echo "Trying bxgateway develop branch, could not find identical branch name '$CIRCLE_BRANCH."
-                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway.git
+                git clone -b develop --single-branch --depth=1 git@github.com:bloXroute-Labs/bxgateway-private.git bxgateway
             }
       - run:
           name: install dependencies

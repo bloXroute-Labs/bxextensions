@@ -25,7 +25,6 @@ public:
 
 	crypto::Sha256 block_hash() const;
 	crypto::Sha256 prev_block_hash() const;
-	uint32_t get_block_size() const;
 
 private:
 	common::BufferView _buffer;

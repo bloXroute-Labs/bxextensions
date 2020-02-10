@@ -163,5 +163,9 @@ void bind_transaction_service(py::module& m) {
                     "tx_not_seen_in_blocks",
                     &TransactionService_t::tx_not_seen_in_blocks,
                     py::return_value_policy::reference
-            );
+            ).def(
+					"removed_tx_hashes_time",
+					&TransactionService_t::removed_tx_hashes_time,
+					py::return_value_policy::reference
+			);
 }

@@ -1,3 +1,4 @@
+#include <chrono>
 #include "tpe/service/transaction_service.h"
 
 
@@ -37,6 +38,11 @@ TransactionService::tx_hash_to_short_ids() const {
 const Sha256ToContentMap_t&
 TransactionService::tx_hash_to_contents() const {
 	return _containers.tx_hash_to_contents;
+}
+
+const RemovedTxHashesTime_t&
+TransactionService::removed_tx_hashes_time() const {
+	return _containers.removed_tx_hashes_time;
 }
 
 bool TransactionService::has_short_id(const Sha256_t& tx_hash) const {
@@ -167,6 +173,8 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
         content_length = content_iter->second->size();
         _containers.tx_hash_to_contents.erase(content_iter);
     }
+    _containers.removed_tx_hashes_time.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
+      std::chrono::system_clock::now().time_since_epoch()).count());
     return content_length;
 }
 
@@ -196,6 +204,8 @@ size_t TransactionService::remove_transaction_by_short_id(
             _containers.tx_hash_to_contents.erase(content_iter);
         }
         _containers.short_id_to_tx_hash.erase(sha_iter);
+        _containers.removed_tx_hashes_time.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count());
     }
     return contents_len;
 }

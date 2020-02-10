@@ -32,7 +32,7 @@ typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
-typedef utils::crypto::Sha256OrderedMap_t<float> RemovedTxHashesTime_t;
+typedef utils::crypto::Sha256OrderedMap_t<float> Sha256ToTime_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -79,7 +79,7 @@ struct Containers {
         short_id_to_tx_hash(),
         tx_hash_to_short_ids(tx_not_seen_in_blocks),
         short_ids_seen_in_block(),
-        removed_tx_hashes_time()
+        tx_hash_to_time_removed()
     {
 
     }
@@ -89,7 +89,7 @@ struct Containers {
     ShortIDToSha256Map_t short_id_to_tx_hash;
     Sha256ToContentMap_t tx_hash_to_contents;
     ShortIDsSeenInBlock_t short_ids_seen_in_block;
-    RemovedTxHashesTime_t removed_tx_hashes_time;
+    Sha256ToTime_t tx_hash_to_time_removed;
 };
 
 class TransactionService {
@@ -108,7 +108,7 @@ public:
 
     const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;
-	const RemovedTxHashesTime_t& removed_tx_hashes_time() const;
+	const Sha256ToTime_t& tx_hash_to_time_removed() const;
 
 	bool has_short_id(const Sha256_t& tx_hash) const;
 

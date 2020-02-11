@@ -127,6 +127,10 @@ public:
         _list.clear();
     }
 
+    Allocator_t get_allocator() const {
+        return _list.get_allocator();
+    }
+
 
 private:
     std::list<TItem, Allocator_t> _list;

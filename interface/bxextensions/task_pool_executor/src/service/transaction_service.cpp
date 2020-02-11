@@ -11,6 +11,7 @@ typedef std::shared_ptr<ShortIDs_t> PShortIDs_t;
 typedef service::Sha256_t Sha256_t;
 typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
 typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
+typedef service::Sha256ToTime_t Sha256ToTime_t;
 typedef service::PTxContents_t PTxContents_t;
 
 
@@ -62,6 +63,48 @@ void bind_transaction_service(py::module& m) {
                 return sizeof(Sha256ToShortIDsMap_t) + col.get_allocator().total_bytes_allocated();
             })
 			.def("__contains__", [](Sha256ToShortIDsMap_t& map, const Sha256_t& key) {
+					auto iter = map.find(key);
+					return iter != map.end();
+			});
+
+	py::class_<Sha256ToTime_t>(m, "Sha256ToTime")
+			.def("__getitem__",
+			        [](
+			        		Sha256ToTime_t& map,
+							const Sha256_t& sha
+			        ) -> double {
+			            return map[sha];
+			        }
+			)
+			.def("__len__", &Sha256ToTime_t::size)
+			.def("__iter__", [](Sha256ToTime_t& map) {
+					return py::make_key_iterator(map.begin(), map.end());
+				},
+				py::keep_alive<0, 1>()
+			)
+			.def("__delitem__", [](Sha256ToTime_t& map, const Sha256_t& key) {
+					map.erase(key);
+				}
+			)
+			.def("__setitem__", [](Sha256ToTime_t& map, const Sha256_t& key, double val) {
+                    auto iter = map.find(key);
+                    if (iter != map.end()) {
+                        iter->second = val;
+                    } else {
+                        map.emplace(key, val);
+                    }
+                 }
+            )
+			.def("pop", [](Sha256ToTime_t& map, const Sha256_t& key) -> double {
+			    double val = map[key];
+			    map.erase(key);
+                return val;
+			})
+            .def("clear", &Sha256ToTime_t::clear)
+            .def("get_bytes_length" , [](Sha256ToTime_t& col) {
+                return sizeof(Sha256ToTime_t) + col.get_allocator().total_bytes_allocated();
+            })
+			.def("__contains__", [](Sha256ToTime_t& map, const Sha256_t& key) {
 					auto iter = map.find(key);
 					return iter != map.end();
 			});
@@ -163,5 +206,9 @@ void bind_transaction_service(py::module& m) {
                     "tx_not_seen_in_blocks",
                     &TransactionService_t::tx_not_seen_in_blocks,
                     py::return_value_policy::reference
-            );
+            ).def(
+					"tx_hash_to_time_removed",
+					&TransactionService_t::tx_hash_to_time_removed,
+					py::return_value_policy::reference
+			);
 }

@@ -25,8 +25,8 @@ do
   echo "Building container from $DOCKER_FILE"
   bash_cmd="docker build -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;  \
             docker run --name bxextensions_${os} \
-               --volume ${ROOT_DIR}/release/${os}:/app/bxextensions/release \
-               --volume ${ROOT_DIR}/build/${os}:/app/bxextensions/build \
+               --volume ${ROOT_DIR}/release/${os}:/app/bxextensions/release/lib \
+               --volume ${ROOT_DIR}/release/MANIFEST.MF:/app/bxextensions/release/MANIFEST.MF:ro \
                --user $(id -u):$(id -g) \
                bxextensions_${os}" 
   echo ${bash_cmd}

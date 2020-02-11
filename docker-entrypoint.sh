@@ -13,4 +13,4 @@ do
   ${python_cmd} build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache
 done
 echo "copying binaries"
-cp -r ./*.so release/
+cp -r ./*.so release/lib/

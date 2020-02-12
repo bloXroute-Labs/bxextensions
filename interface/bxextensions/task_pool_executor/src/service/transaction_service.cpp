@@ -15,6 +15,18 @@ typedef service::Sha256ToTime_t Sha256ToTime_t;
 typedef service::PTxContents_t PTxContents_t;
 
 
+static void cleanup_removed_hashes_history(
+    Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s
+)
+{
+    auto hash_iter = map.begin();
+    while (hash_iter != map.end() and now - hash_iter->second > removed_hashes_expiration_time_s) {
+        map.erase(hash_iter->first);
+        hash_iter = map.begin();
+    }
+}
+
+
 void bind_transaction_service(py::module& m) {
 	py::class_<ShortIDs_t, PShortIDs_t>(m, "UIntSet")
 			.def(py::init<>())
@@ -104,6 +116,7 @@ void bind_transaction_service(py::module& m) {
             .def("get_bytes_length" , [](Sha256ToTime_t& col) {
                 return sizeof(Sha256ToTime_t) + col.get_allocator().total_bytes_allocated();
             })
+            .def("cleanup_removed_hashes_history", &cleanup_removed_hashes_history)
 			.def("__contains__", [](Sha256ToTime_t& map, const Sha256_t& key) {
 					auto iter = map.find(key);
 					return iter != map.end();

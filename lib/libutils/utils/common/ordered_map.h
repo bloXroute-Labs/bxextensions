@@ -51,7 +51,7 @@ public:
     std::pair<iterator, bool> emplace(const TKey& key, const TValue& value) {
         auto iter = find(key);
         if (iter == end()) {
-            _list.emplace_back(std::move(key), std::move(value));
+            _list.emplace_back(key, value);
             auto pair = _map.emplace(key, std::prev(std::end(_list)));
             return std::make_pair(pair.first->second, pair.second);
         } else {
@@ -62,7 +62,7 @@ public:
     std::pair<iterator, bool> emplace(const TKey& key, TValue&& value) {
         auto iter = find(key);
         if (iter == end()) {
-            _list.emplace_back(std::move(key), std::move(value));
+            _list.emplace_back(key, std::move(value));
             auto pair = _map.emplace(key, std::prev(std::end(_list)));
             return std::make_pair(pair.first->second, pair.second);
         } else {

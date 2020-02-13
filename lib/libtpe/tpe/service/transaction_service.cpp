@@ -203,9 +203,11 @@ size_t TransactionService::remove_transaction_by_short_id(
             contents_len = content_iter->second->size();
             _containers.tx_hash_to_contents.erase(content_iter);
         }
-        _containers.short_id_to_tx_hash.erase(sha_iter);
+
         _containers.tx_hash_to_time_removed.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count());
+
+        _containers.short_id_to_tx_hash.erase(sha_iter);
     }
     return contents_len;
 }

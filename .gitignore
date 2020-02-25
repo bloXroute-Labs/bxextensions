@@ -4,6 +4,7 @@ cmake/
 pkgconfig/
 include/
 tests/
+dist/
 .settings/
 *.egg-info*
 .idea/

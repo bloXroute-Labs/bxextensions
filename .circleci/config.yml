@@ -137,6 +137,7 @@ jobs:
             . venv/bin/activate
             pip install -r bxcommon/requirements.txt
             pip install -r bxcommon/requirements-dev.txt
+            pip install -r bxcommon/requirements-optional.txt
             pip install -r bxrelay/requirements.txt
             pip install -r bxrelay/requirements-dev.txt
             pip install -r bxgateway/requirements.txt

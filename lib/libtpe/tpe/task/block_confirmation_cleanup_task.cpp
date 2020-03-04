@@ -67,6 +67,14 @@ void BlockConfirmationCleanupTask::cleanup() {
     offset = msg.parse_tx_hash_count(offset, tx_hash_count);
     for (uint32_t idx = 0 ; idx < tx_hash_count ; ++idx) {
         offset = msg.parse_next_tx_hash(offset, sha);
+        auto& tx_hash_to_short_ids = _tx_service->get_tx_hash_to_short_ids();
+        auto short_ids_iter = tx_hash_to_short_ids.find(sha);
+        if (short_ids_iter != tx_hash_to_short_ids.end()) {
+            auto& short_ids = short_ids_iter->second;
+            for (uint32_t short_id: short_ids) {
+                _short_ids.push_back(short_id);
+            }
+        }
         _total_content_removed += _tx_service->remove_transaction_by_hash(sha);
     }
     _tx_count = tx_hash_count + short_ids_count;

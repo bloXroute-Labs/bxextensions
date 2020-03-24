@@ -1,6 +1,20 @@
 #include <chrono>
-#include "tpe/service/transaction_service.h"
+#include <math.h>
 
+#include <utils/common/buffer_view.h>
+#include <utils/common/buffer_helper.h>
+#include "tpe/service/transaction_service.h"
+#include <utils/common/string_helper.h>
+
+
+#define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
+#define TX_COUNT_LEN 4 // sizeof(uint_32_t)
+#define SHA256_LEN 32
+#define EXPIRATION_DATE_LEN 4 // sizeof(uint_32_t)
+#define CONTENT_LEN 4 // sizeof(uint_32_t)
+#define SHORT_IDS_COUNT_LEN 2
+#define SHORT_ID_LEN 4 // sizeof(uint_32_t)
+#define QUOTA_TYPE_LEN 1
 
 namespace service {
 
@@ -24,6 +38,62 @@ ShortIDToSha256Map_t& TransactionService::get_short_id_to_tx_hash() {
 
 Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
+}
+
+PTxSyncTxs_t TransactionService::tx_service_sync_txs(const uint32_t tx_count, const bool with_content) {
+    size_t total_tx_hashes = _containers.tx_hash_to_short_ids.size();
+    size_t total_short_ids = _containers.short_id_to_tx_hash.size();
+    size_t total_size = 0;
+    total_size = ((SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
+            ((SHORT_ID_LEN + QUOTA_TYPE_LEN) * total_short_ids);
+
+    if (tx_count > 0)
+        total_size += (NETWORK_NUM_LEN + TX_COUNT_LEN) * ceil(total_tx_hashes / tx_count);
+
+    PTxSyncTxs_t buffer = std::make_shared<TxSyncTxs_t>(total_size);
+    size_t parsed_tx = 1;
+    size_t current_pos = 0;
+
+    if (tx_count > 0)
+        current_pos = utils::common::set_little_endian_value(*buffer, total_tx_hashes, current_pos);
+
+    // TODO: since this function is called in the main thread and all the updates are also done in the main thread, there is no race condition.
+    // If moving this function to a task, need to check race condition
+    for (const auto& tx_hash_to_short_id : _containers.tx_hash_to_short_ids) {
+        uint16_t short_ids = tx_hash_to_short_id.second.size();
+
+        if (tx_count > 0) {
+            if (parsed_tx % tx_count == 1) {
+                // starts a new message
+                current_pos += NETWORK_NUM_LEN; // TODO: Move the network_num to the cpp
+
+                if (parsed_tx + tx_count > total_tx_hashes) {
+                // this is last message, write number of remaining tx_hash
+                    current_pos = utils::common::set_little_endian_value(
+                        *buffer,
+                        size_t(total_tx_hashes - parsed_tx),
+                        current_pos);
+                } else {
+                    current_pos = utils::common::set_little_endian_value(
+                        *buffer,
+                        tx_count,
+                        current_pos);
+                }
+            }
+        }
+
+        current_pos = buffer->copy_from_buffer(tx_hash_to_short_id.first.binary(), current_pos, 0, SHA256_LEN);
+        current_pos += EXPIRATION_DATE_LEN + CONTENT_LEN;
+        current_pos = utils::common::set_little_endian_value(*buffer, short_ids, current_pos);
+        for (const auto& sid: tx_hash_to_short_id.second) {
+            current_pos = utils::common::set_little_endian_value(*buffer, sid, current_pos);
+        }
+        // TODO: once extensions knows sid quota, need to enter the quota of each short id here
+        current_pos += tx_hash_to_short_id.second.size();
+        ++parsed_tx;
+    }
+    buffer->set_output();
+    return std::move(buffer);
 }
 
 TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {

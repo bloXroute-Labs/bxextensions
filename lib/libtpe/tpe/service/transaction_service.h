@@ -109,7 +109,7 @@ public:
 
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
-	PTxSyncTxs_t tx_service_sync_txs(const uint32_t tx_count, const bool with_content);
+	PTxSyncTxs_t get_tx_sync_buffer_without_content();
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
     Sha256ToTime_t& tx_hash_to_time_removed();

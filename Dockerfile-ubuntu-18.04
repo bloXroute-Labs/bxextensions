@@ -38,6 +38,9 @@ RUN apt install -y  \
        libssl-dev \
        cmake
 
+#install python 3.7
+RUN apt install -y python3.7-dev
+
 #upgrade pip
 RUN pip3 install --upgrade pip setuptools
 
@@ -51,5 +54,5 @@ COPY CMakeLists.txt ./
 RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
-ENV PYTHONS="python3"
+ENV PYTHONS="python3 /usr/bin/python3.7"
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

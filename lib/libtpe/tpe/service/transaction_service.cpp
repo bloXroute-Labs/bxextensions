@@ -38,13 +38,17 @@ Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
 }
 
-PTxSyncTxs_t TransactionService::get_tx_sync_buffer_without_content() {
-    size_t total_tx_hashes = _containers.tx_hash_to_short_ids.size();
+PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content) {
+    size_t total_tx_hashes = _containers.tx_hash_to_contents.size();
     size_t total_short_ids = _containers.short_id_to_tx_hash.size();
 
     size_t total_size = (TX_COUNT_LEN +
             (SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
             ((SHORT_ID_LEN + QUOTA_TYPE_LEN) * total_short_ids);
+
+    if (sync_tx_content)
+        total_size += all_txs_content_size;
+
     PTxSyncTxs_t buffer = std::make_shared<TxSyncTxs_t>(total_size);
 
     size_t current_pos = 0;
@@ -53,16 +57,36 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer_without_content() {
 
     // TODO: since this function is called in the main thread and all the updates are also done in the main thread, there is no race condition.
     // If moving this function to a task, need to check race condition
-    for (const auto& tx_hash_to_short_id : _containers.tx_hash_to_short_ids) {
-        uint16_t short_ids = tx_hash_to_short_id.second.size();
-        current_pos = buffer->copy_from_buffer(tx_hash_to_short_id.first.binary(), current_pos, 0, SHA256_LEN);
-        current_pos += EXPIRATION_DATE_LEN + CONTENT_LEN;
-        current_pos = utils::common::set_little_endian_value(*buffer, short_ids, current_pos);
-        for (const auto& sid: tx_hash_to_short_id.second) {
-            current_pos = utils::common::set_little_endian_value(*buffer, sid, current_pos);
+    for (const auto& tx_hash_to_contents : _containers.tx_hash_to_contents) {
+
+        // pack hash
+        current_pos = buffer->copy_from_buffer(tx_hash_to_contents.first.binary(), current_pos, 0, SHA256_LEN);
+
+        // pack transaction content
+        if (sync_tx_content) {
+            uint32_t content_len = tx_hash_to_contents.second->size();
+            current_pos = utils::common::set_little_endian_value(*buffer, content_len, current_pos);
+            current_pos = buffer->copy_from_buffer(*tx_hash_to_contents.second.get(), current_pos, 0, content_len);
+        } else {
+            current_pos = utils::common::set_little_endian_value(*buffer, 0, current_pos);
         }
-        // TODO: once extensions knows sid quota, need to enter the quota of each short id here
-        current_pos += tx_hash_to_short_id.second.size();
+
+        // expiration date is not available in extension
+        current_pos += EXPIRATION_DATE_LEN;
+
+        const auto& tx_hash_to_short_id = _containers.tx_hash_to_short_ids.find(tx_hash_to_contents.first);
+
+        if (tx_hash_to_short_id != _containers.tx_hash_to_short_ids.end()) {
+            uint16_t short_ids = tx_hash_to_short_id->second.size();
+            current_pos = utils::common::set_little_endian_value(*buffer, short_ids, current_pos);
+            for (const auto& sid: tx_hash_to_short_id->second) {
+                current_pos = utils::common::set_little_endian_value(*buffer, sid, current_pos);
+            }
+            // TODO: once extensions knows sid quota, need to enter the quota of each short id here
+            current_pos += tx_hash_to_short_id->second.size();
+        } else {
+            current_pos += SHORT_IDS_COUNT_LEN;
+        }
     }
     buffer->set_output();
     return std::move(buffer);

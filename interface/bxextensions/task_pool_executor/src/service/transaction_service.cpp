@@ -183,8 +183,8 @@ void bind_transaction_service(py::module& m) {
 					py::return_value_policy::reference
 			)
 			.def(
-					"get_tx_sync_buffer_without_content",
-					&TransactionService_t::get_tx_sync_buffer_without_content
+					"get_tx_sync_buffer",
+					&TransactionService_t::get_tx_sync_buffer
 			)
 			.def(
 					"short_id_to_tx_hash",

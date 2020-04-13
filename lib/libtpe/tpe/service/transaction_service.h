@@ -10,6 +10,7 @@
 #include <utils/common/buffer_view.h>
 #include <utils/common/ordered_map.h>
 #include <utils/common/tracked_allocator.h>
+#include <utils/common/byte_array.h>
 
 #include "tpe/consts.h"
 #include "tpe/service/transaction_to_short_ids_map.h"
@@ -23,6 +24,8 @@ namespace service {
 
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
+typedef utils::common::ByteArray TxSyncTxs_t;
+typedef std::shared_ptr<TxSyncTxs_t> PTxSyncTxs_t;
 typedef std::shared_ptr<Sha256_t> PSha256_t;
 typedef std::vector<unsigned int> ShortIDs_t;
 typedef utils::common::TrackedAllocator<std::pair<const unsigned int, PSha256_t>> ShortIDToShaAllocator_t;
@@ -106,6 +109,7 @@ public:
 
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
+	PTxSyncTxs_t get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content);
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
     Sha256ToTime_t& tx_hash_to_time_removed();

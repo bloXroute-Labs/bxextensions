@@ -203,7 +203,7 @@ void ByteArray::shift_left(int shift_count) {
   _length = _length - shift_count;
 }
 
-    void ByteArray::set_output() {
+void ByteArray::set_output() {
 	_shape[0] = size();
 }
 

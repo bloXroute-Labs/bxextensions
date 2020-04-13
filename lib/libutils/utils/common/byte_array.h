@@ -31,7 +31,7 @@ public:
   const uint8_t& at(size_t idx) const;
   const unsigned char* byte_array() const;
 
-    std::vector<uint8_t>* transfer_ownership();
+  std::vector<uint8_t>* transfer_ownership();
 
   void reserve(size_t capacity);
   void from_str(const std::string& src, int initial_position = 0);

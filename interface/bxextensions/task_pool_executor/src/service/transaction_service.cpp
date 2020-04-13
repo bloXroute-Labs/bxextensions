@@ -13,6 +13,7 @@ typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
 typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
 typedef service::Sha256ToTime_t Sha256ToTime_t;
 typedef service::PTxContents_t PTxContents_t;
+typedef service::PTxSyncTxs_t PTxSyncTxs_t;
 
 
 static void cleanup_removed_hashes_history(
@@ -180,6 +181,10 @@ void bind_transaction_service(py::module& m) {
 					"tx_hash_to_short_ids",
 					&TransactionService_t::get_tx_hash_to_short_ids,
 					py::return_value_policy::reference
+			)
+			.def(
+					"get_tx_sync_buffer",
+					&TransactionService_t::get_tx_sync_buffer
 			)
 			.def(
 					"short_id_to_tx_hash",

@@ -9,6 +9,4 @@
 
 #define ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT 2500
 
-
-
 #endif /* TPE_CONSTS_H_ */

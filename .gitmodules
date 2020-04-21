@@ -4,3 +4,6 @@
 [submodule "lib/third_party/googletest"]
 	path = lib/third_party/googletest
 	url = https://github.com/google/googletest
+[submodule "lib/third_party/jsoncons"]
+	path = lib/third_party/jsoncons
+	url = https://github.com/danielaparker/jsoncons.git

@@ -1,4 +1,4 @@
-from typing import List, Union, Dict, NamedTuple, Tuple, Set
+from typing import List, Union, Dict, Tuple, Set
 
 __version__: str
 
@@ -101,6 +101,8 @@ class OntBlockCompressionTask(_BlockCompressionTask):
 class OntBlockDecompressionTask(_BlockDecompressionTask):
     ...
 
+class ConsensusOntBlockCompressionTask(_BlockCompressionTask):
+    ...
 
 class BlockConfirmationCleanupTask(MainTaskBase):
     def init(

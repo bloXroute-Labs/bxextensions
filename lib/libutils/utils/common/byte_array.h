@@ -22,6 +22,7 @@ public:
   ByteArray& operator=(const ByteArray& other) = delete;
   ByteArray& operator =(ByteArray&& rhs) noexcept;
   uint8_t& operator [](size_t idx);
+  const uint8_t& operator [](size_t idx) const;
   ByteArray& operator+=(const ByteArray& from);
   ByteArray& operator+=(const BufferView& from);
 

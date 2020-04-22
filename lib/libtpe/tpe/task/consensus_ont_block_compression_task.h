@@ -48,7 +48,7 @@ public:
     PSha256_t block_hash();
     PSha256_t compressed_block_hash();
 
-    size_t txn_count();
+    uint32_t txn_count();
 
     const std::vector<unsigned int>& short_ids();
 

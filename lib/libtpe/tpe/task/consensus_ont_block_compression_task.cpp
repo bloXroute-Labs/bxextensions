@@ -50,7 +50,7 @@ PSha256_t ConsensusOntBlockCompressionTask::compressed_block_hash() {
     return _compressed_block_hash;
 }
 
-size_t ConsensusOntBlockCompressionTask::txn_count() {
+uint32_t ConsensusOntBlockCompressionTask::txn_count() {
     assert_execution();
     return _txn_count;
 }
@@ -75,16 +75,15 @@ void ConsensusOntBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     constexpr uint8_t short_id_flag = BTC_SHORT_ID_INDICATOR;
     msg.parse();
     size_t header_offset = msg.get_header_offset();
-    size_t output_offset = sizeof(uint64_t);
+    size_t output_offset = sizeof(size_t);
     _output_buffer->resize(output_offset);
     constexpr uint8_t is_consensus_flag = 0x01;
     output_offset = utils::common::set_little_endian_value(*_output_buffer, is_consensus_flag, output_offset);
     _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_hash()));
     _prev_block_hash = std::make_shared<Sha256_t>(std::move(msg.prev_block_hash()));
     output_offset = _output_buffer->copy_from_buffer(_block_hash->binary(), output_offset, 0, SHA256_BINARY_SIZE);
-    uint32_t tx_count;
-    size_t tx_offset = msg.get_tx_count(tx_count);
-    output_offset = utils::common::set_little_endian_value(*_output_buffer, tx_count, output_offset);
+    size_t tx_offset = msg.get_tx_count(_txn_count);
+    output_offset = utils::common::set_little_endian_value(*_output_buffer, _txn_count, output_offset);
     const auto& payload_tail = msg.payload_tail();
     output_offset = utils::common::set_little_endian_value<uint32_t >(
             *_output_buffer, payload_tail.size(), output_offset
@@ -103,7 +102,7 @@ void ConsensusOntBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     output_offset = _output_buffer->copy_from_buffer(msg.block_msg_buffer(), output_offset, 0, tx_offset);
     size_t from = tx_offset;
     auto block_buffer = std::move(msg.block_msg_buffer());
-    for (uint32_t idx = 0 ; idx < tx_count ; ++idx) {
+    for (uint32_t idx = 0 ; idx < _txn_count ; ++idx) {
         tx_offset = msg.get_next_tx_offset(from);
         Sha256_t tx_hash = std::move(utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset));
         if (_tx_service->has_short_id(tx_hash)) {
@@ -119,7 +118,7 @@ void ConsensusOntBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
         }
         from = tx_offset;
     }
-    const size_t short_ids_size = _short_ids.size();
+    const uint32_t short_ids_size = _short_ids.size();
     utils::common::set_little_endian_value<uint64_t >(*_output_buffer, output_offset, 0);
     output_offset = utils::common::set_little_endian_value<uint32_t>(
             *_output_buffer,
@@ -136,13 +135,14 @@ void ConsensusOntBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
                 short_ids_byte_size
         );
     }
-    _compressed_block_hash = std::make_shared<Sha256_t>(std::move(
-            utils::crypto::double_sha256(
-                    _output_buffer->array(),
-                    0,
-                    _output_buffer->size()
-            )
-    ));
+    utils::crypto::Sha256 temp_compressed_block_hash = utils::crypto::double_sha256(
+            _output_buffer->array(),
+            0,
+            _output_buffer->size()
+    );
+    temp_compressed_block_hash.reverse();
+
+    _compressed_block_hash = std::make_shared<Sha256_t>(std::move(temp_compressed_block_hash));
     _output_buffer->set_output();
 }
 

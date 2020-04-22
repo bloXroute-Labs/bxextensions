@@ -48,10 +48,13 @@ void ConsensusOntMessage::parse() {
     encoding::base64_decode(json_payload.payload(), _block_msg_buffer, 0);
     uint64_t block_msg_len;
     size_t block_msg_offset = bitcoin::get_varint(_block_msg_buffer, block_msg_len, 0);
+
     size_t block_start_offset = block_msg_offset;
     common::BufferView block_msg_buffer(_block_msg_buffer.byte_array(), _block_msg_buffer.size(), 0);
     block_msg_offset += ONT_TX_VERSION_SIZE;
     _prev_block_hash = crypto::Sha256(block_msg_buffer, block_msg_offset);
+    _prev_block_hash.reverse();
+
     block_msg_offset += (SHA256_BINARY_SIZE * 3 + ONT_BLOCK_TIME_HEIGHT_CONS_DATA_LEN);
     uint64_t consensus_payload_len;
     block_msg_offset = bitcoin::get_varint(_block_msg_buffer, consensus_payload_len, block_msg_offset);

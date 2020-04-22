@@ -88,6 +88,7 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
             current_pos += SHORT_IDS_COUNT_LEN;
         }
     }
+    buffer->resize(current_pos);
     buffer->set_output();
     return std::move(buffer);
 }

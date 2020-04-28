@@ -101,7 +101,10 @@ class OntBlockCompressionTask(_BlockCompressionTask):
 class OntBlockDecompressionTask(_BlockDecompressionTask):
     ...
 
-class ConsensusOntBlockCompressionTask(_BlockCompressionTask):
+class OntConsensusBlockCompressionTask(_BlockCompressionTask):
+    ...
+
+class OntConsensusBlockDecompressionTask(_BlockDecompressionTask):
     ...
 
 class BlockConfirmationCleanupTask(MainTaskBase):

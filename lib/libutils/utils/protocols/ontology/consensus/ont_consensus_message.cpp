@@ -1,6 +1,6 @@
 #include <cstdint>
-#include "utils/protocols/ontology/consensus/consensus_ont_message.h"
-#include "utils/protocols/ontology/consensus/consensus_ont_json_payload.h"
+#include "utils/protocols/ontology/consensus/ont_consensus_message.h"
+#include "utils/protocols/ontology/consensus/ont_consensus_json_payload.h"
 #include "utils/protocols/ontology/ont_consts.h"
 #include "utils/protocols/ontology/ont_message_helper.h"
 #include "utils/encoding/json_encoder.h"
@@ -12,12 +12,12 @@ namespace protocols {
 namespace ontology {
 namespace consensus {
 
-ConsensusOntMessage::ConsensusOntMessage(const common::BufferView& buffer):
-    _buffer(buffer), _consensus_data_type(0), _header_offset(0), _tx_count(0), _tx_offset(0), _consensus_data_len(0)
+OntConsensusMessage::OntConsensusMessage(const common::BufferView& buffer):
+        _buffer(buffer), _consensus_data_type(0), _header_offset(0), _txn_count(0), _tx_offset(0), _consensus_data_len(0)
 {
 }
 
-void ConsensusOntMessage::parse() {
+void OntConsensusMessage::parse() {
     _header_offset = ONT_HDR_COMMON_OFF + 3 * sizeof(uint32_t) + SHA256_BINARY_SIZE + sizeof(uint16_t);
     if (_buffer.size() < _header_offset) {
         throw std::overflow_error(common::concatenate(
@@ -42,7 +42,7 @@ void ConsensusOntMessage::parse() {
     }
 
     std::string consensus_data_str((char *)&_buffer.at(_header_offset), ont_payload_len);
-    auto json_payload = encoding::decode_json<ConsensusOntJsonPayload>(consensus_data_str);
+    auto json_payload = encoding::decode_json<OntConsensusJsonPayload>(consensus_data_str);
     _consensus_data_type = json_payload.type();
     _consensus_data_len = json_payload.len();
     encoding::base64_decode(json_payload.payload(), _block_msg_buffer, 0);
@@ -54,7 +54,6 @@ void ConsensusOntMessage::parse() {
     block_msg_offset += ONT_TX_VERSION_SIZE;
     _prev_block_hash = crypto::Sha256(block_msg_buffer, block_msg_offset);
     _prev_block_hash.reverse();
-
     block_msg_offset += (SHA256_BINARY_SIZE * 3 + ONT_BLOCK_TIME_HEIGHT_CONS_DATA_LEN);
     uint64_t consensus_payload_len;
     block_msg_offset = bitcoin::get_varint(_block_msg_buffer, consensus_payload_len, block_msg_offset);
@@ -76,7 +75,7 @@ void ConsensusOntMessage::parse() {
         block_msg_offset = bitcoin::get_varint(_block_msg_buffer, sig_length, block_msg_offset);
         block_msg_offset += sig_length;
     }
-    block_msg_offset = common::get_little_endian_value<uint32_t >(_block_msg_buffer, _tx_count, block_msg_offset);
+    block_msg_offset = common::get_little_endian_value<uint32_t >(_block_msg_buffer, _txn_count, block_msg_offset);
     _tx_offset = block_msg_offset;
     _owner_and_signature = common::BufferView(
             _buffer, _buffer.size() - owner_and_signature_offset, owner_and_signature_offset
@@ -88,15 +87,15 @@ void ConsensusOntMessage::parse() {
 
 }
 
-crypto::Sha256 ConsensusOntMessage::block_hash() const {
+crypto::Sha256 OntConsensusMessage::block_hash() const {
     return _block_hash;
 }
 
-crypto::Sha256 ConsensusOntMessage::prev_block_hash() const {
+crypto::Sha256 OntConsensusMessage::prev_block_hash() const {
     return _prev_block_hash;
 }
 
-size_t ConsensusOntMessage::get_next_tx_offset(size_t offset) {
+size_t OntConsensusMessage::get_next_tx_offset(size_t offset) {
     uint8_t tx_type;
     offset = get_tx_type(_block_msg_buffer, offset, tx_type);
     uint64_t sig_length;
@@ -111,32 +110,32 @@ size_t ConsensusOntMessage::get_next_tx_offset(size_t offset) {
     return offset;
 }
 
-size_t ConsensusOntMessage::get_tx_count(uint32_t& tx_count) {
-    tx_count = _tx_count;
+size_t OntConsensusMessage::get_txn_count(uint32_t& txn_count) {
+    txn_count = _txn_count;
     return _tx_offset;
 }
 
-const common::BufferView& ConsensusOntMessage::owner_and_signature() const {
+const common::BufferView& OntConsensusMessage::owner_and_signature() const {
     return _owner_and_signature;
 }
 
-const common::BufferView& ConsensusOntMessage::payload_tail() const {
+const common::BufferView& OntConsensusMessage::payload_tail() const {
     return _payload_tail;
 }
 
-common::BufferView ConsensusOntMessage::block_msg_buffer() const {
+common::BufferView OntConsensusMessage::block_msg_buffer() const {
     return std::move(common::BufferView(_block_msg_buffer.byte_array(), _block_msg_buffer.size()));
 }
 
-size_t ConsensusOntMessage::get_header_offset() const {
+size_t OntConsensusMessage::get_header_offset() const {
     return _header_offset;
 }
 
-uint8_t ConsensusOntMessage::consensus_data_type() const {
+uint8_t OntConsensusMessage::consensus_data_type() const {
     return _consensus_data_type;
 }
 
-uint32_t ConsensusOntMessage::consensus_data_len() const {
+uint32_t OntConsensusMessage::consensus_data_len() const {
     return _consensus_data_len;
 }
 

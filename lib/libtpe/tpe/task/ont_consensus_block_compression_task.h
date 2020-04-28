@@ -5,20 +5,20 @@
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>
 #include <utils/protocols/ontology/ont_consts.h>
-#include <utils/protocols/ontology/consensus/consensus_ont_message.h>
+#include <utils/protocols/ontology/consensus/ont_consensus_message.h>
 
 #include "tpe/task/btc_task_types.h"
 #include "tpe/task/main_task_base.h"
 #include "tpe/consts.h"
 
-#ifndef TPE_TASK_CONSENSUS_ONT_BLOCK_COMPRESSION_TASK_H_
-#define TPE_TASK_CONSENSUS_ONT_BLOCK_COMPRESSION_TASK_H_
+#ifndef TPE_TASK_ONT_CONSENSUS_BLOCK_COMPRESSION_TASK_H_
+#define TPE_TASK_ONT_CONSENSUS_BLOCK_COMPRESSION_TASK_H_
 
 namespace task {
 
-typedef utils::protocols::ontology::consensus::ConsensusOntMessage ConsensusOntMessage_t;
+typedef utils::protocols::ontology::consensus::OntConsensusMessage ConsensusOntMessage_t;
 
-class ConsensusOntBlockCompressionTask : public MainTaskBase {
+class OntConsensusBlockCompressionTask : public MainTaskBase {
 
     struct TaskData {
         TaskData(): offsets(nullptr) {}
@@ -32,7 +32,7 @@ class ConsensusOntBlockCompressionTask : public MainTaskBase {
     typedef std::vector<TaskData> SubTasksData_t;
 
 public:
-    explicit ConsensusOntBlockCompressionTask(
+    explicit OntConsensusBlockCompressionTask(
             size_t capacity = ONT_DEFAULT_BLOCK_SIZE,
             size_t minimal_tx_count = ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
     );
@@ -74,5 +74,5 @@ private:
 
 } // task
 
-#endif //TPE_TASK_CONSENSUS_ONT_BLOCK_COMPRESSION_TASK_H_
+#endif //TPE_TASK_ONT_CONSENSUS_BLOCK_COMPRESSION_TASK_H_
 

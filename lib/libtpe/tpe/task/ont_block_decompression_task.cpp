@@ -51,7 +51,7 @@ void OntBlockDecompressionTask::init(
 }
 
 PByteArray_t
-OntBlockDecompressionTask::btc_block() {
+OntBlockDecompressionTask::block_message() {
     assert_execution();
     return _output_buffer;
 }

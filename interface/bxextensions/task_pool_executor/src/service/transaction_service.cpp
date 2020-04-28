@@ -17,11 +17,14 @@ typedef service::PTxSyncTxs_t PTxSyncTxs_t;
 
 
 static void cleanup_removed_hashes_history(
-    Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s
+    Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s, size_t max_items_count
 )
 {
     auto hash_iter = map.begin();
-    while (hash_iter != map.end() and now - hash_iter->second > removed_hashes_expiration_time_s) {
+    while (
+        hash_iter != map.end() and
+        (now - hash_iter->second > removed_hashes_expiration_time_s or map.size() > max_items_count)) {
+
         map.erase(hash_iter->first);
         hash_iter = map.begin();
     }

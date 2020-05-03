@@ -20,7 +20,7 @@ public:
     OntBlockMessage& operator =(OntBlockMessage&&) noexcept;
 
     size_t get_next_tx_offset(size_t offset);
-    size_t get_tx_count(uint32_t& tx_count);
+    size_t get_txn_count(uint32_t& tx_count);
 
     crypto::Sha256 block_hash() const;
     crypto::Sha256 prev_block_hash() const;

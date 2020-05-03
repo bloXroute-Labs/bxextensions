@@ -54,7 +54,7 @@ size_t OntBlockMessage::get_next_tx_offset(size_t offset) {
     return offset;
 }
 
-size_t OntBlockMessage::get_tx_count(uint32_t& tx_count) {
+size_t OntBlockMessage::get_txn_count(uint32_t& tx_count) {
     return common::get_little_endian_value<uint32_t>(_buffer, tx_count, _tx_count_offset);
 }
 

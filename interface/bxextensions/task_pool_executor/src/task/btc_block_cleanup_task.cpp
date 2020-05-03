@@ -18,7 +18,7 @@ void bind_btc_block_cleanup_task(py::module& m) {
                     &BtcBlockCleanupTask_t::short_ids
             )
             .def(
-                    "tx_count",
+                    "txn_count",
                     &BtcBlockCleanupTask_t::tx_count
             )
             .def(

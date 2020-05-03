@@ -106,7 +106,7 @@ void OntBlockCompressionTask::_execute(SubPool_t& sub_pool) {
             std::move(msg.block_hash())
     );
     uint32_t tx_count = 0;
-    size_t offset = msg.get_tx_count(tx_count);
+    size_t offset = msg.get_txn_count(tx_count);
     _txn_count = tx_count;
     size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
     size_t output_offset = sizeof(uint64_t);

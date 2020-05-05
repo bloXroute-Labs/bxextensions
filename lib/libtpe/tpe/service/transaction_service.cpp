@@ -107,9 +107,55 @@ TransactionService::tx_hash_to_contents() const {
 	return _containers.tx_hash_to_contents;
 }
 
+AssignShortIDResult_t TransactionService::assign_short_id(const Sha256_t& transaction_hash, unsigned int short_id) {
+    AssignShortIDResult_t result = has_transaction_contents(transaction_hash);
+
+    if (short_id == NULL_TX_SID) {
+        return std::move(result);
+    }
+
+    if (!has_short_id(short_id)) {
+        _containers.tx_hash_to_short_ids[transaction_hash].insert(short_id);
+        _containers.short_id_to_tx_hash[short_id] = std::make_shared<Sha256_t>(transaction_hash);
+    }
+
+    return std::move(result);
+}
+
+SetTransactionContentsResult_t TransactionService::set_transaction_contents(
+            const Sha256_t& transaction_hash,
+            PTxContents_t transaction_contents) {
+    SetTransactionContentsResult_t result;
+
+    result.first = has_short_id(transaction_hash);
+
+    if (has_transaction_contents(transaction_hash)) {
+        result.second = _containers.tx_hash_to_contents[transaction_hash]->size();
+    } else {
+        _containers.tx_hash_to_contents[transaction_hash] = transaction_contents;
+    }
+
+    return std::move(result);
+}
+
 bool TransactionService::has_short_id(const Sha256_t& tx_hash) const {
 	auto iter = _containers.tx_hash_to_short_ids.find(tx_hash);
 	return iter != _containers.tx_hash_to_short_ids.end();
+}
+
+bool TransactionService::has_short_id(unsigned int short_id) const {
+	auto iter = _containers.short_id_to_tx_hash.find(short_id);
+	return iter != _containers.short_id_to_tx_hash.end();
+}
+
+bool TransactionService::has_transaction_contents(const Sha256_t& tx_hash) const {
+    auto iter = _containers.tx_hash_to_contents.find(tx_hash);
+    return iter != _containers.tx_hash_to_contents.end();
+}
+
+bool TransactionService::removed_transaction(const Sha256_t& tx_hash) const {
+    auto iter = _containers.tx_hash_to_time_removed.find(tx_hash);
+	return iter != _containers.tx_hash_to_time_removed.end();
 }
 
 Sha256ToTime_t&
@@ -281,6 +327,127 @@ size_t TransactionService::remove_transaction_by_short_id(
 
 void TransactionService::clear_short_ids_seen_in_block() {
     _containers.short_ids_seen_in_block.clear();
+}
+
+TransactionProcessingResult_t TransactionService::process_transaction_msg(
+            const Sha256_t& transaction_hash,
+            PTxContents_t transaction_contents,
+            unsigned int network_num,
+            unsigned int short_id,
+            unsigned int timestamp,
+            unsigned int current_time) {
+
+    unsigned int tx_status;
+    TxShortIds_t existing_short_ids;
+    AssignShortIDResult_t assign_short_id_result;
+    SetTransactionContentsResult_t set_transaction_contents_result;
+    bool contents_set = false;
+    bool short_id_assigned = false;
+
+    tx_status = _msg_tx_build_tx_status(
+        short_id,
+        transaction_hash,
+        transaction_contents,
+        timestamp,
+        current_time
+    );
+
+    if (tx_status & TX_STATUS_IGNORE_SEEN or tx_status & TX_STATUS_TIMED_OUT) {
+        TransactionProcessingResult_t result(tx_status);
+        return std::move(result);
+    }
+
+    if (tx_status & TX_STATUS_SEEN_HASH) {
+        existing_short_ids = _containers.tx_hash_to_short_ids[transaction_hash];
+    }
+
+    if (tx_status & TX_STATUS_MSG_HAS_CONTENT and !(tx_status & TX_STATUS_SEEN_CONTENT)) {
+        set_transaction_contents_result = set_transaction_contents(transaction_hash, transaction_contents);
+        contents_set = true;
+    }
+
+    if (tx_status & TX_STATUS_MSG_HAS_SHORT_ID) {
+        assign_short_id_result = assign_short_id(transaction_hash, short_id);
+        short_id_assigned = true;
+    }
+
+    TransactionProcessingResult_t result(
+            tx_status,
+            existing_short_ids,
+            assign_short_id_result,
+            set_transaction_contents_result,
+            contents_set,
+            short_id_assigned);
+    return std::move(result);
+}
+
+unsigned int TransactionService::_msg_tx_build_tx_status(
+    unsigned int short_id,
+    const Sha256_t& transaction_hash,
+    const PTxContents_t& transaction_contents,
+    unsigned int timestamp,
+    unsigned int current_time) {
+
+    unsigned int tx_status = 0;
+    tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
+
+    //set tx status flags, flag (right side of and clause) will be set if the condition in the left side is met
+    if (transaction_contents->size() == 0) {
+        tx_status |= TX_STATUS_MSG_NO_CONTENT;
+    } else {
+        tx_status |= TX_STATUS_MSG_HAS_CONTENT;
+    }
+
+    if (has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and has_short_id(short_id)) {
+        tx_status |= TX_STATUS_SEEN_SHORT_ID;
+    }
+    if (has_short_id(transaction_hash)) {
+        tx_status |= TX_STATUS_SEEN_HASH;
+    }
+    if (has_transaction_contents(transaction_hash)) {
+        tx_status |= TX_STATUS_SEEN_CONTENT;
+        tx_status |= TX_STATUS_SEEN_HASH;
+    }
+    if (removed_transaction(transaction_hash)) {
+        tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION;
+    }
+
+    // check all variations for previously seen Tx
+    if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+        has_status_flag(tx_status, TX_STATUS_MSG_NO_SHORT_ID)) {
+
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+    }
+    if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+    }
+
+    if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+        has_status_flag(tx_status,  TX_STATUS_MSG_NO_SHORT_ID)) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+    }
+
+    if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+        has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+    }
+
+    if (has_status_flag(tx_status, TX_STATUS_SEEN_REMOVED_TRANSACTION)) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+    }
+
+    if (
+        timestamp != NULL_TX_TIMESTAMP
+        and current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S
+    ) {
+        tx_status |= TX_STATUS_TIMED_OUT;
+    }
+    return tx_status;
 }
 
 } // service

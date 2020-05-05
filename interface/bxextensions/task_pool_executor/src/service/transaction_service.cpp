@@ -14,7 +14,8 @@ typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
 typedef service::Sha256ToTime_t Sha256ToTime_t;
 typedef service::PTxContents_t PTxContents_t;
 typedef service::PTxSyncTxs_t PTxSyncTxs_t;
-
+typedef service::TransactionProcessingResult_t TransactionProcessingResult_t;
+typedef service::PTransactionProcessingResult_t PTransactionProcessingResult_t;
 
 static void cleanup_removed_hashes_history(
     Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s, size_t max_items_count
@@ -190,6 +191,14 @@ void bind_transaction_service(py::module& m) {
 					&TransactionService_t::get_tx_sync_buffer
 			)
 			.def(
+					"assign_short_id",
+					&TransactionService_t::assign_short_id
+			)
+			.def(
+					"set_transaction_contents",
+					&TransactionService_t::set_transaction_contents
+			)
+			.def(
 					"short_id_to_tx_hash",
 					&TransactionService_t::get_short_id_to_tx_hash,
 					py::return_value_policy::reference
@@ -230,6 +239,37 @@ void bind_transaction_service(py::module& m) {
             ).def(
 					"tx_hash_to_time_removed",
 					&TransactionService_t::tx_hash_to_time_removed,
+					py::return_value_policy::reference
+			).def(
+					"process_transaction_msg",
+					&TransactionService_t::process_transaction_msg,
+					py::return_value_policy::reference
+			);
+
+	py::class_<TransactionProcessingResult_t, PTransactionProcessingResult_t>(m, "TransactionProcessingResult")
+			.def(
+					"get_tx_status",
+					&TransactionProcessingResult_t::get_tx_status,
+					py::return_value_policy::reference
+			).def(
+					"get_existing_short_ids",
+					&TransactionProcessingResult_t::get_existing_short_ids,
+					py::return_value_policy::reference
+			).def(
+					"get_short_id_assigned",
+					&TransactionProcessingResult_t::get_short_id_assigned,
+					py::return_value_policy::reference
+			).def(
+					"get_assign_short_id_result",
+					&TransactionProcessingResult_t::get_assign_short_id_result,
+					py::return_value_policy::reference
+			).def(
+					"get_contents_set",
+					&TransactionProcessingResult_t::get_contents_set,
+					py::return_value_policy::reference
+			).def(
+					"get_set_transaction_contents_result",
+					&TransactionProcessingResult_t::get_set_transaction_contents_result,
 					py::return_value_policy::reference
 			);
 }

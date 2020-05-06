@@ -132,7 +132,7 @@ SetTransactionContentsResult_t TransactionService::set_transaction_contents(
     if (has_transaction_contents(transaction_hash)) {
         result.second = _containers.tx_hash_to_contents[transaction_hash]->size();
     } else {
-        _containers.tx_hash_to_contents[transaction_hash] = transaction_contents;
+        _containers.tx_hash_to_contents.emplace(transaction_hash, transaction_contents);
     }
 
     return std::move(result);

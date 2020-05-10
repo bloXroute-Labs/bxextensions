@@ -16,7 +16,7 @@ void bind_ont_block_decompression_task(py::module& m) {
             )
             .def(
                     "block_message",
-                    &OntBlockDecompressionTask_t::btc_block,
+                    &OntBlockDecompressionTask_t::block_message,
                     py::return_value_policy::reference
             )
             .def("block_hash", &OntBlockDecompressionTask_t::block_hash)

@@ -5,9 +5,12 @@
 #include "src/task/btc_block_decompression_task.h"
 #include "src/task/ont_block_compression_task.h"
 #include "src/task/ont_block_decompression_task.h"
+#include "src/task/ont_consensus_block_compression_task.h"
+#include "src/task/ont_consensus_block_decompression_task.h"
 #include "src/task/btc_compact_block_mapping_task.h"
 #include "src/task/btc_compact_block_compression_task.h"
 #include "src/task/btc_block_cleanup_task.h"
+#include "src/task/ont_block_cleanup_task.h"
 #include "src/task/task_base.h"
 #include "src/task/decryption_task.h"
 #include "src/task/encryption_task.h"
@@ -35,19 +38,22 @@ static void bind_w2_task(py::module& m) {
 }
 
 void bind_tasks(py::module& m) {
-  bind_task_base(m);
-  bind_main_task_base(m);
-  bind_encryption_task(m);
-  bind_decryption_task(m);
-  bind_btc_block_compression_task(m);
-  bind_btc_block_decompression_task(m);
-  bind_ont_block_compression_task(m);
-  bind_ont_block_decompression_task(m);
-  bind_btc_compact_block_compression_task(m);
-  bind_btc_compact_block_mapping_task(m);
-  bind_btc_block_cleanup_task(m);
-  bind_block_confirmation_cleanup_task(m);
-  bind_tpe(m);
+    bind_task_base(m);
+    bind_main_task_base(m);
+    bind_encryption_task(m);
+    bind_decryption_task(m);
+    bind_btc_block_compression_task(m);
+    bind_btc_block_decompression_task(m);
+    bind_ont_block_compression_task(m);
+    bind_ont_block_decompression_task(m);
+    bind_ont_consensus_block_compression_task(m);
+    bind_ont_consensus_block_decompression_task(m);
+    bind_btc_compact_block_compression_task(m);
+    bind_btc_compact_block_mapping_task(m);
+    bind_btc_block_cleanup_task(m);
+    bind_ont_block_cleanup_task(m);
+    bind_block_confirmation_cleanup_task(m);
+    bind_tpe(m);
 #ifdef BUILD_TYPE
 	if (BUILD_TYPE == "TESTING") {
 		  bind_test_task(m);

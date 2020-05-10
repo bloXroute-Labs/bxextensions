@@ -28,7 +28,7 @@ public:
 
     common::BufferView merkle_root() const;
 
-    static constexpr size_t offset_diff = sizeof(uint64_t) + SHA256_BINARY_SIZE;
+    static constexpr size_t offset_diff = sizeof(uint64_t) + sizeof(uint8_t) + SHA256_BINARY_SIZE;
 private:
     common::BufferView _bx_block;
     uint64_t _short_ids_offset;

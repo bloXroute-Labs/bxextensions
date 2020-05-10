@@ -19,6 +19,21 @@
 #define TPE_SERVICE_TRANSACTION_SERVICE_H_
 
 #define DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT 6
+#define NULL_TX_TIMESTAMP 0
+#define MAX_TRANSACTION_ELAPSED_TIME_S 10
+
+#define TX_STATUS_IGNORE_SEEN 1 << 0
+#define TX_STATUS_MSG_HAS_SHORT_ID 1 << 1
+#define TX_STATUS_MSG_HAS_CONTENT 1 << 2
+#define TX_STATUS_MSG_NO_CONTENT 1 << 3
+#define TX_STATUS_MSG_NO_SHORT_ID 1 << 4
+#define TX_STATUS_SEEN_SHORT_ID 1 << 5
+#define TX_STATUS_SEEN_HASH 1 << 6
+#define TX_STATUS_SEEN_CONTENT 1 << 7
+#define TX_STATUS_SEEN_REMOVED_TRANSACTION 1 << 8
+#define TX_STATUS_TIMED_OUT 1 << 9
+
+#define has_status_flag(tx_status, flag) (tx_status & flag)
 
 namespace service {
 
@@ -36,7 +51,8 @@ typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
-
+typedef bool AssignShortIDResult_t;
+typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -98,6 +114,63 @@ struct Containers {
 
 };
 
+class TransactionProcessingResult {
+public:
+    TransactionProcessingResult(
+        unsigned int tx_status,
+        TxShortIds_t existing_short_ids,
+        AssignShortIDResult_t assign_short_id_result,
+        SetTransactionContentsResult_t set_transaction_contents_result,
+        bool contents_set,
+        bool short_id_assigned
+        ) : _tx_status(tx_status),
+            _existing_short_ids(existing_short_ids),
+            _assign_short_id_result(assign_short_id_result),
+            _set_transaction_contents_result(set_transaction_contents_result),
+            _contents_set(contents_set),
+            _short_id_assigned(short_id_assigned) {
+    }
+
+    TransactionProcessingResult(unsigned int tx_status
+        ) :  _tx_status(tx_status), _contents_set(), _short_id_assigned() {
+    }
+
+    unsigned int get_tx_status() {
+        return _tx_status;
+    }
+
+    TxShortIds_t get_existing_short_ids() {
+        return _existing_short_ids;
+    }
+
+    bool get_short_id_assigned() {
+        return _short_id_assigned;
+    }
+
+    AssignShortIDResult_t get_assign_short_id_result() {
+        return _assign_short_id_result;
+    }
+
+    bool get_contents_set() {
+        return _contents_set;
+    }
+
+    SetTransactionContentsResult_t get_set_transaction_contents_result() {
+        return _set_transaction_contents_result;
+    }
+
+private:
+    unsigned int _tx_status;
+    TxShortIds_t _existing_short_ids;
+    AssignShortIDResult_t _assign_short_id_result;
+    SetTransactionContentsResult_t _set_transaction_contents_result;
+    bool _contents_set;
+    bool _short_id_assigned;
+};
+
+typedef TransactionProcessingResult TransactionProcessingResult_t;
+typedef std::shared_ptr<TransactionProcessingResult_t> PTransactionProcessingResult_t;
+
 class TransactionService {
 public:
 
@@ -117,7 +190,15 @@ public:
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;
 
+	AssignShortIDResult_t assign_short_id(const Sha256_t& transaction_hash, unsigned int short_id);
+	SetTransactionContentsResult_t set_transaction_contents(
+	        const Sha256_t& transaction_hash,
+	        PTxContents_t transaction_contents);
+
 	bool has_short_id(const Sha256_t& tx_hash) const;
+	bool has_short_id(unsigned int short_id) const;
+	bool has_transaction_contents(const Sha256_t& tx_hash) const;
+	bool removed_transaction(const Sha256_t& transaction_hash) const;
 
 	unsigned int get_short_id(const Sha256_t& tx_hash) const;
 
@@ -153,10 +234,26 @@ public:
 
     void clear_short_ids_seen_in_block();
 
+    TransactionProcessingResult_t process_transaction_msg(
+            const Sha256_t& transaction_hash,
+            PTxContents_t transaction_contents,
+            unsigned int network_num,
+            unsigned int short_id,
+            unsigned int timestamp,
+            unsigned int current_time
+    );
+
 private:
 
     size_t _final_tx_confirmations_count;
     Containers _containers;
+
+    unsigned int _msg_tx_build_tx_status(
+        unsigned int short_id,
+        const Sha256_t& transaction_hash,
+        const PTxContents_t& transaction_contents,
+        unsigned int timestamp,
+        unsigned int current_time);
 };
 
 

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(utils)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
-add_definitions(--std=c++14)
+add_definitions(--std=c++17)
 file(GLOB_RECURSE ${PROJECT_NAME}_SRC_FILES "utils/*.cpp")
 file(GLOB_RECURSE ${PROJECT_NAME}_HDR_FILES "utils/*.h")
 
@@ -23,7 +23,7 @@ find_package(OpenSSL REQUIRED)
 
 include_directories(${CMAKE_BINARY_DIR}/include)
 
-target_link_libraries(${PROJECT_NAME} sodium OpenSSL::SSL)
+target_link_libraries(${PROJECT_NAME} sodium OpenSSL::SSL jsoncons)
 
 target_include_directories(
     ${PROJECT_NAME}

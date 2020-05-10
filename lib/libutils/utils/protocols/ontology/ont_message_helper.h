@@ -83,7 +83,9 @@ crypto::Sha256 generate_block_hash(
 
 template <class TBuffer>
 crypto::Sha256 get_tx_id(const TBuffer& buffer, size_t offset, size_t end) {
-    return std::move(crypto::double_sha256(buffer, offset, end - offset));
+    uint8_t tx_type;
+    size_t tx_id_end = get_tx_type(buffer, offset, tx_type);
+    return std::move(crypto::double_sha256(buffer, offset, tx_id_end - offset));
 }
 
 } // ontology

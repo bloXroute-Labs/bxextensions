@@ -58,6 +58,10 @@ uint8_t& ByteArray::operator [](size_t idx) {
 	return at(idx);
 }
 
+const uint8_t& ByteArray::operator [](size_t idx) const {
+    return at(idx);
+}
+
 ByteArray& ByteArray::operator +=(const ByteArray& from) {
 	copy_from_array(*from._array,
 			_length,

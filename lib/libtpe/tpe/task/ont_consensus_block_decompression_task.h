@@ -1,29 +1,27 @@
 #include <iostream>
 #include <memory>
+#include <list>
 
 #include <utils/common/byte_array.h>
-#include <utils/common/buffer_view.h>
 #include <utils/crypto/sha256.h>
 #include <utils/protocols/ontology/ont_consts.h>
-#include <utils/protocols/ontology/bx_ont_block_message.h>
+#include <utils/protocols/ontology/consensus/bx_ont_consensus_message.h>
 
-#include "tpe/task/main_task_base.h"
 #include "tpe/task/btc_task_types.h"
-#include "tpe/task/sub_task/ont_block_decompression_sub_task.h"
+#include "tpe/task/main_task_base.h"
 #include "tpe/consts.h"
 
-#ifndef LIBTPE_TPE_TASK_ONT_BLOCK_DECOMPRESSION_TASK_H_
-#define LIBTPE_TPE_TASK_ONT_BLOCK_DECOMPRESSION_TASK_H_
+#ifndef TPE_TASK_ONT_CONSENSUS_BLOCK_DECOMPRESSION_TASK_H_
+#define TPE_TASK_ONT_CONSENSUS_BLOCK_DECOMPRESSION_TASK_H_
 
 namespace task {
 
-typedef std::shared_ptr<OntBlockDecompressionSubTask> POntSubTask_t;
-typedef utils::protocols::ontology::BxOntBlockMessage BxOntBlockMessage_t;
+typedef utils::protocols::ontology::consensus::BxOntConsensusMessage BxOntConsensusMessage_t;
 
-class OntBlockDecompressionTask : public MainTaskBase {
+class OntConsensusBlockDecompressionTask : public MainTaskBase {
 
 public:
-    explicit OntBlockDecompressionTask(
+    explicit OntConsensusBlockDecompressionTask(
             size_t capacity = ONT_DEFAULT_BLOCK_SIZE,
             size_t minimal_tx_count = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
     );
@@ -38,7 +36,7 @@ public:
     const UnknownTxSIDs_t& unknown_tx_sids();
     PSha256_t block_hash();
     bool success();
-    uint32_t tx_count();
+    uint32_t txn_count();
     const std::vector<unsigned int>& short_ids();
 
     size_t get_task_byte_size() const override;
@@ -49,21 +47,6 @@ protected:
     void _execute(SubPool_t& sub_pool) override;
 
 private:
-    void _init_sub_tasks(size_t pool_size);
-    size_t _dispatch(
-            BxOntBlockMessage_t& msg,
-            size_t offset,
-            SubPool_t& sub_pool
-    );
-    void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
-
-    BxOntBlockMessage_t _parse_block_header(
-            size_t& offset,
-            uint32_t& tx_count
-    );
-
-    void _extend_output_buffer(size_t output_offset);
-
 
     PBlockBuffer_t _block_buffer;
     PByteArray_t _output_buffer;
@@ -72,13 +55,11 @@ private:
     std::vector<unsigned int> _short_ids;
     PSha256_t _block_hash;
     PTransactionService_t _tx_service;
-    std::vector<POntSubTask_t> _sub_tasks;
     const size_t _minimal_tx_count;
     bool _success;
-    uint32_t _tx_count;
+    uint32_t _txn_count;
 };
 
 } // task
 
-
-#endif //LIBTPE_TPE_TASK_ONT_BLOCK_DECOMPRESSION_TASK_H_
+#endif //TPE_TASK_ONT_CONSENSUS_BLOCK_DECOMPRESSION_TASK_H_

@@ -57,7 +57,7 @@ const OntBlockMessage &BxOntBlockMessage::block_message() const {
 }
 
 size_t BxOntBlockMessage::get_tx_count(uint32_t &tx_count) {
-    return offset_diff + _block_message.get_tx_count(tx_count);
+    return offset_diff + _block_message.get_txn_count(tx_count);
 }
 
 void BxOntBlockMessage::deserialize_short_ids(

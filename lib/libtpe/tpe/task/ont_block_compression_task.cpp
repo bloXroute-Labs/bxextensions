@@ -106,10 +106,12 @@ void OntBlockCompressionTask::_execute(SubPool_t& sub_pool) {
             std::move(msg.block_hash())
     );
     uint32_t tx_count = 0;
-    size_t offset = msg.get_tx_count(tx_count);
+    size_t offset = msg.get_txn_count(tx_count);
     _txn_count = tx_count;
     size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
     size_t output_offset = sizeof(uint64_t);
+    constexpr uint8_t is_consensus_flag = 0x00;
+    output_offset = utils::common::set_little_endian_value(*_output_buffer, is_consensus_flag, output_offset);
     auto merkle_root = std::move(msg.merkle_root());
     output_offset = _output_buffer->copy_from_buffer(merkle_root, output_offset, 0, merkle_root.size());
     output_offset = _output_buffer->copy_from_buffer(

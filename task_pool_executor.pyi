@@ -198,6 +198,18 @@ class TransactionProcessingResult:
     def get_existing_short_ids(self) -> List[int]: ...
 
 
+class TransactionFromBdnGatewayProcessingResult:
+    def get_ignore_seen(self) -> bool: ...
+
+    def get_existing_short_id(self) -> bool: ...
+
+    def get_assigned_short_id(self) -> bool: ...
+
+    def get_existing_contents(self) -> bool: ...
+
+    def get_set_contents(self) -> bool: ...
+
+
 class TransactionService:
     def __init__(
         self, pool_size: int, tx_bucket_capacity: int, final_tx_confirmation_count: int
@@ -240,6 +252,13 @@ class TransactionService:
                                 short_id: int,
                                 timestamp: int,
                                 current_time: int) -> TransactionProcessingResult: ...
+
+    def process_gateway_transaction_from_bdn(self,
+                                             transaction_hash: Sha256,
+                                             transaction_contents: InputBytes,
+                                             short_id: int,
+                                             is_compact: bool
+                                             ) -> TransactionFromBdnGatewayProcessingResult: ...
 
     def assign_short_id(self, transaction_hash: Sha256, short_id: int) -> bool: ...
 

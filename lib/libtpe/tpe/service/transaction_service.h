@@ -171,6 +171,60 @@ private:
 typedef TransactionProcessingResult TransactionProcessingResult_t;
 typedef std::shared_ptr<TransactionProcessingResult_t> PTransactionProcessingResult_t;
 
+class TransactionFromBdnGatewayProcessingResult {
+
+public:
+    TransactionFromBdnGatewayProcessingResult(
+        bool ignore_seen,
+        bool existing_short_id,
+        bool assigned_short_id,
+        bool existing_contents,
+        bool set_contents
+    ) : _ignore_seen(ignore_seen),
+        _existing_short_id(existing_short_id),
+        _assigned_short_id(assigned_short_id),
+        _existing_contents(existing_contents),
+        _set_contents(set_contents) {}
+
+    TransactionFromBdnGatewayProcessingResult(
+        bool ignore_seen
+    ) : _ignore_seen(ignore_seen),
+        _existing_short_id(),
+        _assigned_short_id(),
+        _existing_contents(),
+        _set_contents() {}
+
+    bool get_ignore_seen() {
+        return _ignore_seen;
+    }
+
+    bool get_existing_short_id() {
+        return _existing_short_id;
+    }
+
+    bool get_assigned_short_id() {
+        return _assigned_short_id;
+    }
+
+    bool get_existing_contents() {
+        return _existing_contents;
+    }
+
+    bool get_set_contents() {
+        return _set_contents;
+    }
+
+private:
+    bool _ignore_seen;
+    bool _existing_short_id;
+    bool _assigned_short_id;
+    bool _existing_contents;
+    bool _set_contents;
+};
+
+typedef TransactionFromBdnGatewayProcessingResult TransactionFromBdnGatewayProcessingResult_t;
+typedef std::shared_ptr<TransactionFromBdnGatewayProcessingResult> PTransactionFromBdnGatewayProcessingResult_t;
+
 class TransactionService {
 public:
 
@@ -241,6 +295,13 @@ public:
             unsigned int short_id,
             unsigned int timestamp,
             unsigned int current_time
+    );
+
+    TransactionFromBdnGatewayProcessingResult_t process_gateway_transaction_from_bdn(
+            const Sha256_t& transaction_hash,
+            PTxContents_t transaction_contents,
+            unsigned int short_id,
+            bool is_compact
     );
 
 private:

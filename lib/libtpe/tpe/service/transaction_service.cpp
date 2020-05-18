@@ -381,6 +381,60 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     return std::move(result);
 }
 
+TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
+            const Sha256_t& transaction_hash,
+            PTxContents_t transaction_contents,
+            unsigned int short_id,
+            bool is_compact
+    ) {
+        bool ignore_seen_contents = false;
+        bool ignore_seen_short_id = false;
+        bool assigned_short_id = false;
+        bool set_content = false;
+
+        bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
+        bool existing_contents = has_transaction_contents(transaction_hash);
+
+        if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
+                or removed_transaction(transaction_hash)) {
+            return TransactionFromBdnGatewayProcessingResult_t(
+                true,
+                ignore_seen_short_id,
+                assigned_short_id,
+                existing_contents,
+                set_content
+            );
+        }
+
+        if ((existing_contents or is_compact) and existing_short_id) {
+            return TransactionFromBdnGatewayProcessingResult_t(
+                ignore_seen_contents,
+                true,
+                assigned_short_id,
+                existing_contents,
+                set_content
+            );
+        }
+
+        if (short_id != NULL_TX_SID and not has_short_id(short_id)) {
+            assign_short_id(transaction_hash, short_id);
+            assigned_short_id = true;
+        }
+
+        if (not is_compact and not existing_contents) {
+            set_transaction_contents(transaction_hash, transaction_contents);
+            set_content = true;
+        }
+
+        return TransactionFromBdnGatewayProcessingResult_t(
+            ignore_seen_contents,
+            ignore_seen_short_id,
+            assigned_short_id,
+            existing_contents,
+            set_content
+        );
+}
+
 unsigned int TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,

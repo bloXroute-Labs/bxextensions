@@ -16,6 +16,9 @@ typedef service::PTxContents_t PTxContents_t;
 typedef service::PTxSyncTxs_t PTxSyncTxs_t;
 typedef service::TransactionProcessingResult_t TransactionProcessingResult_t;
 typedef service::PTransactionProcessingResult_t PTransactionProcessingResult_t;
+typedef service::TransactionFromBdnGatewayProcessingResult_t TransactionFromBdnGatewayProcessingResult_t;
+typedef service::PTransactionFromBdnGatewayProcessingResult_t PTransactionFromBdnGatewayProcessingResult_t;
+
 
 static void cleanup_removed_hashes_history(
     Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s, size_t max_items_count
@@ -244,6 +247,10 @@ void bind_transaction_service(py::module& m) {
 					"process_transaction_msg",
 					&TransactionService_t::process_transaction_msg,
 					py::return_value_policy::reference
+			).def(
+					"process_gateway_transaction_from_bdn",
+					&TransactionService_t::process_gateway_transaction_from_bdn,
+					py::return_value_policy::reference
 			);
 
 	py::class_<TransactionProcessingResult_t, PTransactionProcessingResult_t>(m, "TransactionProcessingResult")
@@ -270,6 +277,33 @@ void bind_transaction_service(py::module& m) {
 			).def(
 					"get_set_transaction_contents_result",
 					&TransactionProcessingResult_t::get_set_transaction_contents_result,
+					py::return_value_policy::reference
+			);
+
+	py::class_<TransactionFromBdnGatewayProcessingResult_t, PTransactionFromBdnGatewayProcessingResult_t>(m, "TransactionFromBdnGatewayProcessingResult")
+			.def(
+					"get_ignore_seen",
+					&TransactionFromBdnGatewayProcessingResult_t::get_ignore_seen,
+					py::return_value_policy::reference
+			)
+			.def(
+					"get_existing_short_id",
+					&TransactionFromBdnGatewayProcessingResult_t::get_existing_short_id,
+					py::return_value_policy::reference
+			)
+			.def(
+					"get_assigned_short_id",
+					&TransactionFromBdnGatewayProcessingResult_t::get_assigned_short_id,
+					py::return_value_policy::reference
+			)
+			.def(
+					"get_existing_contents",
+					&TransactionFromBdnGatewayProcessingResult_t::get_existing_contents,
+					py::return_value_policy::reference
+			)
+			.def(
+					"get_set_contents",
+					&TransactionFromBdnGatewayProcessingResult_t::get_set_contents,
 					py::return_value_policy::reference
 			);
 }

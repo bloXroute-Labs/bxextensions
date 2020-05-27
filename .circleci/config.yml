@@ -180,6 +180,7 @@ jobs:
             docker build -f Dockerfile-ubuntu-18.04 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
             docker build -f Dockerfile-centos-7 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
             docker build -f Dockerfile-alpine-3.8 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
+            docker build -f Dockerfile-alpine-3.11 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
 
   deploy:
     docker:

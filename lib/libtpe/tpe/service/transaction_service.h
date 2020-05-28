@@ -53,6 +53,8 @@ typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
+typedef utils::common::BufferView TxsMessageContents_t;
+typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -114,9 +116,9 @@ struct Containers {
 
 };
 
-class TransactionProcessingResult {
+class TxProcessingResult {
 public:
-    TransactionProcessingResult(
+    TxProcessingResult(
         unsigned int tx_status,
         TxShortIds_t existing_short_ids,
         AssignShortIDResult_t assign_short_id_result,
@@ -131,7 +133,7 @@ public:
             _short_id_assigned(short_id_assigned) {
     }
 
-    TransactionProcessingResult(unsigned int tx_status
+    TxProcessingResult(unsigned int tx_status
         ) :  _tx_status(tx_status), _contents_set(), _short_id_assigned() {
     }
 
@@ -168,13 +170,13 @@ private:
     bool _short_id_assigned;
 };
 
-typedef TransactionProcessingResult TransactionProcessingResult_t;
-typedef std::shared_ptr<TransactionProcessingResult_t> PTransactionProcessingResult_t;
+typedef TxProcessingResult TxProcessingResult_t;
+typedef std::shared_ptr<TxProcessingResult_t> PTxProcessingResult_t;
 
-class TransactionFromBdnGatewayProcessingResult {
+class TxFromBdnProcessingResult {
 
 public:
-    TransactionFromBdnGatewayProcessingResult(
+    TxFromBdnProcessingResult(
         bool ignore_seen,
         bool existing_short_id,
         bool assigned_short_id,
@@ -186,7 +188,7 @@ public:
         _existing_contents(existing_contents),
         _set_contents(set_contents) {}
 
-    TransactionFromBdnGatewayProcessingResult(
+    TxFromBdnProcessingResult(
         bool ignore_seen
     ) : _ignore_seen(ignore_seen),
         _existing_short_id(),
@@ -222,8 +224,47 @@ private:
     bool _set_contents;
 };
 
-typedef TransactionFromBdnGatewayProcessingResult TransactionFromBdnGatewayProcessingResult_t;
-typedef std::shared_ptr<TransactionFromBdnGatewayProcessingResult> PTransactionFromBdnGatewayProcessingResult_t;
+typedef TxFromBdnProcessingResult TxFromBdnProcessingResult_t;
+typedef std::shared_ptr<TxFromBdnProcessingResult> PTxFromBdnProcessingResult_t;
+
+typedef utils::common::ByteArray ParsedTxContents_t;
+typedef std::shared_ptr<ParsedTxContents_t> PParsedTxContents_t;
+
+class TxFromNodeProcessingResult {
+
+public:
+    TxFromNodeProcessingResult(
+        bool is_seen,
+        PSha256_t tx_hash,
+        PParsedTxContents_t tx_contents
+    ) : _is_seen(is_seen),
+        _tx_hash(tx_hash),
+        _tx_contents(tx_contents) {}
+
+    bool get_is_seen() {
+        return _is_seen;
+    }
+
+    PSha256_t get_tx_hash() {
+        return _tx_hash;
+    }
+
+    PParsedTxContents_t get_tx_contents() {
+        return _tx_contents;
+    }
+
+private:
+    bool _is_seen;
+    PSha256_t _tx_hash;
+    PParsedTxContents_t _tx_contents;
+};
+
+
+typedef TxFromNodeProcessingResult TxFromNodeProcessingResult_t;
+typedef std::shared_ptr<TxFromNodeProcessingResult_t> PTxFromNodeProcessingResult_t;
+typedef std::vector<TxFromNodeProcessingResult> TxFromNodeProcessingResultList_t;
+typedef std::shared_ptr<TxFromNodeProcessingResultList_t> PTxFromNodeProcessingResultList_t;
+
 
 class TransactionService {
 public:
@@ -288,7 +329,7 @@ public:
 
     void clear_short_ids_seen_in_block();
 
-    TransactionProcessingResult_t process_transaction_msg(
+    TxProcessingResult_t process_transaction_msg(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int network_num,
@@ -297,11 +338,15 @@ public:
             unsigned int current_time
     );
 
-    TransactionFromBdnGatewayProcessingResult_t process_gateway_transaction_from_bdn(
+    TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int short_id,
             bool is_compact
+    );
+
+    PTxFromNodeProcessingResultList_t process_gateway_transaction_from_node(
+            PTxsMessageContents_t txs_message_contents
     );
 
 private:

@@ -3,6 +3,7 @@
 
 #include <utils/common/buffer_view.h>
 #include <utils/common/buffer_helper.h>
+#include <utils/protocols/ontology/ont_message_converter.h>
 #include "tpe/service/transaction_service.h"
 
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -13,6 +14,10 @@
 #define SHORT_IDS_COUNT_LEN 2
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
+
+typedef utils::protocols::ontology::OntMessageConverter OntMessageConverter_t;
+typedef utils::protocols::ontology::ParsedTransaction_t ParsedTransaction_t;
+typedef utils::protocols::ontology::ParsedTransactions_t ParsedTransactions_t;
 
 namespace service {
 
@@ -329,7 +334,7 @@ void TransactionService::clear_short_ids_seen_in_block() {
     _containers.short_ids_seen_in_block.clear();
 }
 
-TransactionProcessingResult_t TransactionService::process_transaction_msg(
+TxProcessingResult_t TransactionService::process_transaction_msg(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int network_num,
@@ -353,7 +358,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     );
 
     if (tx_status & TX_STATUS_IGNORE_SEEN or tx_status & TX_STATUS_TIMED_OUT) {
-        TransactionProcessingResult_t result(tx_status);
+        TxProcessingResult_t result(tx_status);
         return std::move(result);
     }
 
@@ -371,7 +376,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
         short_id_assigned = true;
     }
 
-    TransactionProcessingResult_t result(
+    TxProcessingResult_t result(
             tx_status,
             existing_short_ids,
             assign_short_id_result,
@@ -381,7 +386,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     return std::move(result);
 }
 
-TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
+TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int short_id,
@@ -397,7 +402,7 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
 
         if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
                 or removed_transaction(transaction_hash)) {
-            return TransactionFromBdnGatewayProcessingResult_t(
+            return TxFromBdnProcessingResult_t(
                 true,
                 ignore_seen_short_id,
                 assigned_short_id,
@@ -407,7 +412,7 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
         }
 
         if ((existing_contents or is_compact) and existing_short_id) {
-            return TransactionFromBdnGatewayProcessingResult_t(
+            return TxFromBdnProcessingResult_t(
                 ignore_seen_contents,
                 true,
                 assigned_short_id,
@@ -426,13 +431,46 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
             set_content = true;
         }
 
-        return TransactionFromBdnGatewayProcessingResult_t(
+        return TxFromBdnProcessingResult_t(
             ignore_seen_contents,
             ignore_seen_short_id,
             assigned_short_id,
             existing_contents,
             set_content
         );
+}
+
+PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transaction_from_node(
+            PTxsMessageContents_t txs_message_contents
+    ) {
+    OntMessageConverter_t message_converter = OntMessageConverter_t();
+    ParsedTransactions_t parsed_transactions = message_converter.tx_to_bx_txs(txs_message_contents);
+
+    TxFromNodeProcessingResultList_t result;
+
+    for (const ParsedTransaction_t& parsed_transaction: parsed_transactions) {
+        const bool seen_transaction =
+            has_transaction_contents(parsed_transaction.first)
+            or removed_transaction(parsed_transaction.first);
+
+        if (!seen_transaction) {
+            set_transaction_contents(parsed_transaction.first, parsed_transaction.second);
+        }
+
+        const size_t tx_size = parsed_transaction.second->size();
+        PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(tx_size);
+        tx_contents->copy_from_buffer(*parsed_transaction.second, 0, 0, tx_size);
+        tx_contents->set_output();
+
+        TxFromNodeProcessingResult_t tx_result = TxFromNodeProcessingResult_t(
+                seen_transaction,
+                std::make_shared<Sha256_t>(std::move(parsed_transaction.first)),
+                tx_contents
+        );
+        result.push_back(tx_result);
+    }
+
+    return std::move(std::make_shared<TxFromNodeProcessingResultList_t>(std::move(result)));
 }
 
 unsigned int TransactionService::_msg_tx_build_tx_status(

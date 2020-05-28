@@ -14,10 +14,12 @@ typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
 typedef service::Sha256ToTime_t Sha256ToTime_t;
 typedef service::PTxContents_t PTxContents_t;
 typedef service::PTxSyncTxs_t PTxSyncTxs_t;
-typedef service::TransactionProcessingResult_t TransactionProcessingResult_t;
-typedef service::PTransactionProcessingResult_t PTransactionProcessingResult_t;
-typedef service::TransactionFromBdnGatewayProcessingResult_t TransactionFromBdnGatewayProcessingResult_t;
-typedef service::PTransactionFromBdnGatewayProcessingResult_t PTransactionFromBdnGatewayProcessingResult_t;
+typedef service::TxProcessingResult_t TxProcessingResult_t;
+typedef service::PTxProcessingResult_t PTxProcessingResult_t;
+typedef service::TxFromBdnProcessingResult_t TxFromBdnProcessingResult_t;
+typedef service::PTxFromBdnProcessingResult_t PTxFromBdnProcessingResult_t;
+typedef service::TxFromNodeProcessingResult_t TxFromNodeProcessingResult_t;
+typedef service::PTxFromNodeProcessingResult_t PTxFromNodeProcessingResult_t;
 
 
 static void cleanup_removed_hashes_history(
@@ -251,59 +253,79 @@ void bind_transaction_service(py::module& m) {
 					"process_gateway_transaction_from_bdn",
 					&TransactionService_t::process_gateway_transaction_from_bdn,
 					py::return_value_policy::reference
+			).def(
+					"process_gateway_transaction_from_node",
+					&TransactionService_t::process_gateway_transaction_from_node,
+					py::return_value_policy::reference
 			);
 
-	py::class_<TransactionProcessingResult_t, PTransactionProcessingResult_t>(m, "TransactionProcessingResult")
+	py::class_<TxProcessingResult_t, PTxProcessingResult_t>(m, "TxProcessingResult")
 			.def(
 					"get_tx_status",
-					&TransactionProcessingResult_t::get_tx_status,
+					&TxProcessingResult_t::get_tx_status,
 					py::return_value_policy::reference
 			).def(
 					"get_existing_short_ids",
-					&TransactionProcessingResult_t::get_existing_short_ids,
+					&TxProcessingResult_t::get_existing_short_ids,
 					py::return_value_policy::reference
 			).def(
 					"get_short_id_assigned",
-					&TransactionProcessingResult_t::get_short_id_assigned,
+					&TxProcessingResult_t::get_short_id_assigned,
 					py::return_value_policy::reference
 			).def(
 					"get_assign_short_id_result",
-					&TransactionProcessingResult_t::get_assign_short_id_result,
+					&TxProcessingResult_t::get_assign_short_id_result,
 					py::return_value_policy::reference
 			).def(
 					"get_contents_set",
-					&TransactionProcessingResult_t::get_contents_set,
+					&TxProcessingResult_t::get_contents_set,
 					py::return_value_policy::reference
 			).def(
 					"get_set_transaction_contents_result",
-					&TransactionProcessingResult_t::get_set_transaction_contents_result,
+					&TxProcessingResult_t::get_set_transaction_contents_result,
 					py::return_value_policy::reference
 			);
 
-	py::class_<TransactionFromBdnGatewayProcessingResult_t, PTransactionFromBdnGatewayProcessingResult_t>(m, "TransactionFromBdnGatewayProcessingResult")
+	py::class_<TxFromBdnProcessingResult_t, PTxFromBdnProcessingResult_t>(m, "TxFromBdnProcessingResult")
 			.def(
 					"get_ignore_seen",
-					&TransactionFromBdnGatewayProcessingResult_t::get_ignore_seen,
+					&TxFromBdnProcessingResult_t::get_ignore_seen,
 					py::return_value_policy::reference
 			)
 			.def(
 					"get_existing_short_id",
-					&TransactionFromBdnGatewayProcessingResult_t::get_existing_short_id,
+					&TxFromBdnProcessingResult_t::get_existing_short_id,
 					py::return_value_policy::reference
 			)
 			.def(
 					"get_assigned_short_id",
-					&TransactionFromBdnGatewayProcessingResult_t::get_assigned_short_id,
+					&TxFromBdnProcessingResult_t::get_assigned_short_id,
 					py::return_value_policy::reference
 			)
 			.def(
 					"get_existing_contents",
-					&TransactionFromBdnGatewayProcessingResult_t::get_existing_contents,
+					&TxFromBdnProcessingResult_t::get_existing_contents,
 					py::return_value_policy::reference
 			)
 			.def(
 					"get_set_contents",
-					&TransactionFromBdnGatewayProcessingResult_t::get_set_contents,
+					&TxFromBdnProcessingResult_t::get_set_contents,
+					py::return_value_policy::reference
+			);
+
+	py::class_<TxFromNodeProcessingResult_t, PTxFromNodeProcessingResult_t>(m, "TxFromNodeProcessingResult")
+			.def(
+					"get_is_seen",
+					&TxFromNodeProcessingResult_t::get_is_seen,
+					py::return_value_policy::reference
+			).def(
+					"get_tx_hash",
+					&TxFromNodeProcessingResult_t::get_tx_hash,
+					py::return_value_policy::reference
+			)
+			.def(
+					"get_tx_contents",
+					&TxFromNodeProcessingResult_t::get_tx_contents,
 					py::return_value_policy::reference
 			);
 }

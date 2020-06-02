@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-OS_LIST=${1:-alpine-3.8}
+OS_LIST=${1:-alpine-3.11}
 PARALLELISM=${2:-Yes}
 RETURN_CODE=0
 PIDS=""
@@ -23,7 +23,7 @@ do
   DOCKER_FILE="Dockerfile-$os"
 
   echo "Building container from $DOCKER_FILE"
-  bash_cmd="docker build -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;  \
+  bash_cmd="docker build --rm=false -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;  \
             docker run --name bxextensions_${os} \
                --volume ${ROOT_DIR}/release/${os}:/app/bxextensions/release/lib \
                --volume ${ROOT_DIR}/release/MANIFEST.MF:/app/bxextensions/release/MANIFEST.MF:ro \

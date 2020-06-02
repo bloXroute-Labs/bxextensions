@@ -1,4 +1,5 @@
 version: 2.1
+
 executors:
   bloxroute-executor:
     docker:
@@ -135,14 +136,7 @@ jobs:
           name: Initialize virtualenv
           command: |
             . venv/bin/activate
-            pip install -r bxcommon/requirements.txt
-            pip install -r bxcommon/requirements-dev.txt
-            pip install -r bxcommon/requirements-optional.txt
-            pip install -r bxrelay/requirements.txt
-            pip install -r bxrelay/requirements-dev.txt
-            pip install -r bxgateway/requirements.txt
-            pip install -r bxgateway/requirements-dev.txt
-            pip install -r bxe2e/scripts/requirements.txt
+            pip install -r bxcommon/requirements.txt -r bxcommon/requirements-dev.txt -r bxcommon/requirements-optional.txt -r bxrelay/requirements.txt -r bxrelay/requirements-dev.txt -r bxgateway/requirements.txt -r bxgateway/requirements-dev.txt -r bxe2e/scripts/requirements.txt
       - run:
           name: Integration Test
           command: |
@@ -180,6 +174,7 @@ jobs:
             docker build -f Dockerfile-ubuntu-18.04 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
             docker build -f Dockerfile-centos-7 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
             docker build -f Dockerfile-alpine-3.8 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
+            docker build -f Dockerfile-alpine-3.11 --build-arg UID=$(id -u) --build-arg GID=$(id -g) .
 
   deploy:
     docker:

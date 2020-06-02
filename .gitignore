@@ -22,6 +22,4 @@ aclocal.m4
 __pycache__/
 .cproject
 cmake-build*/
-release/centos-7
-release/ubuntu-18.04
-release/alpine-3.8
+release/**

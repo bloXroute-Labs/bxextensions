@@ -4,6 +4,7 @@
 #include <utils/common/buffer_view.h>
 #include <utils/common/buffer_helper.h>
 #include <utils/protocols/ontology/ont_message_converter.h>
+#include <utils/protocols/ethereum/eth_message_converter.h>
 #include "tpe/service/transaction_service.h"
 
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -16,8 +17,9 @@
 #define QUOTA_TYPE_LEN 1
 
 typedef utils::protocols::ontology::OntMessageConverter OntMessageConverter_t;
-typedef utils::protocols::ontology::ParsedTransaction_t ParsedTransaction_t;
-typedef utils::protocols::ontology::ParsedTransactions_t ParsedTransactions_t;
+typedef utils::protocols::ethereum::EthMessageConverter EthMessageConverter_t;
+typedef utils::protocols::ParsedTransaction_t ParsedTransaction_t;
+typedef utils::protocols::ParsedTransactions_t ParsedTransactions_t;
 
 namespace service {
 
@@ -441,9 +443,11 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
 }
 
 PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transaction_from_node(
+            std::string protocol,
             PTxsMessageContents_t txs_message_contents
     ) {
-    OntMessageConverter_t message_converter = OntMessageConverter_t();
+
+    const AbstractMessageConverter_t& message_converter = _create_message_converter(protocol);
     ParsedTransactions_t parsed_transactions = message_converter.tx_to_bx_txs(txs_message_contents);
 
     TxFromNodeProcessingResultList_t result;
@@ -540,6 +544,20 @@ unsigned int TransactionService::_msg_tx_build_tx_status(
         tx_status |= TX_STATUS_TIMED_OUT;
     }
     return tx_status;
+}
+
+const AbstractMessageConverter_t& TransactionService::_create_message_converter(std::string protocol) const {
+    if (protocol == "ontology") {
+        static const OntMessageConverter_t message_converter = OntMessageConverter_t();
+        return message_converter;
+    }
+
+    if (protocol == "ethereum") {
+        static const EthMessageConverter_t message_converter = EthMessageConverter_t();
+        return message_converter;
+    }
+
+    throw std::runtime_error("Message converter is not available for provided protocol");
 }
 
 } // service

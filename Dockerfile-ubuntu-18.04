@@ -41,6 +41,9 @@ RUN apt install -y  \
 #install python 3.7
 RUN apt install -y python3.7-dev
 
+#install python 3.8
+RUN apt install -y python3.8-dev
+
 #upgrade pip
 RUN pip3 install --upgrade pip setuptools
 
@@ -54,5 +57,5 @@ COPY CMakeLists.txt ./
 RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
-ENV PYTHONS="python3 /usr/bin/python3.7"
+ENV PYTHONS="/usr/bin/python3.7 /usr/bin/python3.8 python3"
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

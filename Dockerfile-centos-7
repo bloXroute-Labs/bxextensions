@@ -40,6 +40,14 @@ WORKDIR /usr/src/Python-3.7.3
 RUN ./configure --enable-optimizations 
 RUN make altinstall
 
+#install python 3.8
+WORKDIR /usr/src
+RUN wget https://www.python.org/ftp/python/3.8.3/Python-3.8.3.tgz
+RUN tar xzf Python-3.8.3.tgz
+WORKDIR /usr/src/Python-3.8.3
+RUN ./configure --enable-optimizations
+RUN make altinstall
+
 RUN ln -s /usr/bin/cmake3 /usr/bin/cmake
 RUN yum -y install centos-release-scl devtoolset-7-gcc
 RUN yum -y install centos-release-scl-rh
@@ -48,7 +56,7 @@ RUN /opt/rh/devtoolset-7/enable
 RUN g++ --version
 
 #upgrade pip
-RUN pip3.7 install --upgrade pip setuptools
+RUN pip3.8 install --upgrade pip setuptools
 
 WORKDIR /app/bxextensions
 COPY interface/ interface/
@@ -65,5 +73,5 @@ RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
 ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
-ENV PYTHONS="python3 /usr/local/bin/python3.7"
+ENV PYTHONS="/usr/local/bin/python3.7 /usr/local/bin/python3.8 python3"
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

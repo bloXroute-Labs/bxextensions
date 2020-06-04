@@ -11,6 +11,7 @@
 #include <utils/common/ordered_map.h>
 #include <utils/common/tracked_allocator.h>
 #include <utils/common/byte_array.h>
+#include <utils/protocols/abstract_message_converter.h>
 
 #include "tpe/consts.h"
 #include "tpe/service/transaction_to_short_ids_map.h"
@@ -55,6 +56,7 @@ typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
 typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
+typedef utils::protocols::AbstractMessageConverter AbstractMessageConverter_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -346,6 +348,7 @@ public:
     );
 
     PTxFromNodeProcessingResultList_t process_gateway_transaction_from_node(
+            std::string protocol,
             PTxsMessageContents_t txs_message_contents
     );
 
@@ -360,6 +363,8 @@ private:
         const PTxContents_t& transaction_contents,
         unsigned int timestamp,
         unsigned int current_time);
+
+    const AbstractMessageConverter_t& _create_message_converter(std::string protocol) const;
 };
 
 

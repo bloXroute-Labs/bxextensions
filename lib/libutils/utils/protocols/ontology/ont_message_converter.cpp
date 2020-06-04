@@ -6,7 +6,7 @@ namespace utils {
 namespace protocols {
 namespace ontology {
 
-ParsedTransactions_t OntMessageConverter::tx_to_bx_txs(PTxsMessageContents_t txs_message_contents) {
+ParsedTransactions_t OntMessageConverter::tx_to_bx_txs(PTxsMessageContents_t txs_message_contents) const {
     const size_t tx_contents_len = txs_message_contents->size() - ONT_HDR_COMMON_OFF;
 
     Sha256_t tx_hash = ontology::get_tx_id(

@@ -268,6 +268,7 @@ class TransactionService:
                                              ) -> TxFromBdnProcessingResult: ...
 
     def process_gateway_transaction_from_node(self,
+                                              protocol: str,
                                               transaction_msg_contents: InputBytes
                                               ) -> List[TxFromNodeProcessingResult]: ...
 

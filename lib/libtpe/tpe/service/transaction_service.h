@@ -8,10 +8,11 @@
 #include <thread>
 
 #include <utils/common/buffer_view.h>
+#include <utils/common/buffer_copy.h>
 #include <utils/common/ordered_map.h>
 #include <utils/common/tracked_allocator.h>
 #include <utils/common/byte_array.h>
-#include <utils/protocols/abstract_message_converter.h>
+#include <utils/protocols/abstract_message_parser.h>
 
 #include "tpe/consts.h"
 #include "tpe/service/transaction_to_short_ids_map.h"
@@ -38,6 +39,7 @@
 
 namespace service {
 
+typedef utils::common::BufferCopy BufferCopy_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef utils::common::ByteArray TxSyncTxs_t;
@@ -56,7 +58,7 @@ typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
 typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
-typedef utils::protocols::AbstractMessageConverter AbstractMessageConverter_t;
+typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -364,7 +366,7 @@ private:
         unsigned int timestamp,
         unsigned int current_time);
 
-    const AbstractMessageConverter_t& _create_message_converter(std::string protocol) const;
+    const AbstractMessageParser_t& _create_message_parser(std::string protocol) const;
 };
 
 

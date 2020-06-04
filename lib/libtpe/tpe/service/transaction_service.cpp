@@ -3,8 +3,8 @@
 
 #include <utils/common/buffer_view.h>
 #include <utils/common/buffer_helper.h>
-#include <utils/protocols/ontology/ont_message_converter.h>
-#include <utils/protocols/ethereum/eth_message_converter.h>
+#include <utils/protocols/ontology/ont_message_parser.h>
+#include <utils/protocols/ethereum/eth_message_parser.h>
 #include "tpe/service/transaction_service.h"
 
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -16,8 +16,8 @@
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
 
-typedef utils::protocols::ontology::OntMessageConverter OntMessageConverter_t;
-typedef utils::protocols::ethereum::EthMessageConverter EthMessageConverter_t;
+typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
+typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
 typedef utils::protocols::ParsedTransaction_t ParsedTransaction_t;
 typedef utils::protocols::ParsedTransactions_t ParsedTransactions_t;
 
@@ -447,8 +447,8 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
             PTxsMessageContents_t txs_message_contents
     ) {
 
-    const AbstractMessageConverter_t& message_converter = _create_message_converter(protocol);
-    ParsedTransactions_t parsed_transactions = message_converter.tx_to_bx_txs(txs_message_contents);
+    const AbstractMessageParser_t& message_parser = _create_message_parser(protocol);
+    ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
 
     TxFromNodeProcessingResultList_t result;
 
@@ -457,13 +457,20 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
             has_transaction_contents(parsed_transaction.first)
             or removed_transaction(parsed_transaction.first);
 
+        const TxContents_t& tx_buffer = parsed_transaction.second;
+
         if (!seen_transaction) {
-            set_transaction_contents(parsed_transaction.first, parsed_transaction.second);
+            BufferCopy_t content_copy = BufferCopy_t(tx_buffer);
+
+            set_transaction_contents(
+                parsed_transaction.first,
+                std::make_shared<TxContents_t>(content_copy)
+            );
         }
 
-        const size_t tx_size = parsed_transaction.second->size();
+        const size_t tx_size = parsed_transaction.second.size();
         PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(tx_size);
-        tx_contents->copy_from_buffer(*parsed_transaction.second, 0, 0, tx_size);
+        tx_contents->copy_from_buffer(tx_buffer, 0, 0, tx_size);
         tx_contents->set_output();
 
         TxFromNodeProcessingResult_t tx_result = TxFromNodeProcessingResult_t(
@@ -546,14 +553,14 @@ unsigned int TransactionService::_msg_tx_build_tx_status(
     return tx_status;
 }
 
-const AbstractMessageConverter_t& TransactionService::_create_message_converter(std::string protocol) const {
+const AbstractMessageParser_t& TransactionService::_create_message_parser(std::string protocol) const {
     if (protocol == "ontology") {
-        static const OntMessageConverter_t message_converter = OntMessageConverter_t();
+        static const OntMessageParser_t message_converter = OntMessageParser_t();
         return message_converter;
     }
 
     if (protocol == "ethereum") {
-        static const EthMessageConverter_t message_converter = EthMessageConverter_t();
+        static const EthMessageParser_t message_converter = EthMessageParser_t();
         return message_converter;
     }
 

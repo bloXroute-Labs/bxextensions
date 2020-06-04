@@ -1,13 +1,13 @@
 #include <utils/encoding/rlp_encoder.h>
 #include <utils/crypto/keccak.h>
 
-#include "eth_message_converter.h"
+#include "eth_message_parser.h"
 
 namespace utils {
 namespace protocols {
 namespace ethereum {
 
-ParsedTransactions_t EthMessageConverter::tx_to_bx_txs(PTxsMessageContents_t msg_buf) const {
+ParsedTransactions_t EthMessageParser::parse_transactions_message(PTxsMessageContents_t msg_buf) const {
     ParsedTransactions_t transactions;
 
     uint64_t offset = 0;
@@ -24,7 +24,7 @@ ParsedTransactions_t EthMessageConverter::tx_to_bx_txs(PTxsMessageContents_t msg
 
         Sha256_t hash = crypto::keccak_sha3(msg_buf->byte_array(), offset, tx_end - offset);
 
-        PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(
+        ParsedTxContents_t tx_contents = ParsedTxContents_t(
             *msg_buf,
             tx_end - offset,
             offset
@@ -32,11 +32,11 @@ ParsedTransactions_t EthMessageConverter::tx_to_bx_txs(PTxsMessageContents_t msg
 
         offset = tx_end;
 
-        ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(hash), tx_contents);
+        ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(hash), std::move(tx_contents));
         transactions.push_back(std::move(parsed_transaction));
     }
 
-    return transactions;
+    return std::move(transactions);
 }
 
 }

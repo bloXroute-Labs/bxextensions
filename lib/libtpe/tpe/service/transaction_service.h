@@ -9,6 +9,7 @@
 
 #include <utils/common/buffer_view.h>
 #include <utils/common/buffer_copy.h>
+#include <utils/common/byte_array.h>
 #include <utils/common/ordered_map.h>
 #include <utils/common/tracked_allocator.h>
 #include <utils/common/byte_array.h>
@@ -40,6 +41,7 @@
 namespace service {
 
 typedef utils::common::BufferCopy BufferCopy_t;
+typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef utils::common::ByteArray TxSyncTxs_t;

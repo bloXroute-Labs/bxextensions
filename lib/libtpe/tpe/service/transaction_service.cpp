@@ -458,17 +458,16 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
             or removed_transaction(parsed_transaction.first);
 
         const TxContents_t& tx_buffer = parsed_transaction.second;
+        const size_t tx_size = tx_buffer.size();
 
         if (!seen_transaction) {
-            BufferCopy_t content_copy = BufferCopy_t(tx_buffer);
-
             set_transaction_contents(
                 parsed_transaction.first,
-                std::make_shared<TxContents_t>(content_copy)
+                std::make_shared<BufferCopy_t>(tx_buffer)
             );
         }
 
-        const size_t tx_size = parsed_transaction.second.size();
+        //TODO: Need to try avoid second copy here
         PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(tx_size);
         tx_contents->copy_from_buffer(tx_buffer, 0, 0, tx_size);
         tx_contents->set_output();
@@ -480,6 +479,9 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
         );
         result.push_back(tx_result);
     }
+
+    // remove all items from the vector to make sure that it is properly disposed
+    parsed_transactions.clear();
 
     return std::move(std::make_shared<TxFromNodeProcessingResultList_t>(std::move(result)));
 }

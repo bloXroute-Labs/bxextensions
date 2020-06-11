@@ -139,7 +139,7 @@ SetTransactionContentsResult_t TransactionService::set_transaction_contents(
     if (has_transaction_contents(transaction_hash)) {
         result.second = _containers.tx_hash_to_contents[transaction_hash]->size();
     } else {
-        _containers.tx_hash_to_contents.emplace(transaction_hash, transaction_contents);
+        _containers.tx_hash_to_contents.emplace(transaction_hash, std::move(transaction_contents));
     }
 
     return std::move(result);
@@ -369,7 +369,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     }
 
     if (tx_status & TX_STATUS_MSG_HAS_CONTENT and !(tx_status & TX_STATUS_SEEN_CONTENT)) {
-        set_transaction_contents_result = set_transaction_contents(transaction_hash, transaction_contents);
+        set_transaction_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
         contents_set = true;
     }
 
@@ -429,7 +429,7 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
         }
 
         if (not is_compact and not existing_contents) {
-            set_transaction_contents(transaction_hash, transaction_contents);
+            set_transaction_contents(transaction_hash, std::move(transaction_contents));
             set_content = true;
         }
 
@@ -443,41 +443,47 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
 }
 
 PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transaction_from_node(
-            std::string protocol,
-            PTxsMessageContents_t txs_message_contents
-    ) {
+        std::string protocol,
+        PTxsMessageContents_t txs_message_contents
+) {
 
-    const AbstractMessageParser_t& message_parser = _create_message_parser(protocol);
+    const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
     ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
 
     TxFromNodeProcessingResultList_t result;
 
-    for (const ParsedTransaction_t& parsed_transaction: parsed_transactions) {
-        const bool seen_transaction =
-            has_transaction_contents(parsed_transaction.first)
-            or removed_transaction(parsed_transaction.first);
+    for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
+        const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
+        TxsMessageContents_t message_contents = *txs_message_contents;
 
-        const TxContents_t& tx_buffer = parsed_transaction.second;
-        const size_t tx_size = tx_buffer.size();
+        const bool seen_transaction =
+                has_transaction_contents(transaction_hash)
+                or removed_transaction(transaction_hash);
 
         if (!seen_transaction) {
+            ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
+                    message_contents,
+                    parsed_transaction.length,
+                    parsed_transaction.offset);
+
             set_transaction_contents(
-                parsed_transaction.first,
-                std::make_shared<BufferCopy_t>(tx_buffer)
+                    transaction_hash,
+                    std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
             );
         }
 
-        //TODO: Need to try avoid second copy here
-        PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(tx_size);
-        tx_contents->copy_from_buffer(tx_buffer, 0, 0, tx_size);
-        tx_contents->set_output();
+        PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(
+                message_contents,
+                parsed_transaction.length,
+                parsed_transaction.offset);
 
         TxFromNodeProcessingResult_t tx_result = TxFromNodeProcessingResult_t(
                 seen_transaction,
-                std::make_shared<Sha256_t>(std::move(parsed_transaction.first)),
-                tx_contents
+                std::move(std::make_shared<Sha256_t>(transaction_hash)),
+                parsed_transaction.length,
+                parsed_transaction.offset
         );
-        result.push_back(tx_result);
+        result.push_back(std::move(tx_result));
     }
 
     // remove all items from the vector to make sure that it is properly disposed
@@ -485,7 +491,7 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
 
     return std::move(std::make_shared<TxFromNodeProcessingResultList_t>(std::move(result)));
 }
-
+    
 unsigned int TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,

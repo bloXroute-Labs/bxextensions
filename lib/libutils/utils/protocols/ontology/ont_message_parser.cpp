@@ -15,13 +15,11 @@ ParsedTransactions_t OntMessageParser::parse_transactions_message(PTxsMessageCon
         txs_message_contents->size() - ONT_HDR_COMMON_OFF
     );
 
-    ParsedTxContents_t tx_contents = ParsedTxContents_t(
-        *txs_message_contents,
+    ParsedTransaction_t parsed_transaction = ParsedTransaction_t(
+        std::move(tx_hash),
         tx_contents_len,
         ONT_HDR_COMMON_OFF
     );
-
-    ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(tx_hash), std::move(tx_contents));
 
     ParsedTransactions_t transactions;
     transactions.push_back(std::move(parsed_transaction));

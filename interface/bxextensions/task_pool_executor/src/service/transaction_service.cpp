@@ -324,8 +324,12 @@ void bind_transaction_service(py::module& m) {
 					py::return_value_policy::reference
 			)
 			.def(
-					"get_tx_contents",
-					&TxFromNodeProcessingResult_t::get_tx_contents,
+					"get_length",
+					&TxFromNodeProcessingResult_t::get_length,
+					py::return_value_policy::reference
+			).def(
+					"get_offset",
+					&TxFromNodeProcessingResult_t::get_offset,
 					py::return_value_policy::reference
 			);
 }

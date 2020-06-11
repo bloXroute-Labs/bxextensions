@@ -24,16 +24,10 @@ ParsedTransactions_t EthMessageParser::parse_transactions_message(PTxsMessageCon
 
         Sha256_t hash = crypto::keccak_sha3(msg_buf->byte_array(), offset, tx_end - offset);
 
-        ParsedTxContents_t tx_contents = ParsedTxContents_t(
-            *msg_buf,
-            tx_end - offset,
-            offset
-        );
+        ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(hash), tx_end - offset, offset);
+        transactions.push_back(std::move(parsed_transaction));
 
         offset = tx_end;
-
-        ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(hash), std::move(tx_contents));
-        transactions.push_back(std::move(parsed_transaction));
     }
 
     return std::move(transactions);

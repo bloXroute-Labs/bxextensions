@@ -8,8 +8,24 @@ namespace utils {
 namespace protocols {
 
 typedef utils::crypto::Sha256 Sha256_t;
+
+struct ParsedTransaction {
+    Sha256_t transaction_hash;
+    size_t length;
+    size_t offset;
+
+    ParsedTransaction(
+        Sha256_t tx_hash,
+        size_t tx_length,
+        size_t tx_offset
+    ) :
+        transaction_hash(tx_hash),
+        length(tx_length),
+        offset(tx_offset) {}
+};
+
 typedef utils::common::BufferView ParsedTxContents_t;
-typedef std::pair<Sha256_t, ParsedTxContents_t> ParsedTransaction_t;
+typedef ParsedTransaction ParsedTransaction_t;
 typedef std::vector<ParsedTransaction_t> ParsedTransactions_t;
 typedef utils::common::BufferView TxsMessageContents_t;
 typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;

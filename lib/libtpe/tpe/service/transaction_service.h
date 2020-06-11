@@ -233,7 +233,7 @@ private:
 typedef TxFromBdnProcessingResult TxFromBdnProcessingResult_t;
 typedef std::shared_ptr<TxFromBdnProcessingResult> PTxFromBdnProcessingResult_t;
 
-typedef utils::common::ByteArray ParsedTxContents_t;
+typedef utils::common::BufferView ParsedTxContents_t;
 typedef std::shared_ptr<ParsedTxContents_t> PParsedTxContents_t;
 
 class TxFromNodeProcessingResult {
@@ -242,10 +242,12 @@ public:
     TxFromNodeProcessingResult(
         bool is_seen,
         PSha256_t tx_hash,
-        PParsedTxContents_t tx_contents
+        size_t length,
+        size_t offset
     ) : _is_seen(is_seen),
         _tx_hash(tx_hash),
-        _tx_contents(tx_contents) {}
+        _length(length),
+        _offset(offset) {}
 
     bool get_is_seen() {
         return _is_seen;
@@ -255,14 +257,19 @@ public:
         return _tx_hash;
     }
 
-    PParsedTxContents_t get_tx_contents() {
-        return _tx_contents;
+    size_t get_length() {
+        return _length;
+    }
+
+    size_t get_offset() {
+        return _offset;
     }
 
 private:
     bool _is_seen;
     PSha256_t _tx_hash;
-    PParsedTxContents_t _tx_contents;
+    size_t _length;
+    size_t _offset;
 };
 
 

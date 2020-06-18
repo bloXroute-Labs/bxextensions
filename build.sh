@@ -11,7 +11,7 @@ if [ ${DOCKER_SO_FILES} == "Get" ]; then
   docker rm bxextensions_release;
   docker pull 033969152235.dkr.ecr.us-east-1.amazonaws.com/bxextensions:release
   docker run  --name bxextensions_release \
-      --volume ./:/app/bxextensions/out_release \
+      --volume $(pwd)/release:/app/bxextensions/out_release \
       --user $(id -u):$(id -g) \
       033969152235.dkr.ecr.us-east-1.amazonaws.com/bxextensions:release
 else

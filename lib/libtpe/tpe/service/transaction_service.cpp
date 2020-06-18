@@ -15,6 +15,7 @@
 #define SHORT_IDS_COUNT_LEN 2
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
+#define SEEN_FLAG_LEN 1
 
 typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
 typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
@@ -442,15 +443,24 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
         );
 }
 
-PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transaction_from_node(
+PByteArray_t TransactionService::process_gateway_transaction_from_node(
         std::string protocol,
         PTxsMessageContents_t txs_message_contents
 ) {
-
     const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
     ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
 
-    TxFromNodeProcessingResultList_t result;
+    size_t total_result_size = 0;
+
+    for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
+        total_result_size += parsed_transaction.length;
+    }
+    total_result_size += TX_COUNT_LEN + parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN);
+
+    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(total_result_size);
+
+    size_t offset = 0;
+    offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
 
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
@@ -472,24 +482,17 @@ PTxFromNodeProcessingResultList_t TransactionService::process_gateway_transactio
             );
         }
 
-        PParsedTxContents_t tx_contents = std::make_shared<ParsedTxContents_t>(
-                message_contents,
-                parsed_transaction.length,
-                parsed_transaction.offset);
-
-        TxFromNodeProcessingResult_t tx_result = TxFromNodeProcessingResult_t(
-                seen_transaction,
-                std::move(std::make_shared<Sha256_t>(transaction_hash)),
-                parsed_transaction.length,
-                parsed_transaction.offset
-        );
-        result.push_back(std::move(tx_result));
+        offset = utils::common::set_little_endian_value(*result_buffer, uint8_t(seen_transaction), offset);
+        offset = result_buffer->copy_from_buffer(transaction_hash.binary(), offset, 0, transaction_hash.size());
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.offset), offset);
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.length), offset);
     }
 
     // remove all items from the vector to make sure that it is properly disposed
     parsed_transactions.clear();
 
-    return std::move(std::make_shared<TxFromNodeProcessingResultList_t>(std::move(result)));
+    result_buffer->set_output();
+    return std::move(result_buffer);
 }
     
 unsigned int TransactionService::_msg_tx_build_tx_status(

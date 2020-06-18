@@ -236,47 +236,8 @@ typedef std::shared_ptr<TxFromBdnProcessingResult> PTxFromBdnProcessingResult_t;
 typedef utils::common::BufferView ParsedTxContents_t;
 typedef std::shared_ptr<ParsedTxContents_t> PParsedTxContents_t;
 
-class TxFromNodeProcessingResult {
-
-public:
-    TxFromNodeProcessingResult(
-        bool is_seen,
-        PSha256_t tx_hash,
-        size_t length,
-        size_t offset
-    ) : _is_seen(is_seen),
-        _tx_hash(tx_hash),
-        _length(length),
-        _offset(offset) {}
-
-    bool get_is_seen() {
-        return _is_seen;
-    }
-
-    PSha256_t get_tx_hash() {
-        return _tx_hash;
-    }
-
-    size_t get_length() {
-        return _length;
-    }
-
-    size_t get_offset() {
-        return _offset;
-    }
-
-private:
-    bool _is_seen;
-    PSha256_t _tx_hash;
-    size_t _length;
-    size_t _offset;
-};
-
-
-typedef TxFromNodeProcessingResult TxFromNodeProcessingResult_t;
-typedef std::shared_ptr<TxFromNodeProcessingResult_t> PTxFromNodeProcessingResult_t;
-typedef std::vector<TxFromNodeProcessingResult> TxFromNodeProcessingResultList_t;
-typedef std::shared_ptr<TxFromNodeProcessingResultList_t> PTxFromNodeProcessingResultList_t;
+typedef utils::common::ByteArray ByteArray_t;
+typedef std::shared_ptr<ByteArray_t> PByteArray_t;
 
 
 class TransactionService {
@@ -358,7 +319,7 @@ public:
             bool is_compact
     );
 
-    PTxFromNodeProcessingResultList_t process_gateway_transaction_from_node(
+    PByteArray_t process_gateway_transaction_from_node(
             std::string protocol,
             PTxsMessageContents_t txs_message_contents
     );

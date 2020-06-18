@@ -18,8 +18,6 @@ typedef service::TxProcessingResult_t TxProcessingResult_t;
 typedef service::PTxProcessingResult_t PTxProcessingResult_t;
 typedef service::TxFromBdnProcessingResult_t TxFromBdnProcessingResult_t;
 typedef service::PTxFromBdnProcessingResult_t PTxFromBdnProcessingResult_t;
-typedef service::TxFromNodeProcessingResult_t TxFromNodeProcessingResult_t;
-typedef service::PTxFromNodeProcessingResult_t PTxFromNodeProcessingResult_t;
 
 
 static void cleanup_removed_hashes_history(
@@ -310,26 +308,6 @@ void bind_transaction_service(py::module& m) {
 			.def(
 					"get_set_contents",
 					&TxFromBdnProcessingResult_t::get_set_contents,
-					py::return_value_policy::reference
-			);
-
-	py::class_<TxFromNodeProcessingResult_t, PTxFromNodeProcessingResult_t>(m, "TxFromNodeProcessingResult")
-			.def(
-					"get_is_seen",
-					&TxFromNodeProcessingResult_t::get_is_seen,
-					py::return_value_policy::reference
-			).def(
-					"get_tx_hash",
-					&TxFromNodeProcessingResult_t::get_tx_hash,
-					py::return_value_policy::reference
-			)
-			.def(
-					"get_length",
-					&TxFromNodeProcessingResult_t::get_length,
-					py::return_value_policy::reference
-			).def(
-					"get_offset",
-					&TxFromNodeProcessingResult_t::get_offset,
 					py::return_value_policy::reference
 			);
 }

@@ -1,0 +1,19 @@
+FROM alpine
+
+ARG GID=503
+ARG UID=503
+
+RUN if [ $(grep ":${GID}:" /etc/group | wc -l) == 0 ]; then addgroup -S -g ${GID} bxextensions; fi
+
+RUN if [ $(grep ":${UID}:" /etc/passwd | wc -l) == 0 ]; then adduser -u ${UID} -S -g ${GID} bxextensions; fi  && \
+    mkdir -p /app/bxextensions && \
+    chown -R ${UID}:${GID} /app/bxextensions
+
+WORKDIR /app/bxextensions
+COPY docker-entrypoint.sh /usr/local/bin/
+COPY release/ release/
+RUN ls -lR release/
+
+RUN  chown -R ${UID}:${GID} /app/bxextensions
+
+ENTRYPOINT ["/bin/sh", "-c", "cp -r release/ out_release/"]

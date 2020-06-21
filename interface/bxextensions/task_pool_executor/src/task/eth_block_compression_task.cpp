@@ -22,8 +22,5 @@ void bind_eth_block_compression_task(py::module& m) {
 	  .def("block_hash", &EthBlockCompressionTask_t::block_hash)
 	  .def("compressed_block_hash", &EthBlockCompressionTask_t::compressed_block_hash)
 	  .def("txn_count", &EthBlockCompressionTask_t::txn_count)
-	  .def(
-			  "short_ids",
-			  &EthBlockCompressionTask_t::short_ids
-	  );
+	  .def("short_ids", &EthBlockCompressionTask_t::short_ids);
 }

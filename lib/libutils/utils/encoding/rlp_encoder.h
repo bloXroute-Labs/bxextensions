@@ -167,6 +167,7 @@ size_t get_length_prefix_list(
     return get_length_prefix(buffer, value, offset, RlpEncodingType_t::RLP_LIST_ENCODING_TYPE);
 }
 
+
 } // encoding
 } // utils
 

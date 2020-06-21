@@ -13,21 +13,9 @@ void bind_btc_block_cleanup_task(py::module& m) {
                  "initializing",
                  py::arg("minimal_tx_count") = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
             )
-            .def(
-                    "short_ids",
-                    &BtcBlockCleanupTask_t::short_ids
-            )
-            .def(
-                    "txn_count",
-                    &BtcBlockCleanupTask_t::tx_count
-            )
-            .def(
-                    "unknown_tx_hashes",
-                    &BtcBlockCleanupTask_t::unknown_tx_hashes
-            )
-            .def(
-                    "total_content_removed",
-                    &BtcBlockCleanupTask_t::total_content_removed
-            )
+            .def("short_ids", &BtcBlockCleanupTask_t::short_ids)
+            .def("txn_count", &BtcBlockCleanupTask_t::tx_count)
+            .def("unknown_tx_hashes", &BtcBlockCleanupTask_t::unknown_tx_hashes)
+            .def("total_content_removed", &BtcBlockCleanupTask_t::total_content_removed)
             .def("init", &BtcBlockCleanupTask_t::init);
 }

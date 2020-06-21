@@ -2,6 +2,7 @@
 #include <tpe/task/test_task.h>
 #include <tpe/task/w2_task.h>
 #include "src/task/eth_block_compression_task.h"
+#include "src/task/eth_block_decompression_task.h"
 #include "src/task/btc_block_compression_task.h"
 #include "src/task/btc_block_decompression_task.h"
 #include "src/task/ont_block_compression_task.h"
@@ -44,6 +45,7 @@ void bind_tasks(py::module& m) {
     bind_encryption_task(m);
     bind_decryption_task(m);
     bind_eth_block_compression_task(m);
+    bind_eth_block_decompression_task(m);
     bind_btc_block_compression_task(m);
     bind_btc_block_decompression_task(m);
     bind_ont_block_compression_task(m);

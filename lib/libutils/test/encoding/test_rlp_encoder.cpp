@@ -55,7 +55,7 @@ TEST_F(RlpEncoderTest, test_consume_length_prefix_0) {
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_1) {
     uint64_t length = 0;
-    const std::vector<uint8_t> vec = {0x82};
+    const std::vector<uint8_t> vec = {0xc2, 0x80, 0x80};
     array().from_array(vec);
     size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
     ASSERT_EQ(length, 2);

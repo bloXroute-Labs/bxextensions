@@ -76,7 +76,7 @@ class _BlockDecompressionTask(MainTaskBase):
 
     def block_hash(self) -> Sha256: ...
 
-    def tx_count(self) -> int: ...
+    def txn_count(self) -> int: ...
 
     def success(self) -> bool: ...
 
@@ -96,6 +96,10 @@ class BtcBlockDecompressionTask(_BlockDecompressionTask):
 
 
 class EthBlockCompressionTask(_BlockCompressionTask):
+    ...
+
+
+class EthBlockDecompressionTask(_BlockDecompressionTask):
     ...
 
 

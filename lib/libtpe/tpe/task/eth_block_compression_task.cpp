@@ -137,10 +137,7 @@ void EthBlockCompressionTask::_init_sub_tasks(size_t pool_size)
         size_t capacity = ETH_DEFAULT_TX_SIZE * default_count;
         for (size_t i = _sub_tasks.size() ; i < pool_size ; ++i) {
             TaskData task_data;
-            task_data.sub_task = std::make_shared<
-                EthBlockCompressionSubTask>(
-                capacity
-            );
+            task_data.sub_task = std::make_shared<EthBlockCompressionSubTask>(capacity);
             task_data.offsets = std::make_shared<TXOffsets_t>();
             _sub_tasks.push_back(std::move(task_data));
         }
@@ -160,10 +157,7 @@ size_t EthBlockCompressionTask::_dispatch(
 {
     size_t pool_size = sub_pool.size(), prev_idx = 0;
     _init_sub_tasks(pool_size);
-    size_t bulk_size = std::max(
-        (size_t) (ETH_DEFAULT_TX_COUNT / pool_size),
-        std::max(pool_size, _minimal_tx_count)
-    );
+    size_t bulk_size = std::max((size_t) (ETH_DEFAULT_TX_COUNT / pool_size), std::max(pool_size, _minimal_tx_count));
     size_t idx;
     while (offset < txn_end_offset) {
         size_t from = offset, tx_content_offset;

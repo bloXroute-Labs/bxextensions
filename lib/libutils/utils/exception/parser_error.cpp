@@ -1,7 +1,3 @@
-//
-// Created by danielle machpud on 25/05/2020.
-//
-
 #include "utils/exception/parser_error.h"
 
 namespace utils {

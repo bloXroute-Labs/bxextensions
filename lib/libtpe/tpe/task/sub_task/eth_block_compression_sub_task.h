@@ -5,10 +5,9 @@
 
 #include <utils/common/byte_array.h>
 #include <utils/crypto/sha256.h>
-#include <utils/protocols/bitcoin/btc_consts.h>
 
 #include "tpe/task/sub_task/sub_task_base.h"
-#include "tpe/task/btc_task_types.h"
+#include "tpe/task/eth_task_types.h"
 
 
 #ifndef TPE_TASK_SUB_TASK_ETH_BLOCK_COMPRESSION_SUB_TASK_H_
@@ -29,6 +28,7 @@ public:
 
     const utils::common::ByteArray& output_buffer();
     const std::vector<unsigned int>& short_ids();
+    size_t content_size() const;
 
 
 protected:
@@ -41,6 +41,7 @@ private:
     POffests_t _tx_offsets;
     PTransactionService_t _tx_service;
     std::vector<unsigned int> _short_ids;
+    size_t _content_size;
 };
 
 } // task

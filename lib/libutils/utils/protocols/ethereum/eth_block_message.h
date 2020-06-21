@@ -5,8 +5,8 @@
 
 #include "utils/crypto/sha256.h"
 
-#ifndef UTILS_PROTOCOLS_ETHEREUM_ETH_BLOCK_MESSAGE_H_
-#define UTILS_PROTOCOLS_ETHEREUM_ETH_BLOCK_MESSAGE_H_
+#ifndef UTILS_PROTOCOLS_ethereum_ETH_BLOCK_MESSAGE_H_
+#define UTILS_PROTOCOLS_ethereum_ETH_BLOCK_MESSAGE_H_
 
 namespace utils {
 namespace protocols {
@@ -22,15 +22,13 @@ public:
     size_t get_next_tx_offset(size_t offset, size_t& from);
     size_t txn_end_offset() const;
     size_t txn_offset() const;
-    const crypto::Sha256& block_hash() const;
-    const crypto::Sha256& prev_block_hash() const;
+    crypto::Sha256 block_hash() const;
+    crypto::Sha256 prev_block_hash() const;
 
     void parse();
 
     const common::BufferView& block_header() const;
     const common::BufferView& block_trailer() const;
-    size_t list_of_txs_prefix_bytes(const common::BufferView& out_buffer, size_t offset) const;
-    size_t compact_block_msg_prefix(const common::BufferView& out_buffer, size_t offset) const;
 
 private:
     common::BufferView _buffer, _block_header, _block_trailer;
@@ -42,4 +40,4 @@ private:
 } // protocols
 } // utils
 
-#endif /* UTILS_PROTOCOLS_ETHEREUM_ETH_BLOCK_MESSAGE_H_ */
+#endif /* UTILS_PROTOCOLS_ethereum_ETH_BLOCK_MESSAGE_H_ */

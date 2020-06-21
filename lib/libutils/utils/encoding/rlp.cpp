@@ -49,7 +49,7 @@ Rlp& Rlp::operator =(Rlp&& rhs) {
 
 Rlp Rlp::get_next_rlp_string() {
     uint64_t length;
-    size_t next_offset = get_length_prefix(_rlp, length, _offset);
+    size_t next_offset = consume_length_prefix(_rlp, length, _offset);
     size_t relative_offset = next_offset - _offset;
     BufferView_t rlp_string(_rlp, relative_offset + length, _offset);
     _offset = next_offset + length;
@@ -59,11 +59,11 @@ Rlp Rlp::get_next_rlp_string() {
 RlpList Rlp::get_next_rlp_list() {
     RlpList rlp_list;
     uint64_t list_length;
-    size_t offset = get_length_prefix(_rlp, list_length, _offset);
+    size_t offset = consume_length_prefix(_rlp, list_length, _offset);
     _offset = offset + list_length;
     while (offset < _offset) {
         uint64_t length;
-        size_t next_offset = get_length_prefix(_rlp, length, offset);
+        size_t next_offset = consume_length_prefix(_rlp, length, offset);
         size_t relative_offset = next_offset - offset;
         BufferView_t rlp_string(_rlp, relative_offset + length, offset);
         rlp_list.emplace_back(std::move(rlp_string), length, relative_offset);

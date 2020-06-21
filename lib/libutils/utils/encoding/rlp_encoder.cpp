@@ -1,4 +1,5 @@
 #include "utils/encoding/rlp_encoder.h"
+
 namespace utils {
 namespace encoding {
 

@@ -95,6 +95,10 @@ class BtcBlockDecompressionTask(_BlockDecompressionTask):
     ...
 
 
+class EthBlockCompressionTask(_BlockCompressionTask):
+    ...
+
+
 class BtcCompactBlockMappingTask(MainTaskBase):
     def __init__(self, capacity: int): ...
 

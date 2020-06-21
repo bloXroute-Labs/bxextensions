@@ -1,7 +1,3 @@
-//
-// Created by danielle machpud on 25/05/2020.
-//
-
 #include "utils/exception/error_base.h"
 
 #ifndef UTILS_EXCEPTION_PARSER_ERROR_H

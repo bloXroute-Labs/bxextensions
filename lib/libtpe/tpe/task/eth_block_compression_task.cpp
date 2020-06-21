@@ -1,22 +1,22 @@
 #include <utility>
+#include <algorithm>
 
 #include <utils/common/buffer_helper.h>
 #include <utils/crypto/hash_helper.h>
-#include <algorithm>
-
+#include <utils/encoding/rlp_encoder.h>
 #include "tpe/task/eth_block_compression_task.h"
 
 namespace task {
 
 EthBlockCompressionTask::EthBlockCompressionTask(
-        size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/,
-        size_t minimal_tx_count/* = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
-
+        size_t capacity/* = ETH_DEFAULT_BLOCK_SIZE*/,
+        size_t minimal_tx_count/* = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ):
         MainTaskBase(),
         _tx_service(nullptr),
         _minimal_tx_count(minimal_tx_count),
-        _txn_count(0)
+        _txn_count(0),
+        _content_size(0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -40,6 +40,7 @@ void EthBlockCompressionTask::init(
     _short_ids.clear();
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _txn_count = 0;
+    _content_size = 0;
 }
 
 PByteArray_t
@@ -70,6 +71,10 @@ size_t EthBlockCompressionTask::txn_count() {
     return _txn_count;
 }
 
+size_t EthBlockCompressionTask::content_size() const {
+    return _content_size;
+}
+
 const std::vector<unsigned int>&
 EthBlockCompressionTask::short_ids() {
     assert_execution();
@@ -97,60 +102,44 @@ void EthBlockCompressionTask::cleanup() {
 }
 
 void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
-    utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
-    _prev_block_hash = std::make_shared<Sha256_t>(
-            std::move(msg.prev_block_hash())
-    );
-    _block_hash = std::make_shared<Sha256_t>(
-            std::move(msg.block_hash())
-    );
-    uint64_t tx_count = 0;
-    size_t offset = msg.get_tx_count(tx_count);
-    _txn_count = tx_count;
-    size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
-    size_t output_offset = sizeof(uint64_t);
-    output_offset = _output_buffer->copy_from_buffer(
-            *_block_buffer,
-            output_offset,
-            0,
-            offset
-    );
+    utils::protocols::ethereum::EthBlockMessage msg(*_block_buffer);
+    msg.parse();
+    _block_header = BlockBuffer_t(msg.block_header());
+    _block_trailer = BlockBuffer_t(msg.block_trailer());
+    _prev_block_hash = std::make_shared<Sha256_t>(std::move(msg.prev_block_hash()));
+    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_hash()));
+
+    size_t txn_offset = msg.txn_offset();
+    size_t txn_end_offset = msg.txn_end_offset();
+    size_t last_idx = _dispatch(txn_end_offset, msg, txn_offset, sub_pool);
     for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
         TaskData& data = _sub_tasks.at(idx);
         data.sub_task->wait();
-        output_offset = _on_sub_task_completed(*data.sub_task);
+        _on_sub_task_completed(*data.sub_task);
     }
-    _set_output_buffer(output_offset);
-    _compressed_block_hash = std::make_shared<Sha256_t>(std::move(
+    _set_output_buffer(last_idx);
+
+    _compressed_block_hash = std::make_shared<Sha256_t>(
+        std::move(
             utils::crypto::double_sha256(
-                    _output_buffer->array(),
-                    0,
-                    _output_buffer->size()
+                _output_buffer->array(),
+                0,
+                _output_buffer->size()
             )
-    ));
+        )
+    );
 }
 
-void EthBlockCompressionTask::_init_sub_tasks(
-        size_t pool_size,
-        size_t tx_count
-)
+void EthBlockCompressionTask::_init_sub_tasks(size_t pool_size)
 {
     if (_sub_tasks.size() < pool_size) {
-        size_t default_count = BTC_DEFAULT_TX_COUNT;
-        size_t capacity = std::max(
-                default_count,
-                (size_t) (tx_count / pool_size)
-        ) * BTC_DEFAULT_TX_SIZE;
-        for (
-                size_t i = _sub_tasks.size() ;
-                i < pool_size ;
-                ++i
-                )
-        {
+        size_t default_count = ETH_DEFAULT_TX_COUNT;
+        size_t capacity = ETH_DEFAULT_TX_SIZE * default_count;
+        for (size_t i = _sub_tasks.size() ; i < pool_size ; ++i) {
             TaskData task_data;
             task_data.sub_task = std::make_shared<
-                    EthBlockCompressionSubTask>(
-                    capacity
+                EthBlockCompressionSubTask>(
+                capacity
             );
             task_data.offsets = std::make_shared<TXOffsets_t>();
             _sub_tasks.push_back(std::move(task_data));
@@ -163,74 +152,89 @@ void EthBlockCompressionTask::_init_sub_tasks(
 }
 
 size_t EthBlockCompressionTask::_dispatch(
-        size_t tx_count,
-        utils::protocols::bitcoin::BtcBlockMessage& msg,
+        size_t txn_end_offset,
+        utils::protocols::ethereum::EthBlockMessage& msg,
         size_t offset,
         SubPool_t& sub_pool
 )
 {
     size_t pool_size = sub_pool.size(), prev_idx = 0;
-    _init_sub_tasks(pool_size, tx_count);
+    _init_sub_tasks(pool_size);
     size_t bulk_size = std::max(
-            (size_t) (tx_count / pool_size),
-            std::max(pool_size, _minimal_tx_count)
+        (size_t) (ETH_DEFAULT_TX_COUNT / pool_size),
+        std::max(pool_size, _minimal_tx_count)
     );
-    size_t idx = 0;
-    for (int count = 0 ; count < tx_count ; ++count) {
-        size_t from = offset;
-        idx = std::min((size_t) (count / bulk_size), pool_size - 1);
-        size_t witness_offset;
-        offset = msg.get_next_tx_offset(offset, witness_offset);
-        _sub_tasks[idx].offsets->push_back(
-                std::make_tuple(from, witness_offset, offset));
+    size_t idx;
+    while (offset < txn_end_offset) {
+        size_t from = offset, tx_content_offset;
+        idx = std::min((size_t) (_txn_count / bulk_size), pool_size - 1);
+        offset = msg.get_next_tx_offset(offset, tx_content_offset);
+        _sub_tasks[idx].offsets->push_back(std::make_tuple(from, tx_content_offset, offset));
         if(idx > prev_idx) {
             _enqueue_task(prev_idx, sub_pool);
         }
         prev_idx = idx;
+        ++_txn_count;
     }
     _enqueue_task(prev_idx, sub_pool);
     return prev_idx;
 }
 
-size_t EthBlockCompressionTask::_on_sub_task_completed(
+void EthBlockCompressionTask::_on_sub_task_completed(
         EthBlockCompressionSubTask& tsk
 )
 {
     auto& output_buffer = tsk.output_buffer();
     auto& short_ids = tsk.short_ids();
-    _output_buffer->operator +=(output_buffer);
     _short_ids.reserve(_short_ids.size() + short_ids.size());
-    _short_ids.insert(
-            _short_ids.end(),
-            short_ids.begin(),
-            short_ids.end()
-    );
-    return _output_buffer->size();
+    _short_ids.insert(_short_ids.end(), short_ids.begin(), short_ids.end());
+    _content_size += tsk.content_size();
 }
 
-void EthBlockCompressionTask::_set_output_buffer(
-        size_t output_offset
-)
+void EthBlockCompressionTask::_set_output_buffer(size_t last_idx)
 {
+    size_t full_content_size = _content_size;
+
+    ByteArray_t list_of_txs_prefix_buffer = ByteArray_t();
+    utils::encoding::get_length_prefix_list(list_of_txs_prefix_buffer, full_content_size, 0);
+
+    full_content_size += (list_of_txs_prefix_buffer.size() + _block_header.size() + _block_trailer.size());
+    ByteArray_t compact_block_msg_prefix_buf = ByteArray_t();
+    utils::encoding::get_length_prefix_list(compact_block_msg_prefix_buf, full_content_size, 0);
+
+    full_content_size += compact_block_msg_prefix_buf.size() + sizeof(uint64_t);
+
+    // start setting output buffer
     utils::common::set_little_endian_value(
-            *_output_buffer,
-            (uint64_t)output_offset,
-            0
+        *_output_buffer, (uint64_t)full_content_size,0
     );
+
+    _output_buffer->operator +=(compact_block_msg_prefix_buf);
+    _output_buffer->operator +=(_block_header);
+    _output_buffer->operator +=(list_of_txs_prefix_buffer);
+
+    for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
+        TaskData& data = _sub_tasks.at(idx);
+        _output_buffer->operator +=((*data.sub_task).output_buffer());
+    }
+
+    if (_block_trailer.size() > 0) {
+       _output_buffer->operator +=(_block_trailer);
+    }
+
     const unsigned int short_ids_size = _short_ids.size();
-    output_offset = utils::common::set_little_endian_value(
-            *_output_buffer,
-            short_ids_size,
-            output_offset
+
+    size_t output_offset = utils::common::set_little_endian_value(
+        *_output_buffer, short_ids_size, full_content_size
     );
+
     if (short_ids_size > 0) {
-        const size_t short_ids_byte_size  =
-                short_ids_size * sizeof(unsigned int);
+        const size_t short_ids_byte_size = short_ids_size * sizeof(unsigned int);
         _output_buffer->resize(output_offset + short_ids_byte_size);
         memcpy(
-                &_output_buffer->at(output_offset),
-                (unsigned char*) &_short_ids.at(0),
-                short_ids_byte_size
+            &_output_buffer->at(output_offset),
+            (unsigned char*) &_short_ids.at(0),
+            short_ids_byte_size
         );
     }
     _output_buffer->set_output();
@@ -243,9 +247,9 @@ void EthBlockCompressionTask::_enqueue_task(
 {
     TaskData& data = _sub_tasks[task_idx];
     data.sub_task->init(
-            _tx_service,
-            _block_buffer.get(),
-            data.offsets
+        _tx_service,
+        _block_buffer.get(),
+        data.offsets
     );
     sub_pool.enqueue_task(data.sub_task);
 }

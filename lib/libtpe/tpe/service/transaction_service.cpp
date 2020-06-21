@@ -399,6 +399,7 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
         bool ignore_seen_short_id = false;
         bool assigned_short_id = false;
         bool set_content = false;
+        SetTransactionContentsResult_t set_contents_result;
 
         bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
         bool existing_contents = has_transaction_contents(transaction_hash);
@@ -410,7 +411,8 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
                 ignore_seen_short_id,
                 assigned_short_id,
                 existing_contents,
-                set_content
+                set_content,
+                std::move(set_contents_result)
             );
         }
 
@@ -420,7 +422,8 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
                 true,
                 assigned_short_id,
                 existing_contents,
-                set_content
+                set_content,
+                std::move(set_contents_result)
             );
         }
 
@@ -430,16 +433,17 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
         }
 
         if (not is_compact and not existing_contents) {
-            set_transaction_contents(transaction_hash, std::move(transaction_contents));
+            set_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
             set_content = true;
         }
 
         return TxFromBdnProcessingResult_t(
-            ignore_seen_contents,
-            ignore_seen_short_id,
-            assigned_short_id,
-            existing_contents,
-            set_content
+                ignore_seen_contents,
+                ignore_seen_short_id,
+                assigned_short_id,
+                existing_contents,
+                set_content,
+                std::move(set_contents_result)
         );
 }
 

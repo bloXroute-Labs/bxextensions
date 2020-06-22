@@ -58,6 +58,7 @@ ENV PYTHONPATH=/app/bxextensions
 ENV PYTHONS="/usr/bin/python3.7 /usr/bin/python3.8 python3"
 
 RUN cd /app/bxextensions && \
+    /usr/bin/python3.6 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
     /usr/bin/python3.7 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
     /usr/bin/python3.8 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
     mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/

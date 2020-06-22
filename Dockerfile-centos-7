@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:7 as builder
 
 ARG GID=503
 ARG UID=503
@@ -63,7 +63,6 @@ COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
-COPY docker-entrypoint.sh /usr/local/bin/
 
 WORKDIR /app/bxextensions/lib/third_party/libsodium-stable
 RUN autoreconf --force --install
@@ -74,4 +73,11 @@ RUN chown -R ${UID}:${GID} /app/bxextensions
 ENV PYTHONPATH=/app/bxextensions
 ENV CXX=/opt/rh/devtoolset-7/root/usr/bin/g++ CC=/opt/rh/devtoolset-7/root/usr/bin/gcc
 ENV PYTHONS="/usr/local/bin/python3.7 /usr/local/bin/python3.8 python3"
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+RUN cd /app/bxextensions && \
+    /usr/local/bin/python3.7 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+    /usr/local/bin/python3.8 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+    mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/
+
+FROM scratch AS export-stage
+COPY --from=builder /app/bxextensions/release/lib/ /

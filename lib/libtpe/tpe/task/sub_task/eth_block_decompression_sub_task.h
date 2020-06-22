@@ -21,7 +21,7 @@ class EthBlockDecompressionSubTask : public SubTaskBase {
 
 struct TaskData {
     TaskData(): short_ids_offset(0), short_ids_len(0), output_offset(0) {
-        offsets = std::make_shared<TXOffsets_t>();
+        offsets = std::make_shared<EthTXOffsets_t>();
     }
 
     void clear() {
@@ -31,7 +31,7 @@ struct TaskData {
         offsets->clear();
     }
 
-    POffests_t offsets;
+    PEthOffests_t offsets;
     size_t short_ids_offset;
     size_t short_ids_len;
     size_t output_offset;
@@ -43,7 +43,7 @@ public:
     void init(
         PTransactionService_t tx_service,
         const BlockBuffer_t* block_buffer,
-        POffests_t tx_offsets,
+        PEthOffests_t tx_offsets,
         const ShortIDs_t* short_ids
     );
 
@@ -62,7 +62,7 @@ private:
 
     utils::common::ByteArray _output_buffer;
     const BlockBuffer_t* _block_buffer;
-    POffests_t _tx_offsets;
+    PEthOffests_t _tx_offsets;
     PTransactionService_t _tx_service;
     const ShortIDs_t* _short_ids;
     size_t _content_size;

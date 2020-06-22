@@ -23,7 +23,7 @@ public:
     void init(
             PTransactionService_t tx_service,
             const BlockBuffer_t* block_buffer,
-            POffests_t tx_offsets
+            PEthOffests_t tx_offsets
     );
 
     const utils::common::ByteArray& output_buffer();
@@ -38,7 +38,7 @@ private:
 
     utils::common::ByteArray _output_buffer;
     const BlockBuffer_t* _block_buffer;
-    POffests_t _tx_offsets;
+    PEthOffests_t _tx_offsets;
     PTransactionService_t _tx_service;
     std::vector<unsigned int> _short_ids;
     size_t _content_size;

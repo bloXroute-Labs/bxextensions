@@ -138,7 +138,7 @@ void EthBlockCompressionTask::_init_sub_tasks(size_t pool_size)
         for (size_t i = _sub_tasks.size() ; i < pool_size ; ++i) {
             TaskData task_data;
             task_data.sub_task = std::make_shared<EthBlockCompressionSubTask>(capacity);
-            task_data.offsets = std::make_shared<TXOffsets_t>();
+            task_data.offsets = std::make_shared<EthTXOffsets_t>();
             _sub_tasks.push_back(std::move(task_data));
         }
     } else {
@@ -163,7 +163,7 @@ size_t EthBlockCompressionTask::_dispatch(
         size_t from = offset, tx_content_offset;
         idx = std::min((size_t) (_txn_count / bulk_size), pool_size - 1);
         offset = msg.get_next_tx_offset(offset, tx_content_offset);
-        _sub_tasks[idx].offsets->push_back(std::make_tuple(from, tx_content_offset, offset));
+        _sub_tasks[idx].offsets->push_back(std::make_tuple(from, offset));
         if(idx > prev_idx) {
             _enqueue_task(prev_idx, sub_pool);
         }

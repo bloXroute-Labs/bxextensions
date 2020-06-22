@@ -84,7 +84,7 @@ size_t EthBlockDecompressionTask::get_task_byte_size() const {
     size_t sub_tasks_size = 0;
     for (const auto& p_task: _sub_tasks) {
         sub_tasks_size += (
-            sizeof(p_task) + sizeof(EthBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
+            sizeof(p_task) + sizeof(EthBlockDecompressionSubTask) + sizeof(EthTXOffsets_t) +
             p_task->task_data().offsets->size() * (2 * sizeof(size_t))
         );
     }
@@ -172,7 +172,7 @@ size_t EthBlockDecompressionTask::_dispatch(
             }
         }
 
-        tdata.offsets->push_back(std::make_tuple(from, offset, 0));
+        tdata.offsets->push_back(std::make_tuple(from, 0));
         if(idx > prev_idx) {
             tdata.short_ids_offset = short_ids_offset;
             _enqueue_task(prev_idx, sub_pool);
@@ -205,14 +205,6 @@ void EthBlockDecompressionTask::_set_output_buffer(size_t last_idx)
         ByteArray_t msg_len_prefix = ByteArray_t();
         utils::encoding::get_length_prefix_list(msg_len_prefix, full_content_size, 0);
 
-        std::cout <<
-                  "full_content_size: " << full_content_size <<
-                  ", list_of_txs_prefix_buffer.size() " << list_of_txs_prefix_buffer.size() <<
-                  ", _block_header.size(): " << _block_header.size() <<
-                  ", _block_trailer.size(): " << _block_trailer.size() <<
-                  ", msg_len_prefix size: " << msg_len_prefix.size() <<
-                  std::endl;
-
         // start setting output buffer
         _output_buffer->operator +=(msg_len_prefix);
         _output_buffer->operator +=(_block_header);
@@ -220,7 +212,6 @@ void EthBlockDecompressionTask::_set_output_buffer(size_t last_idx)
 
         for (auto& task: _sub_tasks) {
             _output_buffer->operator+=(task->output_buffer());
-            std::cout << "task size: " << task->output_buffer().size() << std::endl;
         }
 
 

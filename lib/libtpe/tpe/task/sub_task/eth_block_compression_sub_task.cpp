@@ -24,7 +24,7 @@ EthBlockCompressionSubTask::EthBlockCompressionSubTask(
 void EthBlockCompressionSubTask::init(
     PTransactionService_t tx_service,
     const BlockBuffer_t* block_buffer,
-    POffests_t tx_offsets
+    PEthOffests_t tx_offsets
 )
 {
     _tx_service = tx_service;
@@ -57,12 +57,14 @@ void EthBlockCompressionSubTask::_execute()  {
 
     for (auto& offsets : *_tx_offsets) {
         size_t from = std::get<0>(offsets);
-        size_t tx_content_offset = std::get<1>(offsets);
-        size_t offset = std::get<2>(offsets);
+        size_t offset = std::get<1>(offsets);
+
+        uint64_t tx_item_len;
+        size_t tx_item_offset = utils::encoding::consume_length_prefix(*_block_buffer, tx_item_len, from);
 
         utils::crypto::Sha256 tx_hash = utils::crypto::Sha256(
             utils::crypto::keccak_sha3(
-                (uint8_t*)_block_buffer->char_array(), from, offset - from
+                (uint8_t*)_block_buffer->char_array(), from, tx_item_offset + tx_item_len - from
             )
         );
 

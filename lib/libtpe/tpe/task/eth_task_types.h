@@ -22,8 +22,8 @@ namespace task {
     typedef service::Sha256ToShortIDsMap_t Sha256ToShortIDsMap_t;
     typedef service::ShortIDToSha256Map_t ShortIDToSha256Map_t;
     typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
-    typedef std::list<std::tuple<size_t, size_t, size_t>> TXOffsets_t;
-    typedef std::shared_ptr<TXOffsets_t> POffests_t;
+    typedef std::list<std::tuple<size_t, size_t>> EthTXOffsets_t;
+    typedef std::shared_ptr<EthTXOffsets_t> PEthOffests_t;
     typedef service::UnknownTxHashes_t UnknownTxHashes_t;
     typedef service::ShortIDs_t UnknownTxSIDs_t;
     typedef service::Sha256_t Sha256_t;

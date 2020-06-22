@@ -28,7 +28,7 @@ class EthBlockCompressionTask : public MainTaskBase {
         }
 
         PSubTask_t sub_task;
-        std::shared_ptr<TXOffsets_t> offsets;
+        std::shared_ptr<EthTXOffsets_t> offsets;
     };
 
     typedef std::vector<TaskData> SubTasksData_t;

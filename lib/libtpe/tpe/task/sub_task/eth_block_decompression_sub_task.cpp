@@ -18,7 +18,7 @@ EthBlockDecompressionSubTask::EthBlockDecompressionSubTask(size_t capacity):
 void EthBlockDecompressionSubTask::init(
     PTransactionService_t tx_service,
     const BlockBuffer_t* block_buffer,
-    POffests_t tx_offsets,
+    PEthOffests_t tx_offsets,
     const ShortIDs_t* short_ids
 )
 {

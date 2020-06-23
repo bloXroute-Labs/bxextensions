@@ -7,6 +7,7 @@
 # pull - pull specific TAG or commit hash from S3
 # copy - copy prebuilt extensions release TAG into release folder
 # push - push prebuilt extensions release TAG into S3
+# push_and_tag - copy current release folder to S3 (use by set release)
 #
 # TAG - use to specify a specific TAG, DEFAULT current commit hash
 
@@ -66,6 +67,11 @@ fi
 if [ "${ACTION}" == "push" ] || [ "${ACTION}" == "deploy" ]; then
   aws s3 cp release_tag/"$TAG" s3://files.bloxroute.com/bxextensions/"$TAG" --recursive
 fi
+
+if [ "${ACTION}" == "push_as_tag" ] ; then
+  aws s3 cp release/ s3://files.bloxroute.com/bxextensions/"$TAG" --recursive
+fi
+
 
 if [ "${ACTION}" == "copy" ] || [ "${ACTION}" == "deploy" ] || [ "${ACTION}" == "build" ]; then
   rm -rf release

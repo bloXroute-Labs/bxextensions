@@ -74,7 +74,7 @@ ByteArray& ByteArray::operator +=(const BufferView& from) {
     size_t origin_length = _length;
     size_t total_length = _length + from.size();
     resize(total_length);
-    memcpy(byte_array() + origin_length, &from.at(0), total_length);
+    memcpy(byte_array() + origin_length, &from.at(0), from.size());
     return *this;
 }
 

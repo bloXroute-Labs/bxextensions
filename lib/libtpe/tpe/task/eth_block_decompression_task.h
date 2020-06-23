@@ -52,7 +52,6 @@ private:
 	void _init_sub_tasks(size_t pool_size);
 	size_t _dispatch(size_t txn_end_offset, BxEthBlockMessage_t& msg, size_t offset, SubPool_t& sub_pool);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
-    void _on_sub_task_completed(EthBlockDecompressionSubTask& tsk);
     void _set_output_buffer(size_t last_idx);
 
     PBlockBuffer_t _block_buffer;

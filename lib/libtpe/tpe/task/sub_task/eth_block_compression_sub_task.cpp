@@ -11,13 +11,14 @@ namespace task {
 typedef utils::common::ByteArray ByteArray_t;
 
 EthBlockCompressionSubTask::EthBlockCompressionSubTask(
-        size_t capacity):
-        SubTaskBase(),
-        _tx_service(nullptr),
-        _output_buffer(capacity),
-        _tx_offsets(nullptr),
-        _block_buffer(nullptr),
-        _content_size(0)
+    size_t capacity
+):
+    SubTaskBase(),
+    _tx_service(nullptr),
+    _output_buffer(capacity),
+    _tx_offsets(nullptr),
+    _block_buffer(nullptr),
+    _content_size(0)
 {
 }
 

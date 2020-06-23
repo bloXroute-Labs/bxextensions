@@ -240,11 +240,7 @@ void EthBlockCompressionTask::_enqueue_task(
 )
 {
     TaskData& data = _sub_tasks[task_idx];
-    data.sub_task->init(
-        _tx_service,
-        _block_buffer.get(),
-        data.offsets
-    );
+    data.sub_task->init(_tx_service, _block_buffer.get(), data.offsets);
     sub_pool.enqueue_task(data.sub_task);
 }
 

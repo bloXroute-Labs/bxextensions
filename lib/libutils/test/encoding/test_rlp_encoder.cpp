@@ -25,9 +25,12 @@ TEST_F(RlpEncoderTest, test_encode_int_byte) {
 
 TEST_F(RlpEncoderTest, test_encode_int_long) {
     uint64_t value = 1000000;
-    int output_value = 0;
+    uint64_t output_value = 0;
+    size_t starting_offset = 1;
     size_t offset = utils::encoding::rlp_encode(array(), value, 0);
-    size_t output_offset = utils::common::get_big_endian_value<int>(array(), output_value, 1);
+    size_t output_offset = utils::encoding::get_big_endian_rlp_value(
+        array(), output_value, starting_offset, offset - starting_offset
+    );
     EXPECT_EQ(value, output_value);
     EXPECT_EQ(offset, output_offset);
 }
@@ -36,8 +39,11 @@ TEST_F(RlpEncoderTest, test_encode_int_long) {
 TEST_F(RlpEncoderTest, test_encode_int_long_long) {
     uint64_t value = 100000000000;
     uint64_t output_value = 0;
+    size_t starting_offset = 1;
     size_t offset = utils::encoding::rlp_encode(array(), value, 0);
-    size_t output_offset = utils::common::get_big_endian_value<uint64_t>(array(), output_value, 1);
+    size_t output_offset = utils::encoding::get_big_endian_rlp_value(
+            array(), output_value, starting_offset, offset - starting_offset
+    );
     EXPECT_EQ(value, output_value);
     EXPECT_EQ(offset, output_offset);
 }
@@ -140,7 +146,7 @@ TEST_F(RlpEncoderTest, test_rlp_decode_1M) {
     utils::encoding::rlp_encode(array(), value, 0);
     size_t offset = utils::encoding::rlp_decode(array(), output_value, 0);
     ASSERT_EQ(output_value, 1000000);
-    ASSERT_EQ(offset, 5);
+    ASSERT_EQ(offset, 4);
 }
 
 TEST_F(RlpEncoderTest, test_get_length_prefix_str_1) {

@@ -101,11 +101,6 @@ void EthBlockDecompressionTask::cleanup() {
     _tx_service = nullptr;
 }
 
-void EthBlockDecompressionTask::_on_sub_task_completed(EthBlockDecompressionSubTask& tsk)
-{
-//    _content_size += tsk.content_size();
-}
-
 void EthBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
     BxEthBlockMessage_t msg(*_block_buffer);
     msg.parse();
@@ -121,8 +116,8 @@ void EthBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
     size_t txn_offset = msg.txn_offset();
     size_t txn_end_offset = msg.txn_end_offset();
     size_t last_idx = _dispatch(txn_end_offset, msg, txn_offset, sub_pool);
-    for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
-        auto& task = _sub_tasks[idx];
+
+    for (auto& task: _sub_tasks) {
         task->wait();
         _content_size += task->content_size();
     }
@@ -181,6 +176,8 @@ size_t EthBlockDecompressionTask::_dispatch(
         prev_idx = idx;
         ++_txn_count;
     }
+
+    _sub_tasks[prev_idx]->task_data().short_ids_offset = short_ids_offset;
     _enqueue_task(prev_idx, sub_pool);
     return prev_idx;
 }
@@ -205,6 +202,8 @@ void EthBlockDecompressionTask::_set_output_buffer(size_t last_idx)
         ByteArray_t msg_len_prefix = ByteArray_t();
         utils::encoding::get_length_prefix_list(msg_len_prefix, full_content_size, 0);
 
+        _output_buffer->reserve(full_content_size + msg_len_prefix.size());
+
         // start setting output buffer
         _output_buffer->operator +=(msg_len_prefix);
         _output_buffer->operator +=(_block_header);
@@ -213,7 +212,6 @@ void EthBlockDecompressionTask::_set_output_buffer(size_t last_idx)
         for (auto& task: _sub_tasks) {
             _output_buffer->operator+=(task->output_buffer());
         }
-
 
         if (_block_trailer.size() > 0) {
             _output_buffer->operator+=(_block_trailer);

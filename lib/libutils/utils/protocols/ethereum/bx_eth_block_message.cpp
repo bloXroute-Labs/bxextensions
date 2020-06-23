@@ -1,5 +1,6 @@
 #include "utils/protocols/ethereum/bx_eth_block_message.h"
-#include "utils/common/buffer_helper.h"
+#include "utils/protocols/ethereum/eth_consts.h"
+#include <utils/common/buffer_helper.h>
 #include <utils/common/string_helper.h>
 #include <utils/encoding/rlp_encoder.h>
 #include <utils/crypto/keccak.h>
@@ -41,7 +42,7 @@ size_t BxEthBlockMessage::get_next_tx_offset(
 {
     uint64_t len;
     from = encoding::consume_length_prefix(_buffer, len, offset);
-    is_short = _buffer[offset] == 0x80;
+    is_short = _buffer[from] == ETH_SHORT_ID_INDICATOR;
     return from + len;
 }
 
@@ -94,9 +95,7 @@ void BxEthBlockMessage::deserialize_short_ids(
     size_t offset = _short_ids_offset;
     unsigned int short_ids_count = 0;
     offset = utils::common::get_little_endian_value<uint32_t>(
-            _buffer,
-            short_ids_count,
-            offset
+        _buffer, short_ids_count, offset
     );
     if (offset + (sizeof(uint32_t) * short_ids_count) > _buffer.size()) {
         std::string error = utils::common::concatenate(
@@ -110,9 +109,7 @@ void BxEthBlockMessage::deserialize_short_ids(
     for (uint32_t idx = 0; idx < short_ids_count; ++idx) {
         uint32_t short_id = 0;
         offset = utils::common::get_little_endian_value<uint32_t>(
-                _buffer,
-                short_id,
-                offset
+            _buffer, short_id, offset
         );
         short_ids.push_back(short_id);
     }

@@ -96,7 +96,7 @@ class BtcBlockDecompressionTask(_BlockDecompressionTask):
 
 
 class EthBlockCompressionTask(_BlockCompressionTask):
-    ...
+    def starting_offset(self) -> int:...
 
 
 class EthBlockDecompressionTask(_BlockDecompressionTask):

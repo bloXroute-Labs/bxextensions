@@ -33,9 +33,9 @@ EthBlockMessage& EthBlockMessage::operator =(EthBlockMessage&& rhs) noexcept {
     return *this;
 }
 
-size_t EthBlockMessage::get_next_tx_offset(size_t offset, size_t& from) {
+size_t EthBlockMessage::get_next_tx_offset(size_t offset) {
     uint64_t len;
-    from = encoding::consume_length_prefix(_buffer, len, offset);
+    size_t from = encoding::consume_length_prefix(_buffer, len, offset);
     return from + len;
 }
 

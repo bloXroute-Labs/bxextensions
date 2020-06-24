@@ -164,26 +164,26 @@ void ByteArray::from_char_array(const char *src, size_t length,
 void ByteArray::from_array(const std::vector<uint8_t>& src,
 		size_t initial_position/* = 0*/,
 		size_t length/* = 0*/) {
-  if (length == 0) {
-	  length = src.size();
-  }
-  if (length + initial_position > _capacity) {
-      reserve(length + initial_position);
-  }
+    if (length == 0) {
+        length = src.size();
+    }
+    if (length + initial_position > _capacity) {
+        reserve(length + initial_position);
+    }
 
-  clear();
-  _length = length + initial_position;
-  memcpy(&at(initial_position), &src[0], length);
+    clear();
+    _length = length + initial_position;
+    memcpy(&at(initial_position), &src[0], length);
 }
 
 void ByteArray::reset() {
-  resize(0);
-  clear();
+    resize(0);
+    clear();
 }
 
 void ByteArray::resize(size_t length) {
-  reserve(length);
-  _length = length;
+    reserve(length);
+    _length = length;
 }
 
 void ByteArray::clear() {

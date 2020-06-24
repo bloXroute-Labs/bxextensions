@@ -19,7 +19,7 @@ public:
 
     EthBlockMessage& operator =(EthBlockMessage&&) noexcept;
 
-    size_t get_next_tx_offset(size_t offset, size_t& from);
+    size_t get_next_tx_offset(size_t offset);
     size_t txn_end_offset() const;
     size_t txn_offset() const;
     crypto::Sha256 block_hash() const;

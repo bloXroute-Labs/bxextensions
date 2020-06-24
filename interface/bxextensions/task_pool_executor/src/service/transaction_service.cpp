@@ -305,5 +305,9 @@ void bind_transaction_service(py::module& m) {
 					"get_set_contents",
 					&TransactionFromBdnGatewayProcessingResult_t::get_set_contents,
 					py::return_value_policy::reference
-			);
+			).def(
+                    "get_set_contents_result",
+                    &TransactionFromBdnGatewayProcessingResult_t::get_set_contents_result,
+                    py::return_value_policy::reference
+            );
 }

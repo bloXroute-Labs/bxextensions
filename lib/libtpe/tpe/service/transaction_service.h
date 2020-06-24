@@ -179,12 +179,14 @@ public:
         bool existing_short_id,
         bool assigned_short_id,
         bool existing_contents,
-        bool set_contents
+        bool set_contents,
+        SetTransactionContentsResult_t set_contents_result
     ) : _ignore_seen(ignore_seen),
         _existing_short_id(existing_short_id),
         _assigned_short_id(assigned_short_id),
         _existing_contents(existing_contents),
-        _set_contents(set_contents) {}
+        _set_contents(set_contents),
+        _set_contents_result(set_contents_result) {}
 
     TransactionFromBdnGatewayProcessingResult(
         bool ignore_seen
@@ -192,7 +194,8 @@ public:
         _existing_short_id(),
         _assigned_short_id(),
         _existing_contents(),
-        _set_contents() {}
+        _set_contents(),
+        _set_contents_result() {}
 
     bool get_ignore_seen() {
         return _ignore_seen;
@@ -214,12 +217,17 @@ public:
         return _set_contents;
     }
 
+    SetTransactionContentsResult_t get_set_contents_result() {
+        return _set_contents_result;
+    }
+
 private:
     bool _ignore_seen;
     bool _existing_short_id;
     bool _assigned_short_id;
     bool _existing_contents;
     bool _set_contents;
+    SetTransactionContentsResult_t _set_contents_result;
 };
 
 typedef TransactionFromBdnGatewayProcessingResult TransactionFromBdnGatewayProcessingResult_t;

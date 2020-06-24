@@ -209,6 +209,8 @@ class TransactionFromBdnGatewayProcessingResult:
 
     def get_set_contents(self) -> bool: ...
 
+    def get_set_contents_result(self) -> Tuple[bool, int]: ...
+
 
 class TransactionService:
     def __init__(

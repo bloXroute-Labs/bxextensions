@@ -53,6 +53,7 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
       fi
     done
     echo "$(git rev-parse HEAD)" > release_tag/$TAG/COMMIT_HASH
+    cp release/MANIFEST.MF release_tag/$TAG
 elif [ "${ACTION}" == "pull" ]; then
   aws s3 cp s3://files.bloxroute.com/bxextensions/"$TAG" release_tag/"$TAG" --recursive
   if [ ! -d release_tag/"$TAG" ] || [[ -z `ls -A release_tag/"$TAG"` ]]; then
@@ -71,7 +72,6 @@ fi
 if [ "${ACTION}" == "push_as_tag" ] ; then
   aws s3 cp release/ s3://files.bloxroute.com/bxextensions/"$TAG" --recursive
 fi
-
 
 if [ "${ACTION}" == "copy" ] || [ "${ACTION}" == "deploy" ] || [ "${ACTION}" == "build" ]; then
   rm -rf release

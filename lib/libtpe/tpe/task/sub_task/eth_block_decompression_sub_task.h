@@ -38,18 +38,17 @@ struct TaskData {
 };
 
 public:
-    EthBlockDecompressionSubTask(size_t capacity);
+    EthBlockDecompressionSubTask();
 
     void init(
         PTransactionService_t tx_service,
         const BlockBuffer_t* block_buffer,
+        utils::common::ByteArray* output_buffer,
         PEthOffests_t tx_offsets,
         const ShortIDs_t* short_ids
     );
 
-    const utils::common::ByteArray& output_buffer();
     const ShortIDs_t* short_ids();
-    size_t content_size() const;
     const UnknownTxHashes_t& unknown_tx_hashes();
     const UnknownTxSIDs_t& unknown_tx_sids();
     bool success();
@@ -60,7 +59,7 @@ protected:
 
 private:
 
-    utils::common::ByteArray _output_buffer;
+    utils::common::ByteArray* _output_buffer;
     const BlockBuffer_t* _block_buffer;
     PEthOffests_t _tx_offsets;
     PTransactionService_t _tx_service;

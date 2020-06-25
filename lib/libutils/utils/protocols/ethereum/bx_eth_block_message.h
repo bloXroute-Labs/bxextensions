@@ -24,7 +24,6 @@ public:
     void deserialize_short_ids(std::vector<unsigned int> &short_ids);
 	void parse();
 
-	static constexpr size_t offset_diff = sizeof(uint64_t);
 private:
 	common::BufferView _buffer, _block_header, _block_trailer;
 	uint64_t _short_ids_offset;

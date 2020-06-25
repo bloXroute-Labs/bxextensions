@@ -18,7 +18,8 @@ EthBlockDecompressionTask::EthBlockDecompressionTask(
 		_minimal_tx_count(minimal_tx_count),
 		_success(false),
         _txn_count(0),
-        _content_size(0)
+        _content_size(0),
+        _starting_offset(0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -43,6 +44,7 @@ void EthBlockDecompressionTask::init(
 	_short_ids.clear();
     _txn_count = 0;
     _content_size = 0;
+    _starting_offset = 0;
 }
 
 PByteArray_t EthBlockDecompressionTask::eth_block() {
@@ -80,6 +82,10 @@ const std::vector<unsigned int>& EthBlockDecompressionTask::short_ids() {
 	return _short_ids;
 }
 
+size_t EthBlockDecompressionTask::starting_offset() {
+    return _starting_offset;
+}
+
 size_t EthBlockDecompressionTask::get_task_byte_size() const {
     size_t sub_tasks_size = 0;
     for (const auto& p_task: _sub_tasks) {
@@ -115,22 +121,19 @@ void EthBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 
     size_t txn_offset = msg.txn_offset();
     size_t txn_end_offset = msg.txn_end_offset();
-    size_t last_idx = _dispatch(txn_end_offset, msg, txn_offset, sub_pool);
+    size_t output_offset = _dispatch(txn_end_offset, msg, txn_offset, sub_pool);
 
     for (auto& task: _sub_tasks) {
         task->wait();
-        _content_size += task->content_size();
     }
-    _set_output_buffer(last_idx);
+    _set_output_buffer(output_offset);
 }
 
 void EthBlockDecompressionTask::_init_sub_tasks(size_t pool_size)
 {
     if (_sub_tasks.size() < pool_size) {
-        size_t default_count = ETH_DEFAULT_TX_COUNT;
-        size_t capacity = ETH_DEFAULT_TX_SIZE * default_count;
         for (size_t i = _sub_tasks.size() ; i < pool_size ; ++i) {
-            _sub_tasks.push_back(std::make_shared<EthBlockDecompressionSubTask>(capacity));
+            _sub_tasks.push_back(std::make_shared<EthBlockDecompressionSubTask>());
         }
     }
     for (auto& task_data : _sub_tasks) {
@@ -145,17 +148,25 @@ size_t EthBlockDecompressionTask::_dispatch(
     size_t idx = 0, pool_size = sub_pool.size(), prev_idx = 0, short_ids_offset = 0;
     _init_sub_tasks(pool_size);
     size_t bulk_size = std::max((size_t) (ETH_DEFAULT_TX_COUNT / pool_size), std::max(pool_size, _minimal_tx_count));
+    size_t output_offset = sizeof(uint64_t) + sizeof(uint64_t) + _block_header.size();
+    _extend_output_buffer(output_offset);
+    size_t prev_output_offset = output_offset;
     bool is_short;
 
     while (offset < txn_end_offset) {
-        size_t from = offset, tx_content_offset;
+        size_t tx_content_offset;
+        uint64_t tx_content_len = 0;
         auto& tdata = _sub_tasks[idx]->task_data();
         idx = std::min((size_t) (_txn_count / bulk_size), pool_size - 1);
+
         offset = msg.get_next_tx_offset(offset, tx_content_offset, is_short);
+
         if ( is_short ) {
             const size_t short_id_idx = short_ids_offset + tdata.short_ids_len;
             if ( short_id_idx < _short_ids.size()) {
+                unsigned int short_id = _short_ids.at(short_id_idx);
                 tdata.short_ids_len += 1;
+                output_offset += _tx_service->get_tx_size(short_id);
             } else {
                 throw std::runtime_error(utils::common::concatenate(
                         "Message is improperly formatted, short id index (",
@@ -165,60 +176,97 @@ size_t EthBlockDecompressionTask::_dispatch(
                         ")"
                 ));  // TODO: throw proper exception here
             }
+        } else {
+            ++tx_content_offset;
+            tx_content_offset = utils::encoding::consume_length_prefix(
+                *_block_buffer, tx_content_len, tx_content_offset
+            );
+            output_offset += tx_content_len;
         }
-
-        tdata.offsets->push_back(std::make_tuple(from, 0));
+        tdata.offsets->push_back(std::make_tuple(tx_content_offset, (size_t)is_short, tx_content_len));
         if(idx > prev_idx) {
+            tdata.output_offset = prev_output_offset;
             tdata.short_ids_offset = short_ids_offset;
+            _extend_output_buffer(output_offset);
             _enqueue_task(prev_idx, sub_pool);
             short_ids_offset += tdata.short_ids_len;
+            prev_output_offset = output_offset;
         }
         prev_idx = idx;
         ++_txn_count;
     }
 
+    _sub_tasks[prev_idx]->task_data().output_offset = prev_output_offset;
     _sub_tasks[prev_idx]->task_data().short_ids_offset = short_ids_offset;
     _enqueue_task(prev_idx, sub_pool);
-    return prev_idx;
+    return output_offset;
 }
 
 void EthBlockDecompressionTask::_enqueue_task(size_t task_idx, SubPool_t& sub_pool)
 {
     auto task = _sub_tasks[task_idx];
-    task->init(_tx_service, _block_buffer.get(), task->task_data().offsets, &_short_ids);
+    task->init(
+        _tx_service,
+        _block_buffer.get(),
+        _output_buffer.get(),
+        task->task_data().offsets,
+        &_short_ids
+    );
     sub_pool.enqueue_task(task);
 }
 
-void EthBlockDecompressionTask::_set_output_buffer(size_t last_idx)
+void EthBlockDecompressionTask::_set_output_buffer(size_t output_offset)
 {
     if ( _unknown_tx_sids.size() == 0 && _unknown_tx_hashes.size() == 0) {
-        size_t full_content_size = _content_size;
-
+        size_t tx_origin_offset = sizeof(size_t) + sizeof(size_t) + _block_header.size();
+        // handling content len
+        _content_size = output_offset - tx_origin_offset;
         ByteArray_t list_of_txs_prefix_buffer = ByteArray_t();
-        utils::encoding::get_length_prefix_list(list_of_txs_prefix_buffer, full_content_size, 0);
+        utils::encoding::get_length_prefix_list(list_of_txs_prefix_buffer, _content_size, 0);
+        tx_origin_offset -= list_of_txs_prefix_buffer.size();
+        _output_buffer->copy_from_array(
+            list_of_txs_prefix_buffer.array(), tx_origin_offset, 0, list_of_txs_prefix_buffer.size()
+        );
 
-        full_content_size += (list_of_txs_prefix_buffer.size() + _block_header.size() + _block_trailer.size());
-
-        ByteArray_t msg_len_prefix = ByteArray_t();
-        utils::encoding::get_length_prefix_list(msg_len_prefix, full_content_size, 0);
-
-        _output_buffer->reserve(full_content_size + msg_len_prefix.size());
-
-        // start setting output buffer
-        _output_buffer->operator +=(msg_len_prefix);
-        _output_buffer->operator +=(_block_header);
-        _output_buffer->operator +=(list_of_txs_prefix_buffer);
-
-        for (auto& task: _sub_tasks) {
-            _output_buffer->operator+=(task->output_buffer());
-        }
-
+        //  handling block trailer
         if (_block_trailer.size() > 0) {
-            _output_buffer->operator+=(_block_trailer);
+            _output_buffer->resize(output_offset);
+            _output_buffer->operator +=(_block_trailer);
+            output_offset += _block_trailer.size();
         }
+        _content_size = output_offset - tx_origin_offset;
 
+        // handling block header
+        tx_origin_offset -= _block_header.size();
+        _content_size += _block_header.size();
+        _output_buffer->copy_from_buffer(_block_header, tx_origin_offset, 0, _block_header.size());
+
+        // handling msg len
+        ByteArray_t block_msg_prefix_buf = ByteArray_t();
+        utils::encoding::get_length_prefix_list(block_msg_prefix_buf, _content_size, 0);
+        tx_origin_offset -= block_msg_prefix_buf.size();
+        _output_buffer->copy_from_array(
+            block_msg_prefix_buf.array(), tx_origin_offset, 0, block_msg_prefix_buf.size()
+        );
+
+        _output_buffer->resize(output_offset);
+        _starting_offset = tx_origin_offset;
         _output_buffer->set_output();
     }
+}
+
+void EthBlockDecompressionTask::_extend_output_buffer(size_t output_offset)
+{
+    if (output_offset > _output_buffer->capacity()) {
+        std::string error = utils::common::concatenate(
+            "not enough space allocated to output buffer. \ncapacity - ",
+            _output_buffer->capacity(),
+            ", required size - ",
+            output_offset
+        );
+        throw std::runtime_error(error);
+    }
+    _output_buffer->resize(output_offset);
 }
 
 } // task

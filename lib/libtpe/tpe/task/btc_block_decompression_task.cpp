@@ -111,15 +111,14 @@ void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
 	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
 	_success = _tx_service->get_missing_transactions(
-			_unknown_tx_hashes, _unknown_tx_sids, _short_ids
+        _unknown_tx_hashes, _unknown_tx_sids, _short_ids
 	);
-    _block_hash = std::make_shared<Sha256_t>(
-			std::move(msg.block_message().block_hash())
-	);
+    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_message().block_hash()));
     if (!_success) {
         return;
 	}
 	size_t last_idx = _dispatch(msg, offset, sub_pool);
+
     offset = _output_buffer->copy_from_buffer(
 			*_block_buffer,
 			0,
@@ -164,10 +163,7 @@ size_t BtcBlockDecompressionTask::_dispatch(
 {
 	size_t pool_size = sub_pool.size(), prev_idx = 0;
 	_init_sub_tasks(pool_size);
-	size_t bulk_size = std::max(
-			(size_t) (_tx_count / pool_size),
-			std::max(pool_size, _minimal_tx_count)
-	);
+	size_t bulk_size = std::max((size_t) (_tx_count / pool_size), std::max(pool_size, _minimal_tx_count));
 	size_t idx = 0;
 	size_t short_ids_offset = 0;
 	size_t output_offset = offset - BxBtcBlockMessage_t::offset_diff;
@@ -198,8 +194,7 @@ size_t BtcBlockDecompressionTask::_dispatch(
 		} else {
 			output_offset += (offset - from);
 		}
-		tdata.offsets->push_back(
-				std::make_tuple(from, witness_offset, offset));
+		tdata.offsets->push_back(std::make_tuple(from, witness_offset, offset));
 		if(idx > prev_idx) {
 			tdata.output_offset = prev_output_offset;
 			tdata.short_ids_offset = short_ids_offset;

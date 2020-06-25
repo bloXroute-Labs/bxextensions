@@ -100,7 +100,7 @@ class EthBlockCompressionTask(_BlockCompressionTask):
 
 
 class EthBlockDecompressionTask(_BlockDecompressionTask):
-    ...
+    def starting_offset(self) -> int:...
 
 
 class BtcCompactBlockMappingTask(MainTaskBase):

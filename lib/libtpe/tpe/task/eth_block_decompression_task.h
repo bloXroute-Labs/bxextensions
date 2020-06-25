@@ -40,6 +40,7 @@ public:
 	bool success();
 	uint64_t tx_count();
 	const std::vector<unsigned int>& short_ids();
+    size_t starting_offset();
 
     size_t get_task_byte_size() const override;
 
@@ -52,7 +53,8 @@ private:
 	void _init_sub_tasks(size_t pool_size);
 	size_t _dispatch(size_t txn_end_offset, BxEthBlockMessage_t& msg, size_t offset, SubPool_t& sub_pool);
 	void _enqueue_task(size_t task_idx, SubPool_t& sub_pool);
-    void _set_output_buffer(size_t last_idx);
+    void _set_output_buffer(size_t output_offset);
+    void _extend_output_buffer(size_t output_offset);
 
     PBlockBuffer_t _block_buffer;
     BlockBuffer_t _block_header, _block_trailer;
@@ -65,7 +67,7 @@ private:
     std::vector<PEthSubTask_t> _sub_tasks;
 	const size_t _minimal_tx_count;
 	bool _success;
-	uint64_t _txn_count, _content_size;
+	uint64_t _txn_count, _content_size, _starting_offset;
 };
 
 } // task

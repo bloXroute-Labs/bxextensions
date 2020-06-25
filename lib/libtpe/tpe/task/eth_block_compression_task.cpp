@@ -105,7 +105,7 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     _output_buffer->reserve((size_t)(_block_buffer->size() * 1.1));
     std::vector<uint8_t> is_full_tx_bytes, is_short_tx_byte;
     is_full_tx_bytes.push_back(ETH_FULL_TX_INDICATOR);
-    is_short_tx_byte.push_back(0xc2);
+    is_short_tx_byte.push_back(ETH_RLP_OF_SHORT_TX);
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
 

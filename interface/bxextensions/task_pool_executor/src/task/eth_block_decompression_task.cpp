@@ -25,5 +25,6 @@ void bind_eth_block_decompression_task(py::module& m) {
 	  .def("short_ids", &EthBlockDecompressionTask_t::short_ids)
 	  .def("unknown_tx_hashes", &EthBlockDecompressionTask_t::unknown_tx_hashes)
 	  .def("unknown_tx_sids", &EthBlockDecompressionTask_t::unknown_tx_sids)
-	  .def("init", &EthBlockDecompressionTask_t::init);
+	  .def("init", &EthBlockDecompressionTask_t::init)
+	  .def("starting_offset", &EthBlockDecompressionTask_t::starting_offset);
 }

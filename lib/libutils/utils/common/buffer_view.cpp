@@ -40,7 +40,7 @@ BufferView::BufferView(
 		const BufferView& src, size_t length, size_t from
 ):
 		_buffer(src._buffer),
-		_from(from),
+		_from(src._from + from),
 		_size(length)
 {
 }

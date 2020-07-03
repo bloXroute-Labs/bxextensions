@@ -3,6 +3,8 @@
 
 #include <utils/common/buffer_view.h>
 #include <utils/common/buffer_helper.h>
+#include <utils/protocols/ontology/ont_message_parser.h>
+#include <utils/protocols/ethereum/eth_message_parser.h>
 #include "tpe/service/transaction_service.h"
 
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -13,6 +15,12 @@
 #define SHORT_IDS_COUNT_LEN 2
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
+#define SEEN_FLAG_LEN 1
+
+typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
+typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
+typedef utils::protocols::ParsedTransaction_t ParsedTransaction_t;
+typedef utils::protocols::ParsedTransactions_t ParsedTransactions_t;
 
 namespace service {
 
@@ -132,7 +140,7 @@ SetTransactionContentsResult_t TransactionService::set_transaction_contents(
     if (has_transaction_contents(transaction_hash)) {
         result.second = _containers.tx_hash_to_contents[transaction_hash]->size();
     } else {
-        _containers.tx_hash_to_contents.emplace(transaction_hash, transaction_contents);
+        _containers.tx_hash_to_contents.emplace(transaction_hash, std::move(transaction_contents));
     }
 
     return std::move(result);
@@ -329,7 +337,7 @@ void TransactionService::clear_short_ids_seen_in_block() {
     _containers.short_ids_seen_in_block.clear();
 }
 
-TransactionProcessingResult_t TransactionService::process_transaction_msg(
+TxProcessingResult_t TransactionService::process_transaction_msg(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int network_num,
@@ -353,7 +361,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     );
 
     if (tx_status & TX_STATUS_IGNORE_SEEN or tx_status & TX_STATUS_TIMED_OUT) {
-        TransactionProcessingResult_t result(tx_status);
+        TxProcessingResult_t result(tx_status);
         return std::move(result);
     }
 
@@ -362,7 +370,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     }
 
     if (tx_status & TX_STATUS_MSG_HAS_CONTENT and !(tx_status & TX_STATUS_SEEN_CONTENT)) {
-        set_transaction_contents_result = set_transaction_contents(transaction_hash, transaction_contents);
+        set_transaction_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
         contents_set = true;
     }
 
@@ -371,7 +379,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
         short_id_assigned = true;
     }
 
-    TransactionProcessingResult_t result(
+    TxProcessingResult_t result(
             tx_status,
             existing_short_ids,
             assign_short_id_result,
@@ -381,7 +389,7 @@ TransactionProcessingResult_t TransactionService::process_transaction_msg(
     return std::move(result);
 }
 
-TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
+TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int short_id,
@@ -398,7 +406,7 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
 
         if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
                 or removed_transaction(transaction_hash)) {
-            return TransactionFromBdnGatewayProcessingResult_t(
+            return TxFromBdnProcessingResult_t(
                 true,
                 ignore_seen_short_id,
                 assigned_short_id,
@@ -409,7 +417,7 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
         }
 
         if ((existing_contents or is_compact) and existing_short_id) {
-            return TransactionFromBdnGatewayProcessingResult_t(
+            return TxFromBdnProcessingResult_t(
                 ignore_seen_contents,
                 true,
                 assigned_short_id,
@@ -429,7 +437,7 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
             set_content = true;
         }
 
-        return TransactionFromBdnGatewayProcessingResult_t(
+        return TxFromBdnProcessingResult_t(
                 ignore_seen_contents,
                 ignore_seen_short_id,
                 assigned_short_id,
@@ -439,6 +447,58 @@ TransactionFromBdnGatewayProcessingResult_t TransactionService::process_gateway_
         );
 }
 
+PByteArray_t TransactionService::process_gateway_transaction_from_node(
+        std::string protocol,
+        PTxsMessageContents_t txs_message_contents
+) {
+    const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
+    ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
+
+    size_t total_result_size = 0;
+
+    for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
+        total_result_size += parsed_transaction.length;
+    }
+    total_result_size += TX_COUNT_LEN + parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN);
+
+    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(total_result_size);
+
+    size_t offset = 0;
+    offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
+
+    for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
+        const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
+        TxsMessageContents_t message_contents = *txs_message_contents;
+
+        const bool seen_transaction =
+                has_transaction_contents(transaction_hash)
+                or removed_transaction(transaction_hash);
+
+        if (!seen_transaction) {
+            ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
+                    message_contents,
+                    parsed_transaction.length,
+                    parsed_transaction.offset);
+
+            set_transaction_contents(
+                    transaction_hash,
+                    std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+            );
+        }
+
+        offset = utils::common::set_little_endian_value(*result_buffer, uint8_t(seen_transaction), offset);
+        offset = result_buffer->copy_from_buffer(transaction_hash.binary(), offset, 0, transaction_hash.size());
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.offset), offset);
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.length), offset);
+    }
+
+    // remove all items from the vector to make sure that it is properly disposed
+    parsed_transactions.clear();
+
+    result_buffer->set_output();
+    return std::move(result_buffer);
+}
+    
 unsigned int TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,
@@ -506,6 +566,20 @@ unsigned int TransactionService::_msg_tx_build_tx_status(
         tx_status |= TX_STATUS_TIMED_OUT;
     }
     return tx_status;
+}
+
+const AbstractMessageParser_t& TransactionService::_create_message_parser(std::string protocol) const {
+    if (protocol == "ontology") {
+        static const OntMessageParser_t message_converter = OntMessageParser_t();
+        return message_converter;
+    }
+
+    if (protocol == "ethereum") {
+        static const EthMessageParser_t message_converter = EthMessageParser_t();
+        return message_converter;
+    }
+
+    throw std::runtime_error("Message converter is not available for provided protocol");
 }
 
 } // service

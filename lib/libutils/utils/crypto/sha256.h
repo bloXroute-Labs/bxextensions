@@ -45,6 +45,7 @@ public:
 	    const common::BufferView& data,
 		size_t from
 	);
+	explicit Sha256(const Sha256Binary_t& sha);
 
 	explicit Sha256(const common::BufferView& data);
 	Sha256(

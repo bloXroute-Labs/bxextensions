@@ -141,6 +141,10 @@ Sha256::Sha256(Sha256&& other) noexcept: _binary() {
 	_hash = other._hash;
 }
 
+Sha256::Sha256(const Sha256Binary_t& sha): _binary(sha) {
+    _hash = get_hash(_binary);
+}
+
 Sha256& Sha256::operator =(const Sha256& other)
 {
 	_binary = other._binary;

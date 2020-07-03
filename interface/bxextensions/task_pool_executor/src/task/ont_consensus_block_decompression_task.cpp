@@ -20,19 +20,10 @@ void bind_ont_consensus_block_decompression_task(py::module& m) {
                     py::return_value_policy::reference
             )
             .def("block_hash", &OntConsensusBlockDecompressionTask_t::block_hash)
-            .def("tx_count", &OntConsensusBlockDecompressionTask_t::txn_count)
+            .def("txn_count", &OntConsensusBlockDecompressionTask_t::txn_count)
             .def("success", &OntConsensusBlockDecompressionTask_t::success)
-            .def(
-                    "short_ids",
-                    &OntConsensusBlockDecompressionTask_t::short_ids
-            )
-            .def(
-                    "unknown_tx_hashes",
-                    &OntConsensusBlockDecompressionTask_t::unknown_tx_hashes
-            )
-            .def(
-                    "unknown_tx_sids",
-                    &OntConsensusBlockDecompressionTask_t::unknown_tx_sids
-            )
+            .def("short_ids", &OntConsensusBlockDecompressionTask_t::short_ids)
+            .def("unknown_tx_hashes", &OntConsensusBlockDecompressionTask_t::unknown_tx_hashes)
+            .def("unknown_tx_sids", &OntConsensusBlockDecompressionTask_t::unknown_tx_sids)
             .def("init", &OntConsensusBlockDecompressionTask_t::init);
 }

@@ -111,7 +111,7 @@ void OntBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
     size_t offset;
     BxOntBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
     _success = _tx_service->get_missing_transactions(
-            _unknown_tx_hashes, _unknown_tx_sids, _short_ids
+        _unknown_tx_hashes, _unknown_tx_sids, _short_ids
     );
     _block_hash = std::make_shared<Sha256_t>(
             std::move(msg.block_message().block_hash())

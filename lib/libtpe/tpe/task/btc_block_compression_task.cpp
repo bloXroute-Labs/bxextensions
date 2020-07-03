@@ -224,8 +224,7 @@ void BtcBlockCompressionTask::_set_output_buffer(
 			output_offset
 	);
 	if (short_ids_size > 0) {
-		const size_t short_ids_byte_size  =
-				short_ids_size * sizeof(unsigned int);
+		const size_t short_ids_byte_size = short_ids_size * sizeof(unsigned int);
 		_output_buffer->resize(output_offset + short_ids_byte_size);
 		memcpy(
 				&_output_buffer->at(output_offset),

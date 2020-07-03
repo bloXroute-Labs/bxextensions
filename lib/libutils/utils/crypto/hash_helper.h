@@ -5,6 +5,7 @@
 
 #include "utils/crypto/sha256.h"
 #include "utils/crypto/compact_short_id.h"
+#include "utils/crypto/keccak.h"
 
 #ifndef UTILS_CRYPTO_HASH_HELPER_H_
 #define UTILS_CRYPTO_HASH_HELPER_H_
@@ -55,6 +56,11 @@ size_t sha256_size();
 CompactShortId to_compact_id(
 		const Sha256& sha, const SipKey_t& key
 );
+
+template <class TBuffer>
+Sha256 sha3(const TBuffer& data, size_t from, size_t length) {
+    return std::move(keccak_sha3(&data.at(0), from,  length));
+}
 
 } // crypto
 } // utils

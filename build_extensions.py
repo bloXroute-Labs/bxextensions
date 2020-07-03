@@ -57,6 +57,7 @@ def main(
     ext_module_dirs = ";".join(os.path.join(extensions_dir, ext) for ext in extensions_list)
     cmake_args = [
         "-DCMAKE_INSTALL_PREFIX={}".format(output_dir),
+        "-DCMAKE_CXX_STANDARD=17",
         "-DPYTHON_EXECUTABLE={}".format(sys.executable),
         "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE",
         "-DEXTENSION_MODULES={}".format(ext_module_dirs),

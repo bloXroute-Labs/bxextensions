@@ -56,6 +56,7 @@ class CMakeBuild(build_ext):
             "-DCMAKE_INSTALL_PREFIX={}".format(srcdir),
             "-DPYTHON_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE",
+            "-DCMAKE_CXX_STANDARD=17",
             "-DEXTENSION_MODULES={}".format(ext_module_dirs),
             "-DRUN_TESTS=TRUE",
             "-DCMAKE_INSTALL_RPATH={};{}".format(srcdir, os.path.join(srcdir, "tests")),

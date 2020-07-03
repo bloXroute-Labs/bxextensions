@@ -8,9 +8,12 @@
 #include <thread>
 
 #include <utils/common/buffer_view.h>
+#include <utils/common/buffer_copy.h>
+#include <utils/common/byte_array.h>
 #include <utils/common/ordered_map.h>
 #include <utils/common/tracked_allocator.h>
 #include <utils/common/byte_array.h>
+#include <utils/protocols/abstract_message_parser.h>
 
 #include "tpe/consts.h"
 #include "tpe/service/transaction_to_short_ids_map.h"
@@ -37,6 +40,8 @@
 
 namespace service {
 
+typedef utils::common::BufferCopy BufferCopy_t;
+typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef utils::common::ByteArray TxSyncTxs_t;
@@ -53,6 +58,9 @@ typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
+typedef utils::common::BufferView TxsMessageContents_t;
+typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
+typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
@@ -114,9 +122,9 @@ struct Containers {
 
 };
 
-class TransactionProcessingResult {
+class TxProcessingResult {
 public:
-    TransactionProcessingResult(
+    TxProcessingResult(
         unsigned int tx_status,
         TxShortIds_t existing_short_ids,
         AssignShortIDResult_t assign_short_id_result,
@@ -131,7 +139,7 @@ public:
             _short_id_assigned(short_id_assigned) {
     }
 
-    TransactionProcessingResult(unsigned int tx_status
+    TxProcessingResult(unsigned int tx_status
         ) :  _tx_status(tx_status), _contents_set(), _short_id_assigned() {
     }
 
@@ -168,13 +176,13 @@ private:
     bool _short_id_assigned;
 };
 
-typedef TransactionProcessingResult TransactionProcessingResult_t;
-typedef std::shared_ptr<TransactionProcessingResult_t> PTransactionProcessingResult_t;
+typedef TxProcessingResult TxProcessingResult_t;
+typedef std::shared_ptr<TxProcessingResult_t> PTxProcessingResult_t;
 
-class TransactionFromBdnGatewayProcessingResult {
+class TxFromBdnProcessingResult {
 
 public:
-    TransactionFromBdnGatewayProcessingResult(
+    TxFromBdnProcessingResult(
         bool ignore_seen,
         bool existing_short_id,
         bool assigned_short_id,
@@ -188,7 +196,7 @@ public:
         _set_contents(set_contents),
         _set_contents_result(set_contents_result) {}
 
-    TransactionFromBdnGatewayProcessingResult(
+    TxFromBdnProcessingResult(
         bool ignore_seen
     ) : _ignore_seen(ignore_seen),
         _existing_short_id(),
@@ -230,8 +238,15 @@ private:
     SetTransactionContentsResult_t _set_contents_result;
 };
 
-typedef TransactionFromBdnGatewayProcessingResult TransactionFromBdnGatewayProcessingResult_t;
-typedef std::shared_ptr<TransactionFromBdnGatewayProcessingResult> PTransactionFromBdnGatewayProcessingResult_t;
+typedef TxFromBdnProcessingResult TxFromBdnProcessingResult_t;
+typedef std::shared_ptr<TxFromBdnProcessingResult> PTxFromBdnProcessingResult_t;
+
+typedef utils::common::BufferView ParsedTxContents_t;
+typedef std::shared_ptr<ParsedTxContents_t> PParsedTxContents_t;
+
+typedef utils::common::ByteArray ByteArray_t;
+typedef std::shared_ptr<ByteArray_t> PByteArray_t;
+
 
 class TransactionService {
 public:
@@ -296,7 +311,7 @@ public:
 
     void clear_short_ids_seen_in_block();
 
-    TransactionProcessingResult_t process_transaction_msg(
+    TxProcessingResult_t process_transaction_msg(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int network_num,
@@ -305,11 +320,16 @@ public:
             unsigned int current_time
     );
 
-    TransactionFromBdnGatewayProcessingResult_t process_gateway_transaction_from_bdn(
+    TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
             const Sha256_t& transaction_hash,
             PTxContents_t transaction_contents,
             unsigned int short_id,
             bool is_compact
+    );
+
+    PByteArray_t process_gateway_transaction_from_node(
+            std::string protocol,
+            PTxsMessageContents_t txs_message_contents
     );
 
 private:
@@ -323,6 +343,8 @@ private:
         const PTxContents_t& transaction_contents,
         unsigned int timestamp,
         unsigned int current_time);
+
+    const AbstractMessageParser_t& _create_message_parser(std::string protocol) const;
 };
 
 

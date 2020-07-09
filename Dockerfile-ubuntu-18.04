@@ -41,7 +41,8 @@ RUN apt install -y  \
        cmake \
        libffi-dev \
        python3.7-dev \
-       python3.8-dev
+       python3.8-dev \
+       python3.6-dev
 
 #upgrade pip
 RUN pip3 install --upgrade pip setuptools

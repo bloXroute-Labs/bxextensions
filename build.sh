@@ -21,6 +21,8 @@ TAG="${TAG:-$(git rev-parse HEAD)}"
 
 echo "running build extensions with: ACTION: $ACTION TAG: $TAG SYSTEMS: $OS_LIST"
 if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
+  echo "creating release tag folder in release_tag/$TAG"
+  mkdir -p release_tag/$TAG
   for os in $OS_LIST
     do
       DOCKER_FILE="Dockerfile-$os"

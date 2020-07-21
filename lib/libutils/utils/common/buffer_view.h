@@ -72,6 +72,7 @@ public:
 	const uint8_t& at(size_t idx) const;
 	const char* char_array() const;
 	const unsigned char* byte_array() const;
+    std::vector<uint8_t> vector(size_t, size_t) const;
 
 	const_iterator begin() const;
 	const_iterator end() const;

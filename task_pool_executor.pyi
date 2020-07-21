@@ -49,7 +49,7 @@ class _BlockCompressionTask(MainTaskBase):
     def __init__(self, capacity: int, min_transaction_count: int): ...
 
     def init(
-            self, block_bytes: InputBytes, transaction_service: TransactionService
+        self, block_bytes: InputBytes, transaction_service: TransactionService
     ) -> None: ...
 
     def bx_block(self) -> bytearray: ...
@@ -69,7 +69,7 @@ class _BlockDecompressionTask(MainTaskBase):
     def __init__(self, capacity: int, min_transaction_count: int): ...
 
     def init(
-            self, block_bytes: InputBytes, transaction_service: TransactionService
+        self, block_bytes: InputBytes, transaction_service: TransactionService
     ) -> None: ...
 
     def block_message(self) -> bytearray: ...
@@ -107,7 +107,7 @@ class BtcCompactBlockMappingTask(MainTaskBase):
     def __init__(self, capacity: int): ...
 
     def init(
-            self, block_bytes: InputBytes, transaction_service: TransactionService
+        self, block_bytes: InputBytes, transaction_service: TransactionService
     ) -> None: ...
 
     def success(self) -> bool: ...
@@ -131,7 +131,7 @@ class BtcCompactBlockCompressionTask(MainTaskBase):
     def short_ids(self) -> List[int]: ...
 
     def add_recovered_transactions(
-            self, recovered_transactions: TransactionList
+        self, recovered_transactions: TransactionList
     ) -> None: ...
 
 
@@ -156,7 +156,7 @@ class OntConsensusBlockDecompressionTask(_BlockDecompressionTask):
 
 class BlockConfirmationCleanupTask(MainTaskBase):
     def init(
-            self, message_buffer: InputBytes, transaction_service: TransactionService
+        self, message_buffer: InputBytes, transaction_service: TransactionService
     ) -> None: ...
 
     def short_ids(self) -> List[int]: ...
@@ -172,7 +172,7 @@ class _BlockCleanupTask(MainTaskBase):
     def __init__(self, capacity: int): ...
 
     def init(
-            self, message_buffer: InputBytes, transaction_service: TransactionService
+        self, message_buffer: InputBytes, transaction_service: TransactionService
     ) -> None: ...
 
     def short_ids(self) -> List[int]: ...
@@ -194,6 +194,8 @@ class OntBlockCleanupTask(_BlockCleanupTask):
 
 class TxProcessingResult:
     def get_tx_status(self) -> int: ...
+
+    def get_tx_validation_status(self) -> int: ...
 
     def get_contents_set(self) -> bool: ...
 
@@ -222,13 +224,13 @@ class TxFromBdnProcessingResult:
 
 class TransactionService:
     def __init__(
-            self, pool_size: int, tx_bucket_capacity: int, final_tx_confirmation_count: int
+        self, pool_size: int, tx_bucket_capacity: int, final_tx_confirmation_count: int
     ): ...
 
     def tx_hash_to_short_ids(self) -> Dict[Sha256, List[int]]: ...
 
     def get_tx_sync_buffer(
-            self, all_txs_content_size: int, sync_tx_content: bool
+        self, all_txs_content_size: int, sync_tx_content: bool
     ) -> bytearray: ...
 
     def short_id_to_tx_hash(self) -> Dict[int, Sha256]: ...
@@ -238,7 +240,7 @@ class TransactionService:
     def remove_transaction_by_hash(self, transaction_hash: Sha256) -> int: ...
 
     def track_seen_short_ids(
-            self, block_hash: Sha256, short_ids: UIntList
+        self, block_hash: Sha256, short_ids: UIntList
     ) -> Tuple[int, List[int]]: ...
 
     def on_block_cleaned_up(self, block_hash: Sha256) -> None: ...
@@ -255,25 +257,29 @@ class TransactionService:
 
     def tx_hash_to_time_removed(self) -> Dict[Sha256, float]: ...
 
-    def process_transaction_msg(self,
-                                transaction_cache_key: Sha256,
-                                transaction_contents: InputBytes,
-                                network_num: int,
-                                short_id: int,
-                                timestamp: int,
-                                current_time: int) -> TxProcessingResult: ...
+    def process_transaction_msg(
+        self,
+        transaction_cache_key: Sha256,
+        transaction_contents: InputBytes,
+        network_num: int,
+        short_id: int,
+        timestamp: int,
+        current_time: int,
+        protocol: str,
+        enable_transaction_validation: bool
+    ) -> TxProcessingResult: ...
 
-    def process_gateway_transaction_from_bdn(self,
-                                             transaction_hash: Sha256,
-                                             transaction_contents: InputBytes,
-                                             short_id: int,
-                                             is_compact: bool
-                                             ) -> TxFromBdnProcessingResult: ...
+    def process_gateway_transaction_from_bdn(
+        self,
+        transaction_hash: Sha256,
+        transaction_contents: InputBytes,
+        short_id: int,
+        is_compact: bool
+    ) -> TxFromBdnProcessingResult: ...
 
-    def process_gateway_transaction_from_node(self,
-                                              protocol: str,
-                                              transaction_msg_contents: InputBytes
-                                              ) -> bytearray: ...
+    def process_gateway_transaction_from_node(
+        self, protocol: str, transaction_msg_contents: InputBytes
+    ) -> bytearray: ...
 
     def assign_short_id(self, transaction_hash: Sha256, short_id: int) -> bool: ...
 

@@ -18,10 +18,10 @@ uint8_t get_length_bytes_size(size_t length);
 
 template <class TBuffer>
 static size_t set_big_endian_rlp_value(
-        TBuffer& buffer,
-        uint64_t& value,
-        size_t offset,
-        size_t length
+    TBuffer& buffer,
+    uint64_t& value,
+    size_t offset,
+    size_t length
 )
 {
     if (length > 4) {
@@ -40,7 +40,7 @@ static size_t set_big_endian_rlp_value(
 }
 
 template <class TBuffer>
-size_t rlp_encode(
+size_t encode_int(
         TBuffer& buffer,
         uint64_t& value,
         size_t offset
@@ -77,9 +77,31 @@ static size_t get_big_endian_rlp_value(
     return offset;
 }
 
+template <class TBuffer>
+static size_t get_big_endian_rlp_large_value(
+    TBuffer& buffer,
+    uint64_t& value,
+    size_t offset,
+    size_t length,
+    std::vector<uint64_t>& values
+) {
+    // handle length that is bigger than 8 - need to separate buffer
+    while ( length > sizeof(uint64_t) ) {
+        offset = utils::common::get_big_endian_value<uint64_t>(buffer, value, offset, sizeof(uint64_t));
+        values.push_back(value);
+        length -= sizeof(uint64_t);
+    }
+
+    offset = get_big_endian_rlp_value(buffer, value, offset, length);
+    values.push_back(value);
+    return offset;
+}
 
 template <class TBuffer>
 size_t consume_length_prefix(const TBuffer& rlp_buf, uint64_t& length, size_t offset) {
+    if ( offset >= rlp_buf.size() ) {
+        throw utils::exception::ParserError();
+    }
     uint8_t b0 = rlp_buf[offset];
     if (b0 < 128) {
         length = 1;
@@ -117,10 +139,21 @@ size_t consume_length_prefix(const TBuffer& rlp_buf, uint64_t& length, size_t of
 
 
 template <class TBuffer>
-size_t rlp_decode(TBuffer& rlp_buf, uint64_t& value, size_t offset){
+size_t decode_int(TBuffer& rlp_buf, uint64_t& value, size_t offset){
     uint64_t val_len;
     size_t val_offset = consume_length_prefix(rlp_buf, val_len, offset);
     return get_big_endian_rlp_value(rlp_buf, value, val_offset, val_len);
+}
+
+template <class TBuffer>
+size_t decode_int(TBuffer& rlp_buf, uint64_t& value, size_t offset, std::vector<uint64_t>& int_values){
+    uint64_t val_len;
+    size_t val_offset = consume_length_prefix(rlp_buf, val_len, offset);
+    if ( val_len > sizeof(uint64_t) ) {
+        return get_big_endian_rlp_large_value(rlp_buf, value, val_offset, val_len, int_values);
+    } else {
+        return get_big_endian_rlp_value(rlp_buf, value, val_offset, val_len);
+    }
 }
 
 

@@ -59,6 +59,8 @@ RUN g++ --version
 RUN pip3.8 install --upgrade pip setuptools
 
 WORKDIR /app/bxextensions
+RUN mkdir release/
+COPY release/MANIFEST.MF release/MANIFEST.MF
 COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./

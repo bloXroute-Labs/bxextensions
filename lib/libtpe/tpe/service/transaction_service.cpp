@@ -5,6 +5,9 @@
 #include <utils/common/buffer_helper.h>
 #include <utils/protocols/ontology/ont_message_parser.h>
 #include <utils/protocols/ethereum/eth_message_parser.h>
+#include <utils/protocols/bitcoin/btc_transaction_validator.h>
+#include <utils/protocols/ethereum/eth_transaction_validator.h>
+#include <utils/protocols/ontology/ont_transaction_validator.h>
 #include "tpe/service/transaction_service.h"
 
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -21,6 +24,9 @@ typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
 typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
 typedef utils::protocols::ParsedTransaction_t ParsedTransaction_t;
 typedef utils::protocols::ParsedTransactions_t ParsedTransactions_t;
+typedef utils::protocols::bitcoin::BtcTransactionValidator BtcTransactionValidator_t;
+typedef utils::protocols::ethereum::EthTransactionValidator EthTransactionValidator_t;
+typedef utils::protocols::ontology::OntTransactionValidator OntTransactionValidator_t;
 
 namespace service {
 
@@ -338,49 +344,63 @@ void TransactionService::clear_short_ids_seen_in_block() {
 }
 
 TxProcessingResult_t TransactionService::process_transaction_msg(
-            const Sha256_t& transaction_hash,
-            PTxContents_t transaction_contents,
-            unsigned int network_num,
-            unsigned int short_id,
-            unsigned int timestamp,
-            unsigned int current_time) {
-
-    unsigned int tx_status;
+    const Sha256_t& transaction_hash,
+    PTxContents_t transaction_contents,
+    unsigned int network_num,
+    unsigned int short_id,
+    unsigned int timestamp,
+    unsigned int current_time,
+    std::string protocol,
+    bool enable_transaction_validation
+)
+{
+    unsigned int tx_status, tx_validation_status;
     TxShortIds_t existing_short_ids;
-    AssignShortIDResult_t assign_short_id_result;
+    AssignShortIDResult_t assign_short_id_result = 0;
     SetTransactionContentsResult_t set_transaction_contents_result;
     bool contents_set = false;
     bool short_id_assigned = false;
 
-    tx_status = _msg_tx_build_tx_status(
+    std::tie(tx_status, tx_validation_status) = _msg_tx_build_tx_status(
         short_id,
         transaction_hash,
         transaction_contents,
         timestamp,
-        current_time
+        current_time,
+        protocol,
+        enable_transaction_validation
     );
 
-    if (tx_status & TX_STATUS_IGNORE_SEEN or tx_status & TX_STATUS_TIMED_OUT) {
-        TxProcessingResult_t result(tx_status);
+    if (
+        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_FORMAT) or
+        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_SIGNATURE) or
+        has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) or
+        has_status_flag(tx_status, TX_STATUS_TIMED_OUT)
+    ) {
+        TxProcessingResult_t result(tx_status, tx_validation_status);
         return std::move(result);
     }
 
-    if (tx_status & TX_STATUS_SEEN_HASH) {
+    if ( has_status_flag(tx_status, TX_STATUS_SEEN_HASH) ) {
         existing_short_ids = _containers.tx_hash_to_short_ids[transaction_hash];
     }
 
-    if (tx_status & TX_STATUS_MSG_HAS_CONTENT and !(tx_status & TX_STATUS_SEEN_CONTENT)) {
+    if (
+        has_status_flag( tx_status, TX_STATUS_MSG_HAS_CONTENT ) and
+        ! has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT)
+    ) {
         set_transaction_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
         contents_set = true;
     }
 
-    if (tx_status & TX_STATUS_MSG_HAS_SHORT_ID) {
+    if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) ) {
         assign_short_id_result = assign_short_id(transaction_hash, short_id);
         short_id_assigned = true;
     }
 
     TxProcessingResult_t result(
             tx_status,
+            tx_validation_status,
             existing_short_ids,
             assign_short_id_result,
             set_transaction_contents_result,
@@ -390,66 +410,66 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
 }
 
 TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
-            const Sha256_t& transaction_hash,
-            PTxContents_t transaction_contents,
-            unsigned int short_id,
-            bool is_compact
-    ) {
-        bool ignore_seen_contents = false;
-        bool ignore_seen_short_id = false;
-        bool assigned_short_id = false;
-        bool set_content = false;
-        SetTransactionContentsResult_t set_contents_result;
+    const Sha256_t& transaction_hash,
+    PTxContents_t transaction_contents,
+    unsigned int short_id,
+    bool is_compact
+) {
+    bool ignore_seen_contents = false;
+    bool ignore_seen_short_id = false;
+    bool assigned_short_id = false;
+    bool set_content = false;
+    SetTransactionContentsResult_t set_contents_result;
 
-        bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
-        bool existing_contents = has_transaction_contents(transaction_hash);
+    bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
+    bool existing_contents = has_transaction_contents(transaction_hash);
 
-        if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
-                or removed_transaction(transaction_hash)) {
-            return TxFromBdnProcessingResult_t(
-                true,
-                ignore_seen_short_id,
-                assigned_short_id,
-                existing_contents,
-                set_content,
-                std::move(set_contents_result)
-            );
-        }
-
-        if ((existing_contents or is_compact) and existing_short_id) {
-            return TxFromBdnProcessingResult_t(
-                ignore_seen_contents,
-                true,
-                assigned_short_id,
-                existing_contents,
-                set_content,
-                std::move(set_contents_result)
-            );
-        }
-
-        if (short_id != NULL_TX_SID and not has_short_id(short_id)) {
-            assign_short_id(transaction_hash, short_id);
-            assigned_short_id = true;
-        }
-
-        if (not is_compact and not existing_contents) {
-            set_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
-            set_content = true;
-        }
-
+    if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
+            or removed_transaction(transaction_hash)) {
         return TxFromBdnProcessingResult_t(
-                ignore_seen_contents,
-                ignore_seen_short_id,
-                assigned_short_id,
-                existing_contents,
-                set_content,
-                std::move(set_contents_result)
+            true,
+            ignore_seen_short_id,
+            assigned_short_id,
+            existing_contents,
+            set_content,
+            std::move(set_contents_result)
         );
+    }
+
+    if ((existing_contents or is_compact) and existing_short_id) {
+        return TxFromBdnProcessingResult_t(
+            ignore_seen_contents,
+            true,
+            assigned_short_id,
+            existing_contents,
+            set_content,
+            std::move(set_contents_result)
+        );
+    }
+
+    if (short_id != NULL_TX_SID and not has_short_id(short_id)) {
+        assign_short_id(transaction_hash, short_id);
+        assigned_short_id = true;
+    }
+
+    if (not is_compact and not existing_contents) {
+        set_contents_result = set_transaction_contents(transaction_hash, std::move(transaction_contents));
+        set_content = true;
+    }
+
+    return TxFromBdnProcessingResult_t(
+            ignore_seen_contents,
+            ignore_seen_short_id,
+            assigned_short_id,
+            existing_contents,
+            set_content,
+            std::move(set_contents_result)
+    );
 }
 
 PByteArray_t TransactionService::process_gateway_transaction_from_node(
-        std::string protocol,
-        PTxsMessageContents_t txs_message_contents
+    std::string protocol,
+    PTxsMessageContents_t txs_message_contents
 ) {
     const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
     ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
@@ -499,14 +519,19 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     return std::move(result_buffer);
 }
     
-unsigned int TransactionService::_msg_tx_build_tx_status(
+std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,
     const PTxContents_t& transaction_contents,
     unsigned int timestamp,
-    unsigned int current_time) {
+    unsigned int current_time,
+    std::string protocol,
+    bool enable_transaction_validation
+)
+{
+    unsigned int tx_status;
+    unsigned int tx_validation_status = 0;
 
-    unsigned int tx_status = 0;
     tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
 
     //set tx status flags, flag (right side of and clause) will be set if the condition in the left side is met
@@ -565,7 +590,12 @@ unsigned int TransactionService::_msg_tx_build_tx_status(
     ) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }
-    return tx_status;
+    if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and enable_transaction_validation ) {
+        const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
+        tx_validation_status = tx_validation.transaction_validation(transaction_contents);
+    }
+
+    return std::make_tuple(tx_status, tx_validation_status);
 }
 
 const AbstractMessageParser_t& TransactionService::_create_message_parser(std::string protocol) const {
@@ -582,4 +612,23 @@ const AbstractMessageParser_t& TransactionService::_create_message_parser(std::s
     throw std::runtime_error("Message converter is not available for provided protocol");
 }
 
+const AbstractTransactionValidator_t& TransactionService::_create_transaction_validator(std::string protocol) const
+{
+    if (protocol == "bitcoin" or protocol == "bitcoincash") {
+        static const BtcTransactionValidator_t transaction_validator = BtcTransactionValidator_t();
+        return transaction_validator;
+    }
+
+    if (protocol == "ethereum") {
+        static const EthTransactionValidator_t transaction_validator = EthTransactionValidator_t();
+        return transaction_validator;
+    }
+
+    if (protocol == "ontology") {
+        static const OntTransactionValidator_t transaction_validator = OntTransactionValidator_t();
+        return transaction_validator;
+    }
+
+    throw std::runtime_error("Transaction validator is not available for provided protocol");
+}
 } // service

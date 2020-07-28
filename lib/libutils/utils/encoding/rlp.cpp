@@ -5,79 +5,88 @@ namespace utils {
 namespace encoding {
 
 //public:
-Rlp::Rlp(): _offset(0), _length(0) {
+Rlp::Rlp(): _length(0), _val_offset(0), _rlp_starting_offset(0) {
 
 }
 
-Rlp::Rlp(const BufferView_t& rlp): _rlp(rlp), _offset(0), _length(0) {
+Rlp::Rlp(const BufferView_t& rlp): _rlp(rlp), _length(0), _val_offset(0), _rlp_starting_offset(0) {
 
 }
 
-Rlp::Rlp(const BufferView_t& rlp, uint64_t length, size_t offset/* = 0*/): _rlp(rlp), _offset(offset), _length(length) {
-
+Rlp::Rlp(const BufferView_t& rlp, uint64_t length, size_t val_offset/* = 0*/, size_t rlp_starting_offset/* = 0*/):
+_rlp(rlp), _length(length), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset) {
 }
 
-Rlp::Rlp(BufferView_t&& rlp): _rlp(std::move(rlp)), _offset(0), _length(0) {
-
+Rlp::Rlp(BufferView_t&& rlp): _rlp(std::move(rlp)), _length(0), _val_offset(0), _rlp_starting_offset(0) {
 }
 
-Rlp::Rlp(BufferView_t&& rlp, uint64_t length, size_t offset/* = 0*/): _rlp(std::move(rlp)), _offset(offset), _length(length) {
-
+Rlp::Rlp(BufferView_t&& rlp, uint64_t length, size_t val_offset/* = 0*/, size_t rlp_starting_offset/* = 0*/):
+_rlp(std::move(rlp)), _length(length), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset){
 }
 
-Rlp::Rlp(Rlp&& rhs): _rlp(std::move(rhs._rlp)), _offset(rhs._offset), _length(rhs._length) {
-
+Rlp::Rlp(Rlp&& rhs):
+    _rlp(std::move(rhs._rlp)),
+    _length(rhs._length),
+    _val_offset(rhs._val_offset),
+    _rlp_starting_offset(rhs._rlp_starting_offset)
+{
 }
 
-Rlp::Rlp(const Rlp& rhs): _rlp(rhs._rlp), _offset(rhs._offset), _length(rhs._length) {
-
+Rlp::Rlp(const Rlp& rhs):
+    _rlp(rhs._rlp),
+    _length(rhs._length),
+    _val_offset(rhs._val_offset),
+    _rlp_starting_offset(rhs._rlp_starting_offset)
+{
 }
 
 Rlp& Rlp::operator =(const Rlp& rhs) {
     _rlp = rhs._rlp;
-    _offset = rhs._offset;
+    _val_offset = rhs._val_offset;
     _length = rhs._length;
+    _rlp_starting_offset = rhs._rlp_starting_offset;
     return *this;
 }
 
 Rlp& Rlp::operator =(Rlp&& rhs) {
     _rlp = std::move(rhs._rlp);
-    _offset = rhs._offset;
+    _val_offset = rhs._val_offset;
     _length = rhs._length;
+    _rlp_starting_offset = rhs._rlp_starting_offset;
     return *this;
 }
 
-Rlp Rlp::get_next_rlp_string() {
-    uint64_t length;
-    size_t next_offset = consume_length_prefix(_rlp, length, _offset);
-    size_t relative_offset = next_offset - _offset;
-    BufferView_t rlp_string(_rlp, relative_offset + length, _offset);
-    _offset = next_offset + length;
-    return std::move(Rlp(std::move(rlp_string), length, relative_offset));
-}
-
-RlpList Rlp::get_next_rlp_list() {
+RlpList Rlp::get_rlp_list() {
     RlpList rlp_list;
-    uint64_t list_length;
-    size_t offset = consume_length_prefix(_rlp, list_length, _offset);
-    _offset = offset + list_length;
-    while (offset < _offset) {
+    size_t offset;
+    size_t end_offset;
+
+    if ( _val_offset == 0 and _length == 0 ) {
+        offset = consume_length_prefix(_rlp, _length, _rlp_starting_offset);
+        _val_offset = offset - _rlp_starting_offset;
+    } else {
+        offset = _rlp_starting_offset + _val_offset ;
+    }
+
+    end_offset = _rlp_starting_offset + _val_offset + _length;
+
+    while (offset < end_offset) {
         uint64_t length;
         size_t next_offset = consume_length_prefix(_rlp, length, offset);
         size_t relative_offset = next_offset - offset;
-        BufferView_t rlp_string(_rlp, relative_offset + length, offset);
-        rlp_list.emplace_back(std::move(rlp_string), length, relative_offset);
+        rlp_list.emplace_back(_rlp, length, relative_offset, offset);
         offset = next_offset + length;
     }
+
     return std::move(rlp_list);
 }
 
 BufferView_t Rlp::as_rlp_string() const {
-    if (_offset + _length != _rlp.size()) {
+    if (_rlp_starting_offset + _val_offset + _length > _rlp.size()) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }
     if (_length > 0) {
-        return std::move(BufferView_t(_rlp, _length, _offset));
+        return std::move(BufferView_t(_rlp, _length, _val_offset + _rlp_starting_offset));
     } else {
         return BufferView_t::empty();
     }
@@ -87,24 +96,41 @@ const BufferView_t& Rlp::payload() const {
     return _rlp;
 }
 
-
 uint64_t Rlp::as_int() const {
-    if (_offset + _length != _rlp.size()) {
+    if (_rlp_starting_offset + _val_offset + _length > _rlp.size()) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }
     uint64_t val;
-    if (rlp_decode(_rlp, val, 0) != _offset + _length) {
+    size_t end_offset;
+    if ( _val_offset > 0 and _length > 0 ) {
+        end_offset = get_big_endian_rlp_value(_rlp, val, _rlp_starting_offset + _val_offset , _length);
+    } else {
+        end_offset = decode_int(_rlp, val, _rlp_starting_offset);
+    }
+
+    if ( end_offset > _rlp_starting_offset + _val_offset + _length ) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }
     return val;
+}
+
+std::vector<uint8_t> Rlp::as_vector() const {
+    if (_rlp_starting_offset + _val_offset + _length > _rlp.size()) {
+        throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
+    }
+    return _rlp.vector(_rlp_starting_offset + _val_offset, _length);
 }
 
 size_t Rlp::length() const {
     return _length;
 }
 
-size_t Rlp::offset() const {
-    return _offset;
+size_t Rlp::val_offset() const {
+    return _val_offset;
+}
+
+size_t Rlp::rlp_starting_offset() const {
+    return _rlp_starting_offset;
 }
 
 

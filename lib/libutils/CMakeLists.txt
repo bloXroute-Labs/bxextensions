@@ -23,7 +23,7 @@ find_package(OpenSSL REQUIRED)
 
 include_directories(${CMAKE_BINARY_DIR}/include)
 
-target_link_libraries(${PROJECT_NAME} sodium OpenSSL::SSL jsoncons)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenSSL::SSL Secp256k1 PUBLIC jsoncons sodium)
 
 target_include_directories(
     ${PROJECT_NAME}

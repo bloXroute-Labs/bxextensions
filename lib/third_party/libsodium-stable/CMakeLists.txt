@@ -17,7 +17,7 @@ else()
 	message("configure file found in ${SODIUM_CONFIGURE_FILE}")
 endif()
 
-get_filename_component(CONFIGURE configure 
+get_filename_component(CONFIGURE configure
                        ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -27,7 +27,7 @@ add_custom_target(
     ${PROJECT_NAME}_ct
     ALL
     COMMAND ${CONFIGURE}
-            --disable-shared 
+            --disable-shared
             --enable-static 
             --disable-debug
             --disable-dependency-tracking

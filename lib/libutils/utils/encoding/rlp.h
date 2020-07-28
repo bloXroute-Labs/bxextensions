@@ -1,5 +1,6 @@
 #include <vector>
-#include "utils/common/buffer_view.h"
+#include <utils/common/buffer_view.h>
+#include <utils/common/tx_status_consts.h>
 
 #ifndef UTILS_ENCODING_RLP_H_
 #define UTILS_ENCODING_RLP_H_
@@ -15,17 +16,16 @@ class Rlp {
 public:
     Rlp();
     Rlp(const BufferView_t& rlp);
-    Rlp(const BufferView_t& rlp, uint64_t length, size_t offset = 0);
+    Rlp(const BufferView_t& rlp, uint64_t length, size_t val_offset = 0, size_t rlp_starting_offset = 0);
     Rlp(BufferView_t&& rlp);
-    Rlp(BufferView_t&& rlp, uint64_t length, size_t offset = 0);
+    Rlp(BufferView_t&& rlp, uint64_t length, size_t val_offset = 0, size_t rlp_starting_offset = 0);
     Rlp(Rlp&& rhs);
     Rlp(const Rlp& rhs);
 
     Rlp& operator =(const Rlp& rhs);
     Rlp& operator =(Rlp&& rhs);
 
-    Rlp get_next_rlp_string();
-    RlpList get_next_rlp_list();
+    RlpList get_rlp_list();
 
     BufferView_t as_rlp_string() const;
 
@@ -33,13 +33,17 @@ public:
 
     uint64_t as_int() const;
 
+    std::vector<uint8_t> as_vector() const;
+
     size_t length() const;
-    size_t offset() const;
+    size_t val_offset() const;
+    size_t rlp_starting_offset() const;
 
 private:
 
     BufferView_t _rlp;
-    size_t _offset;
+    size_t _val_offset;
+    size_t _rlp_starting_offset;
     uint64_t _length;
 };
 

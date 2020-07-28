@@ -263,6 +263,10 @@ void bind_transaction_service(py::module& m) {
 					&TxProcessingResult_t::get_tx_status,
 					py::return_value_policy::reference
 			).def(
+                "get_tx_validation_status",
+                &TxProcessingResult_t::get_tx_validation_status,
+                py::return_value_policy::reference
+            ).def(
 					"get_existing_short_ids",
 					&TxProcessingResult_t::get_existing_short_ids,
 					py::return_value_policy::reference

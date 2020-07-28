@@ -93,6 +93,10 @@ const unsigned char* BufferView::byte_array() const {
 	return &_buffer[_from];
 }
 
+std::vector<uint8_t> BufferView::vector(size_t offset, size_t length) const {
+    return std::vector<uint8_t>(_buffer + offset, _buffer + offset + length);
+}
+
 BufferView::const_iterator BufferView::begin() const {
 	return const_iterator(_buffer + _from);
 }

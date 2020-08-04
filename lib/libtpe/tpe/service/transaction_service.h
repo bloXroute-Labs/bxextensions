@@ -52,6 +52,7 @@ typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
 typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
+typedef utils::common::BufferView SearializedShortIds_t;
 typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 typedef utils::protocols::AbstractTransactionValidator AbstractTransactionValidator_t;
 typedef unsigned int TxStatus_t;
@@ -336,6 +337,8 @@ public:
         std::string protocol,
         PTxsMessageContents_t txs_message_contents
     );
+
+    PByteArray_t get_transactions_by_short_ids(const SearializedShortIds_t& msg);
 
 private:
 

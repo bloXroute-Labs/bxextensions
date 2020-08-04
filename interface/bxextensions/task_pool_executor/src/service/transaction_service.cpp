@@ -255,7 +255,11 @@ void bind_transaction_service(py::module& m) {
 					"process_gateway_transaction_from_node",
 					&TransactionService_t::process_gateway_transaction_from_node,
 					py::return_value_policy::reference
-			);
+			).def(
+                    "get_transactions_by_short_ids",
+                    &TransactionService_t::get_transactions_by_short_ids,
+                    py::return_value_policy::reference
+            );
 
 	py::class_<TxProcessingResult_t, PTxProcessingResult_t>(m, "TxProcessingResult")
 			.def(

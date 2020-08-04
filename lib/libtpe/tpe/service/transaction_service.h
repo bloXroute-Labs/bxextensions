@@ -36,6 +36,8 @@ typedef utils::common::BufferCopy BufferCopy_t;
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
+typedef utils::common::BufferView TxsMsg_t;
+typedef std::shared_ptr<TxsMsg_t> PTxsMsg_t;
 typedef utils::common::ByteArray TxSyncTxs_t;
 typedef std::shared_ptr<TxSyncTxs_t> PTxSyncTxs_t;
 typedef std::shared_ptr<Sha256_t> PSha256_t;
@@ -339,6 +341,8 @@ public:
     );
 
     PByteArray_t get_transactions_by_short_ids(const SearializedShortIds_t& msg);
+
+    PByteArray_t process_txs_msg(const TxsMsg_t& msg);
 
 private:
 

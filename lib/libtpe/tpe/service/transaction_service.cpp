@@ -425,8 +425,7 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
     bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
     bool existing_contents = has_transaction_contents(transaction_hash);
 
-    if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
-            or removed_transaction(transaction_hash)) {
+    if (short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents) {
         return TxFromBdnProcessingResult_t(
             true,
             ignore_seen_short_id,

@@ -9,23 +9,25 @@
 namespace task {
 
 EthBlockCompressionTask::EthBlockCompressionTask(
-        size_t capacity/* = ETH_DEFAULT_BLOCK_SIZE*/,
-        size_t minimal_tx_count/* = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
+    size_t capacity/* = ETH_DEFAULT_BLOCK_SIZE*/,
+    size_t minimal_tx_count/* = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ):
         MainTaskBase(),
         _tx_service(nullptr),
         _minimal_tx_count(minimal_tx_count),
         _content_size(0),
         _txn_count(0),
-        _starting_offset(0)
+        _starting_offset(0),
+        _enable_block_compression(false)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void EthBlockCompressionTask::init(
-        PBlockBuffer_t block_buffer,
-        PTransactionService_t tx_service
+    PBlockBuffer_t block_buffer,
+    PTransactionService_t tx_service,
+    bool enable_block_compression
 )
 {
     _tx_service = std::move(tx_service);
@@ -41,6 +43,7 @@ void EthBlockCompressionTask::init(
     _content_size = 0;
     _txn_count = 0;
     _starting_offset = 0;
+    _enable_block_compression = enable_block_compression;
 }
 
 PByteArray_t EthBlockCompressionTask::bx_block() {
@@ -109,7 +112,6 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
 
-
     while (tx_from < txn_end_offset) {
         tx_offset = msg.get_next_tx_offset(tx_from);
 
@@ -124,7 +126,7 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 
         size_t tx_content_bytes_len = 0, tx_content_prefix_offset;
 
-        if ( ! _tx_service->has_short_id(tx_hash) ) {
+        if ( ! _tx_service->has_short_id(tx_hash) or not _enable_block_compression ) {
             tx_content_bytes_len = tx_offset - tx_from;
             tx_content_prefix_offset = utils::encoding::get_length_prefix_str(
                 tx_content_prefix, tx_content_bytes_len, 0

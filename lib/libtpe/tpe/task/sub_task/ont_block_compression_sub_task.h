@@ -22,9 +22,10 @@ public:
     OntBlockCompressionSubTask(size_t capacity);
 
     void init(
-            PTransactionService_t tx_service,
-            const BlockBuffer_t* block_buffer,
-            POffests_t tx_offsets
+        PTransactionService_t tx_service,
+        const BlockBuffer_t* block_buffer,
+        POffests_t tx_offsets,
+        bool enable_block_compression
     );
 
     const utils::common::ByteArray& output_buffer();
@@ -41,6 +42,7 @@ private:
     POffests_t _tx_offsets;
     PTransactionService_t _tx_service;
     std::vector<unsigned int> _short_ids;
+    bool _enable_block_compression;
 };
 
 }

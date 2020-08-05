@@ -9,19 +9,21 @@
 namespace task {
 
 OntBlockCompressionSubTask::OntBlockCompressionSubTask(
-        size_t capacity):
-        SubTaskBase(),
-        _tx_service(nullptr),
-        _output_buffer(capacity),
-        _tx_offsets(nullptr),
-        _block_buffer(nullptr)
+    size_t capacity):
+    SubTaskBase(),
+    _tx_service(nullptr),
+    _output_buffer(capacity),
+    _tx_offsets(nullptr),
+    _block_buffer(nullptr),
+    _enable_block_compression(false)
 {
 }
 
 void OntBlockCompressionSubTask::init(
-        PTransactionService_t tx_service,
-        const BlockBuffer_t* block_buffer,
-        POffests_t tx_offsets
+    PTransactionService_t tx_service,
+    const BlockBuffer_t* block_buffer,
+    POffests_t tx_offsets,
+    bool enable_block_compression
 )
 {
     _tx_service = tx_service;
@@ -29,6 +31,7 @@ void OntBlockCompressionSubTask::init(
     _tx_offsets = tx_offsets;
     _short_ids.clear();
     _output_buffer.reset();
+    _enable_block_compression = enable_block_compression;
 }
 
 const utils::common::ByteArray&
@@ -54,7 +57,14 @@ void OntBlockCompressionSubTask::_execute()  {
                         from,
                         offset
                 ));
-        if (_tx_service->has_short_id(sha)) {
+        if ( ! _tx_service->has_short_id(sha) or not _enable_block_compression) {
+            output_offset = _output_buffer.copy_from_buffer(
+                    *_block_buffer,
+                    output_offset,
+                    from,
+                    offset - from
+            );
+        } else {
             unsigned int short_id = _tx_service->get_short_id(sha);
             uint8_t flag = BTC_SHORT_ID_INDICATOR;
             output_offset =
@@ -63,13 +73,6 @@ void OntBlockCompressionSubTask::_execute()  {
                             flag,
                             output_offset);
             _short_ids.push_back(short_id);
-        } else {
-            output_offset = _output_buffer.copy_from_buffer(
-                    *_block_buffer,
-                    output_offset,
-                    from,
-                    offset - from
-            );
         }
     }
 

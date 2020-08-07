@@ -49,7 +49,7 @@ class _BlockCompressionTask(MainTaskBase):
     def __init__(self, capacity: int, min_transaction_count: int): ...
 
     def init(
-        self, block_bytes: InputBytes, transaction_service: TransactionService
+        self, block_bytes: InputBytes, transaction_service: TransactionService, enable_block_compression: bool
     ) -> None: ...
 
     def bx_block(self) -> bytearray: ...
@@ -285,6 +285,10 @@ class TransactionService:
 
     def set_transaction_contents(self, transaction_hash: Sha256, transaction_contents: InputBytes) -> Tuple[
         bool, int]: ...
+
+    def get_transactions_by_short_ids(self, serialized_short_ids: InputBytes) -> bytearray: ...
+
+    def process_txs_msg(self, msg: InputBytes) -> bytearray: ...
 
 
 class AggregatedException(Exception):

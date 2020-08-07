@@ -6,14 +6,17 @@
 namespace task {
 
 OntConsensusBlockCompressionTask::OntConsensusBlockCompressionTask(size_t capacity, size_t minimal_tx_count):
-    MainTaskBase(), _minimal_tx_count(minimal_tx_count)
+    MainTaskBase(),
+    _minimal_tx_count(minimal_tx_count),
+    _enable_block_compression(false)
 {
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void OntConsensusBlockCompressionTask::init(
-        PBlockBuffer_t block_buffer,
-        PTransactionService_t tx_service
+    PBlockBuffer_t block_buffer,
+    PTransactionService_t tx_service,
+    bool enable_block_compression
 )
 {
     _tx_service = std::move(tx_service);
@@ -29,6 +32,7 @@ void OntConsensusBlockCompressionTask::init(
     _short_ids.clear();
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _txn_count = 0;
+    _enable_block_compression = enable_block_compression;
 }
 
 PByteArray_t OntConsensusBlockCompressionTask::bx_block() {
@@ -105,16 +109,16 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     for (uint32_t idx = 0 ; idx < _txn_count ; ++idx) {
         tx_offset = msg.get_next_tx_offset(from);
         Sha256_t tx_hash = std::move(utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset));
-        if (_tx_service->has_short_id(tx_hash)) {
-            _short_ids.push_back(_tx_service->get_short_id(tx_hash));
-            output_offset = utils::common::set_little_endian_value(*_output_buffer, short_id_flag, output_offset);
-        } else {
+        if ( ! _tx_service->has_short_id(tx_hash) or not _enable_block_compression) {
             output_offset = _output_buffer->copy_from_buffer(
                     block_buffer,
                     output_offset,
                     from,
                     tx_offset - from
             );
+        } else {
+            _short_ids.push_back(_tx_service->get_short_id(tx_hash));
+            output_offset = utils::common::set_little_endian_value(*_output_buffer, short_id_flag, output_offset);
         }
         from = tx_offset;
     }

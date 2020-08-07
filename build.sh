@@ -33,6 +33,7 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
                 --build-arg UID=$(id -u) \\
                 --build-arg GID=$(id -g) \\
                 --rm=false \\
+                --no-cache \\
                 $BUILD_CONTEXT \\
                 --output type=local,dest=release_tag/$TAG/${os};"
       echo ${bash_cmd}

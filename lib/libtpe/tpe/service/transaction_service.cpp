@@ -10,6 +10,7 @@
 #include <utils/protocols/ontology/ont_transaction_validator.h>
 #include "tpe/service/transaction_service.h"
 
+#define HEADER_LENGTH 20 // global message header
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
 #define TX_COUNT_LEN 4 // sizeof(uint_32_t)
 #define SHA256_LEN 32
@@ -424,8 +425,7 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
     bool existing_short_id = short_id != NULL_TX_SID and has_short_id(short_id);
     bool existing_contents = has_transaction_contents(transaction_hash);
 
-    if ((short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
-            or removed_transaction(transaction_hash)) {
+    if (short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents) {
         return TxFromBdnProcessingResult_t(
             true,
             ignore_seen_short_id,
@@ -518,7 +518,131 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     result_buffer->set_output();
     return std::move(result_buffer);
 }
-    
+
+PByteArray_t TransactionService::get_transactions_by_short_ids(const SearializedShortIds_t& msg) {
+    ShortIDs_t short_ids;
+    size_t input_msg_offset = 0;
+    size_t short_ids_count = 0;
+
+    input_msg_offset = utils::common::get_little_endian_value<uint32_t>(msg, short_ids_count, input_msg_offset);
+
+    for (size_t i = 0; i < short_ids_count; ++i) {
+        unsigned int short_id;
+        input_msg_offset = utils::common::get_little_endian_value<uint32_t>(msg, short_id, input_msg_offset);
+        short_ids.push_back(short_id);
+    }
+
+    // Buffer size can't be calculated ahead of time. Will be resizing buffer for each transaction
+    size_t buffer_size = CONTENT_LEN + TX_COUNT_LEN;
+    // Found transactions count is not known initially. Skip transactions info length and transactions count for now.
+    size_t offset = buffer_size;
+    size_t found_count = 0;
+
+    ShortIDs_t missing_short_ids;
+    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(buffer_size);
+
+    for (unsigned int short_id : short_ids) {
+        bool found_short_id = has_short_id(short_id);
+        if (found_short_id) {
+            const Sha256_t& tx_hash = *_containers.short_id_to_tx_hash[short_id];
+
+            bool has_contents = has_transaction_contents(tx_hash);
+
+            if (has_contents) {
+                PTxContents_t contents = _containers.tx_hash_to_contents[tx_hash];
+
+                buffer_size += SHORT_ID_LEN + SHA256_LEN + CONTENT_LEN + contents->size();
+                result_buffer->resize(buffer_size);
+
+                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(short_id), offset);
+                offset = result_buffer->copy_from_buffer(tx_hash.binary(), offset, 0, tx_hash.size());
+                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(contents->size()), offset);
+                offset = result_buffer->copy_from_buffer(*contents, offset, 0, contents->size());
+
+                ++found_count;
+                continue;
+            }
+        }
+
+        missing_short_ids.push_back(short_id);
+    }
+
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(buffer_size - CONTENT_LEN), 0);
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_count), CONTENT_LEN);
+
+    buffer_size += TX_COUNT_LEN + SHORT_ID_LEN * missing_short_ids.size();
+
+    offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_ids.size()), offset);
+    for (unsigned int missing_short_id : missing_short_ids) {
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_id), offset);
+    }
+
+    result_buffer->set_output();
+    return std::move(result_buffer);
+}
+
+PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
+    // return a buffer that consists of
+    // 2 bytes - number of missing transactions
+    // list of:
+    //      short-id uint32 (4 bytes)
+    //      sha256 (32 bytes)
+    //      content length of the transaction that was added to txService (4 bytes)
+
+    size_t offset = HEADER_LENGTH;
+    size_t output_buff_offset = SHORT_IDS_COUNT_LEN;
+    uint16_t missing_short_ids = 0;
+
+    uint32_t txn_count;
+    offset = utils::common::get_little_endian_value<uint32_t>(msg, txn_count, offset);
+    PByteArray_t buffer = std::make_shared<ByteArray_t>(SHORT_IDS_COUNT_LEN + (txn_count * (SHA256_LEN + SHORT_ID_LEN + CONTENT_LEN)));
+
+    for (size_t tx = 0; tx < txn_count; ++tx) {
+        unsigned int short_id = 0;
+        bool missing = false;
+        uint32_t content_length = 0;
+        offset = utils::common::get_little_endian_value<uint32_t>(msg, short_id, offset);
+
+        Sha256_t tx_hash(msg, offset);
+        offset += SHA256_LEN;
+
+        offset = utils::common::get_little_endian_value<uint32_t>(msg, content_length, offset);
+
+        if (! has_short_id(short_id)) {
+           assign_short_id(tx_hash, short_id);
+           missing = true;
+        }
+
+        if (! has_transaction_contents(tx_hash) & content_length > 0) {
+            BufferCopy_t transaction_content(TxContents_t(msg, content_length, offset));
+            set_transaction_contents(
+                tx_hash,
+                std::move(std::make_shared<BufferCopy_t>(std::move(transaction_content)))
+            );
+            offset += content_length;
+            missing = true;
+        }
+        else {
+            offset += content_length;
+            content_length = 0;
+        }
+
+        if (missing) {
+            output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, short_id, output_buff_offset);
+            output_buff_offset = buffer->copy_from_buffer(tx_hash.binary(), output_buff_offset, 0, SHA256_LEN);
+            output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, content_length, output_buff_offset);
+            ++missing_short_ids;
+        }
+    }
+
+    utils::common::set_little_endian_value<uint16_t>(*buffer, missing_short_ids, 0);
+
+    buffer->resize(output_buff_offset);
+    buffer->set_output();
+    return std::move(buffer);
+}
+
+
 std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,

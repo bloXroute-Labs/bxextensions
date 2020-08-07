@@ -36,6 +36,8 @@ typedef utils::common::BufferCopy BufferCopy_t;
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
+typedef utils::common::BufferView TxsMsg_t;
+typedef std::shared_ptr<TxsMsg_t> PTxsMsg_t;
 typedef utils::common::ByteArray TxSyncTxs_t;
 typedef std::shared_ptr<TxSyncTxs_t> PTxSyncTxs_t;
 typedef std::shared_ptr<Sha256_t> PSha256_t;
@@ -52,6 +54,7 @@ typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
 typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
+typedef utils::common::BufferView SearializedShortIds_t;
 typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 typedef utils::protocols::AbstractTransactionValidator AbstractTransactionValidator_t;
 typedef unsigned int TxStatus_t;
@@ -336,6 +339,10 @@ public:
         std::string protocol,
         PTxsMessageContents_t txs_message_contents
     );
+
+    PByteArray_t get_transactions_by_short_ids(const SearializedShortIds_t& msg);
+
+    PByteArray_t process_txs_msg(const TxsMsg_t& msg);
 
 private:
 

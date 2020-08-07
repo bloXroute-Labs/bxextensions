@@ -40,8 +40,9 @@ public:
     );
 
     void init(
-            PBlockBuffer_t block_buffer,
-            PTransactionService_t tx_service
+        PBlockBuffer_t block_buffer,
+        PTransactionService_t tx_service,
+        bool enable_block_compression
     );
 
     PByteArray_t bx_block();
@@ -84,6 +85,7 @@ private:
     PSha256_t _compressed_block_hash;
     uint32_t _txn_count;
     std::vector<unsigned int> _short_ids;
+    bool _enable_block_compression;
 };
 
 } // task

@@ -25,7 +25,7 @@ public:
         size_t minimal_tx_count = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
     );
 
-    void init(PBlockBuffer_t block_buffer, PTransactionService_t tx_service);
+    void init(PBlockBuffer_t block_buffer, PTransactionService_t tx_service, bool enable_block_compression);
 
     PByteArray_t bx_block();
     PSha256_t prev_block_hash();
@@ -53,6 +53,7 @@ private:
     std::vector<unsigned int> _short_ids;
     size_t _content_size;
     size_t _starting_offset;
+    bool _enable_block_compression;
 };
 
 } // task

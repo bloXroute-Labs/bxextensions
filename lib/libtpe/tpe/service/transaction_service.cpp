@@ -20,6 +20,7 @@
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
 #define SEEN_FLAG_LEN 1
+#define HAS_TX_HASH_LEN 1
 
 typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
 typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
@@ -533,13 +534,16 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     }
 
     // Buffer size can't be calculated ahead of time. Will be resizing buffer for each transaction
-    size_t buffer_size = CONTENT_LEN + TX_COUNT_LEN;
+    size_t found_buffer_size = CONTENT_LEN + TX_COUNT_LEN;
+    size_t missing_buffer_size = TX_COUNT_LEN;
     // Found transactions count is not known initially. Skip transactions info length and transactions count for now.
-    size_t offset = buffer_size;
+    size_t found_offset = found_buffer_size;
+    size_t missing_offset = missing_buffer_size;
     size_t found_count = 0;
+    size_t missing_count = 0;
 
-    ShortIDs_t missing_short_ids;
-    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(buffer_size);
+    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(found_buffer_size);
+    ByteArray_t missing_buffer = ByteArray_t(missing_buffer_size);
 
     for (unsigned int short_id : short_ids) {
         bool found_short_id = has_short_id(short_id);
@@ -551,31 +555,38 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
             if (has_contents) {
                 PTxContents_t contents = _containers.tx_hash_to_contents[tx_hash];
 
-                buffer_size += SHORT_ID_LEN + SHA256_LEN + CONTENT_LEN + contents->size();
-                result_buffer->resize(buffer_size);
+                found_buffer_size += SHORT_ID_LEN + SHA256_LEN + CONTENT_LEN + contents->size();
+                result_buffer->resize(found_buffer_size);
 
-                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(short_id), offset);
-                offset = result_buffer->copy_from_buffer(tx_hash.binary(), offset, 0, tx_hash.size());
-                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(contents->size()), offset);
-                offset = result_buffer->copy_from_buffer(*contents, offset, 0, contents->size());
+                found_offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(short_id), found_offset);
+                found_offset = result_buffer->copy_from_buffer(tx_hash.binary(), found_offset, 0, tx_hash.size());
+                found_offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(contents->size()), found_offset);
+                found_offset = result_buffer->copy_from_buffer(*contents, found_offset, 0, contents->size());
 
                 ++found_count;
                 continue;
+            } else {
+                missing_buffer_size += SHORT_ID_LEN + HAS_TX_HASH_LEN + SHA256_LEN;
+                missing_offset = utils::common::set_little_endian_value(missing_buffer, uint32_t(short_id), missing_offset);
+                missing_offset = utils::common::set_little_endian_value(missing_buffer, uint8_t(1), missing_offset);
+                missing_offset = missing_buffer.copy_from_buffer(tx_hash.binary(), missing_offset, 0, tx_hash.size());
+                ++missing_count;
             }
+        } else {
+            missing_buffer_size += SHORT_ID_LEN + HAS_TX_HASH_LEN;
+            missing_offset = utils::common::set_little_endian_value(missing_buffer, uint32_t(short_id), missing_offset);
+            missing_offset = utils::common::set_little_endian_value(missing_buffer, uint8_t(0), missing_offset);
+            ++missing_count;
         }
-
-        missing_short_ids.push_back(short_id);
     }
 
-    utils::common::set_little_endian_value(*result_buffer, uint32_t(buffer_size - CONTENT_LEN), 0);
-    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_count), CONTENT_LEN);
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_buffer_size - CONTENT_LEN), 0);
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_count), TX_COUNT_LEN);
 
-    buffer_size += TX_COUNT_LEN + SHORT_ID_LEN * missing_short_ids.size();
+    utils::common::set_little_endian_value(missing_buffer, uint32_t(missing_count), 0);
 
-    offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_ids.size()), offset);
-    for (unsigned int missing_short_id : missing_short_ids) {
-        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_id), offset);
-    }
+    result_buffer->resize(found_buffer_size + missing_buffer_size);
+    result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
     return std::move(result_buffer);

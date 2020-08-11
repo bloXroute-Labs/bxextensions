@@ -174,9 +174,12 @@ bool TransactionService::removed_transaction(const Sha256_t& tx_hash) const {
 	return iter != _containers.tx_hash_to_time_removed.end();
 }
 
-Sha256ToTime_t&
-TransactionService::tx_hash_to_time_removed() {
+Sha256ToTime_t& TransactionService::tx_hash_to_time_removed() {
 	return _containers.tx_hash_to_time_removed;
+}
+
+ShortIdToTime_t& TransactionService::short_id_to_time_removed() {
+	return _containers.short_id_to_time_removed;
 }
 
 unsigned int TransactionService::get_short_id(
@@ -290,9 +293,14 @@ size_t TransactionService::remove_transactions_by_hashes(const std::vector<Sha25
 
 size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
     auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
+    double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+
     if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
         for (const uint32_t& short_id: short_ids_iter->second) {
             _containers.short_id_to_tx_hash.erase(short_id);
+            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         _containers.tx_hash_to_short_ids.erase(sha);
     }
@@ -302,13 +310,12 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
         content_length = content_iter->second->size();
         _containers.tx_hash_to_contents.erase(content_iter);
     }
-    _containers.tx_hash_to_time_removed.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count());
+    _containers.tx_hash_to_time_removed.emplace(sha, time_removed);
     return content_length;
 }
 
 size_t TransactionService::remove_transaction_by_short_id(
-        unsigned int short_id, ShortIDs_t &dup_sids
+        uint32_t short_id, ShortIDs_t &dup_sids
 )
 {
     auto sha_iter = _containers.short_id_to_tx_hash.find(short_id);
@@ -316,16 +323,22 @@ size_t TransactionService::remove_transaction_by_short_id(
     if (sha_iter != _containers.short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
         auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
+        double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
         if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
             auto& short_ids = short_ids_iter->second;
             if (short_ids.size() > 1) {
                 short_ids.erase(short_id);
-                for (const unsigned int& dup_short_id : short_ids) {
+                for (const uint32_t& dup_short_id : short_ids) {
                     _containers.short_id_to_tx_hash.erase(dup_short_id);
+                    _containers.short_id_to_time_removed.emplace(dup_short_id, time_removed);
                     dup_sids.push_back(dup_short_id);
                 }
             }
             _containers.tx_hash_to_short_ids.erase(sha);
+            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         auto content_iter = _containers.tx_hash_to_contents.find(sha);
         if (content_iter != _containers.tx_hash_to_contents.end()) {

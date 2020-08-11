@@ -20,6 +20,7 @@
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
 #define QUOTA_TYPE_LEN 1
 #define SEEN_FLAG_LEN 1
+#define HAS_TX_HASH_LEN 1
 
 typedef utils::protocols::ontology::OntMessageParser OntMessageParser_t;
 typedef utils::protocols::ethereum::EthMessageParser EthMessageParser_t;
@@ -173,9 +174,12 @@ bool TransactionService::removed_transaction(const Sha256_t& tx_hash) const {
 	return iter != _containers.tx_hash_to_time_removed.end();
 }
 
-Sha256ToTime_t&
-TransactionService::tx_hash_to_time_removed() {
+Sha256ToTime_t& TransactionService::tx_hash_to_time_removed() {
 	return _containers.tx_hash_to_time_removed;
+}
+
+ShortIdToTime_t& TransactionService::short_id_to_time_removed() {
+	return _containers.short_id_to_time_removed;
 }
 
 unsigned int TransactionService::get_short_id(
@@ -289,9 +293,14 @@ size_t TransactionService::remove_transactions_by_hashes(const std::vector<Sha25
 
 size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
     auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
+    double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+
     if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
         for (const uint32_t& short_id: short_ids_iter->second) {
             _containers.short_id_to_tx_hash.erase(short_id);
+            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         _containers.tx_hash_to_short_ids.erase(sha);
     }
@@ -301,13 +310,12 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
         content_length = content_iter->second->size();
         _containers.tx_hash_to_contents.erase(content_iter);
     }
-    _containers.tx_hash_to_time_removed.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count());
+    _containers.tx_hash_to_time_removed.emplace(sha, time_removed);
     return content_length;
 }
 
 size_t TransactionService::remove_transaction_by_short_id(
-        unsigned int short_id, ShortIDs_t &dup_sids
+        uint32_t short_id, ShortIDs_t &dup_sids
 )
 {
     auto sha_iter = _containers.short_id_to_tx_hash.find(short_id);
@@ -315,16 +323,22 @@ size_t TransactionService::remove_transaction_by_short_id(
     if (sha_iter != _containers.short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
         auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
+        double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
+
         if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
             auto& short_ids = short_ids_iter->second;
             if (short_ids.size() > 1) {
                 short_ids.erase(short_id);
-                for (const unsigned int& dup_short_id : short_ids) {
+                for (const uint32_t& dup_short_id : short_ids) {
                     _containers.short_id_to_tx_hash.erase(dup_short_id);
+                    _containers.short_id_to_time_removed.emplace(dup_short_id, time_removed);
                     dup_sids.push_back(dup_short_id);
                 }
             }
             _containers.tx_hash_to_short_ids.erase(sha);
+            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         auto content_iter = _containers.tx_hash_to_contents.find(sha);
         if (content_iter != _containers.tx_hash_to_contents.end()) {
@@ -533,13 +547,16 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     }
 
     // Buffer size can't be calculated ahead of time. Will be resizing buffer for each transaction
-    size_t buffer_size = CONTENT_LEN + TX_COUNT_LEN;
+    size_t found_buffer_size = CONTENT_LEN + TX_COUNT_LEN;
+    size_t missing_buffer_size = TX_COUNT_LEN;
     // Found transactions count is not known initially. Skip transactions info length and transactions count for now.
-    size_t offset = buffer_size;
+    size_t found_offset = found_buffer_size;
+    size_t missing_offset = missing_buffer_size;
     size_t found_count = 0;
+    size_t missing_count = 0;
 
-    ShortIDs_t missing_short_ids;
-    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(buffer_size);
+    PByteArray_t result_buffer = std::make_shared<ByteArray_t>(found_buffer_size);
+    ByteArray_t missing_buffer = ByteArray_t(missing_buffer_size);
 
     for (unsigned int short_id : short_ids) {
         bool found_short_id = has_short_id(short_id);
@@ -551,31 +568,38 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
             if (has_contents) {
                 PTxContents_t contents = _containers.tx_hash_to_contents[tx_hash];
 
-                buffer_size += SHORT_ID_LEN + SHA256_LEN + CONTENT_LEN + contents->size();
-                result_buffer->resize(buffer_size);
+                found_buffer_size += SHORT_ID_LEN + SHA256_LEN + CONTENT_LEN + contents->size();
+                result_buffer->resize(found_buffer_size);
 
-                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(short_id), offset);
-                offset = result_buffer->copy_from_buffer(tx_hash.binary(), offset, 0, tx_hash.size());
-                offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(contents->size()), offset);
-                offset = result_buffer->copy_from_buffer(*contents, offset, 0, contents->size());
+                found_offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(short_id), found_offset);
+                found_offset = result_buffer->copy_from_buffer(tx_hash.binary(), found_offset, 0, tx_hash.size());
+                found_offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(contents->size()), found_offset);
+                found_offset = result_buffer->copy_from_buffer(*contents, found_offset, 0, contents->size());
 
                 ++found_count;
                 continue;
+            } else {
+                missing_buffer_size += SHORT_ID_LEN + HAS_TX_HASH_LEN + SHA256_LEN;
+                missing_offset = utils::common::set_little_endian_value(missing_buffer, uint32_t(short_id), missing_offset);
+                missing_offset = utils::common::set_little_endian_value(missing_buffer, uint8_t(1), missing_offset);
+                missing_offset = missing_buffer.copy_from_buffer(tx_hash.binary(), missing_offset, 0, tx_hash.size());
+                ++missing_count;
             }
+        } else {
+            missing_buffer_size += SHORT_ID_LEN + HAS_TX_HASH_LEN;
+            missing_offset = utils::common::set_little_endian_value(missing_buffer, uint32_t(short_id), missing_offset);
+            missing_offset = utils::common::set_little_endian_value(missing_buffer, uint8_t(0), missing_offset);
+            ++missing_count;
         }
-
-        missing_short_ids.push_back(short_id);
     }
 
-    utils::common::set_little_endian_value(*result_buffer, uint32_t(buffer_size - CONTENT_LEN), 0);
-    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_count), CONTENT_LEN);
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_buffer_size - CONTENT_LEN), 0);
+    utils::common::set_little_endian_value(*result_buffer, uint32_t(found_count), TX_COUNT_LEN);
 
-    buffer_size += TX_COUNT_LEN + SHORT_ID_LEN * missing_short_ids.size();
+    utils::common::set_little_endian_value(missing_buffer, uint32_t(missing_count), 0);
 
-    offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_ids.size()), offset);
-    for (unsigned int missing_short_id : missing_short_ids) {
-        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(missing_short_id), offset);
-    }
+    result_buffer->resize(found_buffer_size + missing_buffer_size);
+    result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
     return std::move(result_buffer);

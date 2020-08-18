@@ -352,7 +352,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     unsigned int current_time,
     std::string protocol,
     bool enable_transaction_validation,
-    u_int64_t min_tx_network_fee
+    uint64_t min_tx_network_fee
 )
 {
     unsigned int tx_status, tx_validation_status;

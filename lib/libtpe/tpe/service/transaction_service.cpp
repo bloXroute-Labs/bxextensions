@@ -169,19 +169,6 @@ bool TransactionService::has_transaction_contents(const Sha256_t& tx_hash) const
     return iter != _containers.tx_hash_to_contents.end();
 }
 
-bool TransactionService::removed_transaction(const Sha256_t& tx_hash) const {
-    auto iter = _containers.tx_hash_to_time_removed.find(tx_hash);
-	return iter != _containers.tx_hash_to_time_removed.end();
-}
-
-Sha256ToTime_t& TransactionService::tx_hash_to_time_removed() {
-	return _containers.tx_hash_to_time_removed;
-}
-
-ShortIdToTime_t& TransactionService::short_id_to_time_removed() {
-	return _containers.short_id_to_time_removed;
-}
-
 unsigned int TransactionService::get_short_id(
 		const Sha256_t& tx_hash
 ) const {
@@ -300,7 +287,6 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
     if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
         for (const uint32_t& short_id: short_ids_iter->second) {
             _containers.short_id_to_tx_hash.erase(short_id);
-            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         _containers.tx_hash_to_short_ids.erase(sha);
     }
@@ -310,7 +296,6 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
         content_length = content_iter->second->size();
         _containers.tx_hash_to_contents.erase(content_iter);
     }
-    _containers.tx_hash_to_time_removed.emplace(sha, time_removed);
     return content_length;
 }
 
@@ -333,21 +318,16 @@ size_t TransactionService::remove_transaction_by_short_id(
                 short_ids.erase(short_id);
                 for (const uint32_t& dup_short_id : short_ids) {
                     _containers.short_id_to_tx_hash.erase(dup_short_id);
-                    _containers.short_id_to_time_removed.emplace(dup_short_id, time_removed);
                     dup_sids.push_back(dup_short_id);
                 }
             }
             _containers.tx_hash_to_short_ids.erase(sha);
-            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         auto content_iter = _containers.tx_hash_to_contents.find(sha);
         if (content_iter != _containers.tx_hash_to_contents.end()) {
             contents_len = content_iter->second->size();
             _containers.tx_hash_to_contents.erase(content_iter);
         }
-
-        _containers.tx_hash_to_time_removed.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count());
 
         _containers.short_id_to_tx_hash.erase(sha_iter);
     }
@@ -504,9 +484,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
         TxsMessageContents_t message_contents = *txs_message_contents;
 
-        const bool seen_transaction =
-                has_transaction_contents(transaction_hash)
-                or removed_transaction(transaction_hash);
+        const bool seen_transaction = has_transaction_contents(transaction_hash);
 
         if (!seen_transaction) {
             ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
@@ -699,9 +677,6 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
         tx_status |= TX_STATUS_SEEN_CONTENT;
         tx_status |= TX_STATUS_SEEN_HASH;
     }
-    if (removed_transaction(transaction_hash)) {
-        tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION;
-    }
 
     // check all variations for previously seen Tx
     if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
@@ -725,10 +700,6 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
         has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
         has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
-    if (has_status_flag(tx_status, TX_STATUS_SEEN_REMOVED_TRANSACTION)) {
         tx_status |= TX_STATUS_IGNORE_SEEN;
     }
 

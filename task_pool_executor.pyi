@@ -253,10 +253,6 @@ class TransactionService:
 
     def tx_not_seen_in_blocks(self) -> Set[Sha256]: ...
 
-    def tx_hash_to_time_removed(self) -> Dict[Sha256, float]: ...
-
-    def short_id_to_time_removed(self) -> Dict[int, float]: ...
-
     def process_transaction_msg(
         self,
         transaction_cache_key: Sha256,

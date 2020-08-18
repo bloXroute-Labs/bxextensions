@@ -49,8 +49,6 @@ typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
-typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
-typedef utils::common::OrderedMap<int, double> ShortIdToTime_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
@@ -104,9 +102,7 @@ struct Containers {
         tx_hash_to_contents(PTxContentsTracker()),
         short_id_to_tx_hash(),
         tx_hash_to_short_ids(tx_not_seen_in_blocks),
-        short_ids_seen_in_block(),
-        tx_hash_to_time_removed(),
-        short_id_to_time_removed()
+        short_ids_seen_in_block()
     {
 
     }
@@ -116,8 +112,6 @@ struct Containers {
     ShortIDToSha256Map_t short_id_to_tx_hash;
     Sha256ToContentMap_t tx_hash_to_contents;
     ShortIDsSeenInBlock_t short_ids_seen_in_block;
-    Sha256ToTime_t tx_hash_to_time_removed;
-    ShortIdToTime_t short_id_to_time_removed;
 
 };
 
@@ -270,8 +264,6 @@ public:
 	PTxSyncTxs_t get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content);
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
-    Sha256ToTime_t& tx_hash_to_time_removed();
-    ShortIdToTime_t& short_id_to_time_removed();
 
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;
@@ -284,7 +276,6 @@ public:
 	bool has_short_id(const Sha256_t& tx_hash) const;
 	bool has_short_id(unsigned int short_id) const;
 	bool has_transaction_contents(const Sha256_t& tx_hash) const;
-	bool removed_transaction(const Sha256_t& transaction_hash) const;
 
 	unsigned int get_short_id(const Sha256_t& tx_hash) const;
 

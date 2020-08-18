@@ -12,7 +12,10 @@ typedef std::shared_ptr<TxContents_t> PTxContents_t;
 
 class AbstractTransactionValidator {
 public:
-    virtual size_t transaction_validation(const PTxContents_t& tx) const {
+    virtual size_t transaction_validation(
+        const PTxContents_t& tx,
+        const uint64_t transaction_validation
+    ) const {
         throw std::runtime_error("transaction_validation is not implemented in abstract class.");
     }
 };

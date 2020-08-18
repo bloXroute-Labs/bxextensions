@@ -351,7 +351,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     unsigned int timestamp,
     unsigned int current_time,
     std::string protocol,
-    bool enable_transaction_validation
+    bool enable_transaction_validation,
+    u_int64_t min_tx_network_fee
 )
 {
     unsigned int tx_status, tx_validation_status;
@@ -368,14 +369,13 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         timestamp,
         current_time,
         protocol,
-        enable_transaction_validation
+        enable_transaction_validation,
+        min_tx_network_fee
     );
 
     if (
-        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_FORMAT) or
-        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_SIGNATURE) or
-        has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) or
-        has_status_flag(tx_status, TX_STATUS_TIMED_OUT)
+        tx_validation_status != TX_VALIDATION_STATUS_VALID_TX or
+        has_status_flag(tx_status, (TX_STATUS_IGNORE_SEEN | TX_STATUS_TIMED_OUT))
     ) {
         TxProcessingResult_t result(tx_status, tx_validation_status);
         return std::move(result);
@@ -657,11 +657,12 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     unsigned int timestamp,
     unsigned int current_time,
     std::string protocol,
-    bool enable_transaction_validation
+    bool enable_transaction_validation,
+    uint64_t min_tx_network_fee
 )
 {
     unsigned int tx_status;
-    unsigned int tx_validation_status = 0;
+    unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
 
     tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
 
@@ -716,7 +717,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     }
     if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and enable_transaction_validation ) {
         const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
-        tx_validation_status = tx_validation.transaction_validation(transaction_contents);
+        tx_validation_status = tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
     }
 
     return std::make_tuple(tx_status, tx_validation_status);

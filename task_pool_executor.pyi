@@ -266,7 +266,8 @@ class TransactionService:
         timestamp: int,
         current_time: int,
         protocol: str,
-        enable_transaction_validation: bool
+        enable_transaction_validation: bool,
+        min_tx_network_fee: int
     ) -> TxProcessingResult: ...
 
     def process_gateway_transaction_from_bdn(

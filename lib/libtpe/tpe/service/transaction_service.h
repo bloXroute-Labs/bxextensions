@@ -323,7 +323,8 @@ public:
         unsigned int timestamp,
         unsigned int current_time,
         std::string protocol,
-        bool enable_transaction_validation
+        bool enable_transaction_validation,
+        uint64_t min_tx_network_fee
     );
 
     TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
@@ -354,7 +355,8 @@ private:
         unsigned int timestamp,
         unsigned int current_time,
         std::string protocol,
-        bool enable_transaction_validation
+        bool enable_transaction_validation,
+        uint64_t min_tx_network_fee
     );
 
     const AbstractMessageParser_t& _create_message_parser(std::string protocol) const;

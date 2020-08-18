@@ -25,7 +25,12 @@ public:
         size_t minimal_tx_count = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT
     );
 
-    void init(PBlockBuffer_t block_buffer, PTransactionService_t tx_service, bool enable_block_compression);
+    void init(
+        PBlockBuffer_t block_buffer,
+        PTransactionService_t tx_service,
+        bool enable_block_compression,
+        float min_tx_age_seconds
+    );
 
     PByteArray_t bx_block();
     PSha256_t prev_block_hash();
@@ -54,6 +59,7 @@ private:
     size_t _content_size;
     size_t _starting_offset;
     bool _enable_block_compression;
+    float _min_tx_age_seconds;
 };
 
 } // task

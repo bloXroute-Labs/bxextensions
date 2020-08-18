@@ -49,7 +49,11 @@ class _BlockCompressionTask(MainTaskBase):
     def __init__(self, capacity: int, min_transaction_count: int): ...
 
     def init(
-        self, block_bytes: InputBytes, transaction_service: TransactionService, enable_block_compression: bool
+        self,
+        block_bytes: InputBytes,
+        transaction_service: TransactionService,
+        enable_block_compression: bool,
+        min_tx_age_seconds: float
     ) -> None: ...
 
     def bx_block(self) -> bytearray: ...

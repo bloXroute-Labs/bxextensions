@@ -54,6 +54,10 @@ Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
 }
 
+float TransactionService::get_short_id_assign_time(unsigned int short_id){
+    return _containers.short_id_to_assign_time[short_id];
+}
+
 PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content) {
     size_t total_tx_hashes = _containers.tx_hash_to_contents.size();
     size_t total_short_ids = _containers.short_id_to_tx_hash.size();
@@ -130,10 +134,15 @@ AssignShortIDResult_t TransactionService::assign_short_id(const Sha256_t& transa
         return std::move(result);
     }
 
-    if (!has_short_id(short_id)) {
+    if ( !has_short_id(short_id) ) {
         _containers.tx_hash_to_short_ids[transaction_hash].insert(short_id);
         _containers.short_id_to_tx_hash[short_id] = std::make_shared<Sha256_t>(transaction_hash);
     }
+
+    float current_time = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+    _containers.short_id_to_assign_time.emplace(short_id, current_time);
 
     return std::move(result);
 }
@@ -170,7 +179,7 @@ bool TransactionService::has_transaction_contents(const Sha256_t& tx_hash) const
 }
 
 unsigned int TransactionService::get_short_id(
-		const Sha256_t& tx_hash
+    const Sha256_t& tx_hash
 ) const {
 	auto iter = _containers.tx_hash_to_short_ids.find(tx_hash);
 	return *iter->second.begin();
@@ -185,7 +194,7 @@ PTxContents_t TransactionService::get_transaction(
 }
 
 const TxContents_t* TransactionService::get_tx_contents_raw_ptr(
-        unsigned int short_id
+    unsigned int short_id
 )
 {
     const Sha256_t& tx_hash = *_containers.short_id_to_tx_hash[short_id];
@@ -280,13 +289,10 @@ size_t TransactionService::remove_transactions_by_hashes(const std::vector<Sha25
 
 size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
     auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
-    double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()
-    ).count();
-
     if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
         for (const uint32_t& short_id: short_ids_iter->second) {
             _containers.short_id_to_tx_hash.erase(short_id);
+            _containers.short_id_to_assign_time.erase(short_id);
         }
         _containers.tx_hash_to_short_ids.erase(sha);
     }
@@ -308,9 +314,6 @@ size_t TransactionService::remove_transaction_by_short_id(
     if (sha_iter != _containers.short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
         auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
-        double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
 
         if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
             auto& short_ids = short_ids_iter->second;
@@ -318,6 +321,7 @@ size_t TransactionService::remove_transaction_by_short_id(
                 short_ids.erase(short_id);
                 for (const uint32_t& dup_short_id : short_ids) {
                     _containers.short_id_to_tx_hash.erase(dup_short_id);
+                    _containers.short_id_to_assign_time.erase(dup_short_id);
                     dup_sids.push_back(dup_short_id);
                 }
             }
@@ -330,6 +334,7 @@ size_t TransactionService::remove_transaction_by_short_id(
         }
 
         _containers.short_id_to_tx_hash.erase(sha_iter);
+        _containers.short_id_to_assign_time.erase(short_id);
     }
     return contents_len;
 }

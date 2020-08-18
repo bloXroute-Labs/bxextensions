@@ -42,7 +42,8 @@ public:
 	void init(
         PBlockBuffer_t block_buffer,
         PTransactionService_t tx_service,
-        bool enable_block_compression
+        bool enable_block_compression,
+        float min_tx_age_seconds
 	);
 
 	PByteArray_t bx_block();
@@ -86,6 +87,7 @@ private:
 	size_t _txn_count;
 	std::vector<unsigned int> _short_ids;
 	bool _enable_block_compression;
+	float _min_tx_age_seconds;
 };
 
 } // task

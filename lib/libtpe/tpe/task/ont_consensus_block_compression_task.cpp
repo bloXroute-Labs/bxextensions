@@ -8,7 +8,8 @@ namespace task {
 OntConsensusBlockCompressionTask::OntConsensusBlockCompressionTask(size_t capacity, size_t minimal_tx_count):
     MainTaskBase(),
     _minimal_tx_count(minimal_tx_count),
-    _enable_block_compression(false)
+    _enable_block_compression(false),
+    _min_tx_age_seconds(0.0)
 {
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
@@ -16,7 +17,8 @@ OntConsensusBlockCompressionTask::OntConsensusBlockCompressionTask(size_t capaci
 void OntConsensusBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
-    bool enable_block_compression
+    bool enable_block_compression,
+    float min_tx_age_seconds
 )
 {
     _tx_service = std::move(tx_service);
@@ -33,6 +35,7 @@ void OntConsensusBlockCompressionTask::init(
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _txn_count = 0;
     _enable_block_compression = enable_block_compression;
+    _min_tx_age_seconds = min_tx_age_seconds;
 }
 
 PByteArray_t OntConsensusBlockCompressionTask::bx_block() {
@@ -106,10 +109,22 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     output_offset = _output_buffer->copy_from_buffer(msg.block_msg_buffer(), output_offset, 0, tx_offset);
     size_t from = tx_offset;
     auto block_buffer = std::move(msg.block_msg_buffer());
+    float max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count() - _min_tx_age_seconds;
+
     for (uint32_t idx = 0 ; idx < _txn_count ; ++idx) {
         tx_offset = msg.get_next_tx_offset(from);
         Sha256_t tx_hash = std::move(utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset));
-        if ( ! _tx_service->has_short_id(tx_hash) or not _enable_block_compression) {
+
+        float short_id_assign_time = 0.0;
+        if (_tx_service->has_short_id(tx_hash)) {
+            short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
+        }
+
+        if ( ! _tx_service->has_short_id(tx_hash) or
+             not _enable_block_compression or
+             short_id_assign_time > max_timestamp_for_compression) {
             output_offset = _output_buffer->copy_from_buffer(
                     block_buffer,
                     output_offset,

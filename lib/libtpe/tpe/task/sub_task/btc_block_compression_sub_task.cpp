@@ -18,7 +18,8 @@ BtcBlockCompressionSubTask::BtcBlockCompressionSubTask(
     _output_buffer(capacity),
     _tx_offsets(nullptr),
     _block_buffer(nullptr),
-    _enable_block_compression(false)
+    _enable_block_compression(false),
+    _min_tx_age_seconds(0.0)
 {
 }
 
@@ -26,7 +27,8 @@ void BtcBlockCompressionSubTask::init(
     PTransactionService_t tx_service,
     const BlockBuffer_t* block_buffer,
     POffests_t tx_offsets,
-    bool enable_block_compression
+    bool enable_block_compression,
+    float min_tx_age_seconds
 )
 {
 	_tx_service = tx_service;
@@ -35,6 +37,7 @@ void BtcBlockCompressionSubTask::init(
 	_short_ids.clear();
 	_output_buffer.reset();
 	_enable_block_compression = enable_block_compression;
+	_min_tx_age_seconds = min_tx_age_seconds;
 }
 
 const utils::common::ByteArray&
@@ -51,6 +54,10 @@ BtcBlockCompressionSubTask::short_ids() {
 
 void BtcBlockCompressionSubTask::_execute()  {
 	size_t output_offset = 0;
+    float max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count() - _min_tx_age_seconds;
+
 	for (auto& offsets : *_tx_offsets) {
         size_t from = std::get<0>(offsets);
         size_t witness_offset = std::get<1>(offsets);
@@ -62,7 +69,15 @@ void BtcBlockCompressionSubTask::_execute()  {
 						witness_offset,
 						offset
 		));
-		if ( ! _tx_service->has_short_id(sha) or not _enable_block_compression) {
+
+		float short_id_assign_time = 0.0;
+		if (_tx_service->has_short_id(sha)) {
+            short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(sha));
+		}
+
+		if ( ! _tx_service->has_short_id(sha) or
+             not _enable_block_compression or
+             short_id_assign_time > max_timestamp_for_compression) {
             output_offset = _output_buffer.copy_from_buffer(
                 *_block_buffer,
                 output_offset,

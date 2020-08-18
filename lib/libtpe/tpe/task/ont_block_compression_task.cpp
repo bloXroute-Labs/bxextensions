@@ -18,7 +18,8 @@ OntBlockCompressionTask::OntBlockCompressionTask(
     _tx_service(nullptr),
     _minimal_tx_count(minimal_tx_count),
     _txn_count(0),
-    _enable_block_compression(false)
+    _enable_block_compression(false),
+    _min_tx_age_seconds(0.0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -27,7 +28,8 @@ OntBlockCompressionTask::OntBlockCompressionTask(
 void OntBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
-    bool enable_block_compression
+    bool enable_block_compression,
+    float min_tx_age_seconds
 )
 {
     _tx_service = std::move(tx_service);
@@ -44,6 +46,7 @@ void OntBlockCompressionTask::init(
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _txn_count = 0;
     _enable_block_compression = enable_block_compression;
+    _min_tx_age_seconds = min_tx_age_seconds;
 }
 
 PByteArray_t
@@ -253,7 +256,8 @@ void OntBlockCompressionTask::_enqueue_task(
         _tx_service,
         _block_buffer.get(),
         data.offsets,
-        _enable_block_compression
+        _enable_block_compression,
+        _min_tx_age_seconds
     );
     sub_pool.enqueue_task(data.sub_task);
 }

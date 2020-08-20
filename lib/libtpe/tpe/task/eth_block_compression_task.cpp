@@ -41,6 +41,7 @@ void EthBlockCompressionTask::init(
         _output_buffer->reset();
     }
     _short_ids.clear();
+    _ignored_short_ids.clear();
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _content_size = 0;
     _txn_count = 0;
@@ -80,6 +81,11 @@ size_t EthBlockCompressionTask::starting_offset() {
 const std::vector<unsigned int>& EthBlockCompressionTask::short_ids() {
     assert_execution();
     return _short_ids;
+}
+
+const std::vector<unsigned int>& EthBlockCompressionTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
 }
 
 size_t EthBlockCompressionTask::get_task_byte_size() const {
@@ -138,9 +144,14 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
         }
 
-        if ( ! _tx_service->has_short_id(tx_hash) or
+        bool has_short_id = _tx_service->has_short_id(tx_hash);
+
+        if ( ! has_short_id or
              not _enable_block_compression or
                  short_id_assign_time > max_timestamp_for_compression ) {
+            if ( has_short_id ) {
+                _ignored_short_ids.push_back(_tx_service->get_short_id(tx_hash));
+            }
             tx_content_bytes_len = tx_offset - tx_from;
             tx_content_prefix_offset = utils::encoding::get_length_prefix_str(
                 tx_content_prefix, tx_content_bytes_len, 0

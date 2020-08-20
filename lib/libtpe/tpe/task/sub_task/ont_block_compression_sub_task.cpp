@@ -32,21 +32,25 @@ void OntBlockCompressionSubTask::init(
     _block_buffer = block_buffer;
     _tx_offsets = tx_offsets;
     _short_ids.clear();
+    _ignored_short_ids.clear();
     _output_buffer.reset();
     _enable_block_compression = enable_block_compression;
     _min_tx_age_seconds = min_tx_age_seconds;
 }
 
-const utils::common::ByteArray&
-OntBlockCompressionSubTask::output_buffer() {
+const utils::common::ByteArray& OntBlockCompressionSubTask::output_buffer() {
     assert_execution();
     return _output_buffer;
 }
 
-const std::vector<unsigned int>&
-OntBlockCompressionSubTask::short_ids() {
+const std::vector<unsigned int>& OntBlockCompressionSubTask::short_ids() {
     assert_execution();
     return _short_ids;
+}
+
+const std::vector<unsigned int>& OntBlockCompressionSubTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
 }
 
 void OntBlockCompressionSubTask::_execute()  {
@@ -70,9 +74,13 @@ void OntBlockCompressionSubTask::_execute()  {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(sha));
         }
 
-        if ( ! _tx_service->has_short_id(sha) or
+        bool has_short_id = _tx_service->has_short_id(sha);
+        if ( ! has_short_id or
              not _enable_block_compression or
              short_id_assign_time > max_timestamp_for_compression) {
+            if ( has_short_id ) {
+                _ignored_short_ids.push_back(_tx_service->get_short_id(sha));
+            }
             output_offset = _output_buffer.copy_from_buffer(
                     *_block_buffer,
                     output_offset,
@@ -80,14 +88,14 @@ void OntBlockCompressionSubTask::_execute()  {
                     offset - from
             );
         } else {
-            unsigned int short_id = _tx_service->get_short_id(sha);
             uint8_t flag = BTC_SHORT_ID_INDICATOR;
             output_offset =
                     utils::common::set_little_endian_value<uint8_t>(
-                            _output_buffer,
-                            flag,
-                            output_offset);
-            _short_ids.push_back(short_id);
+                        _output_buffer,
+                        flag,
+                        output_offset
+                        );
+            _short_ids.push_back(_tx_service->get_short_id(sha));
         }
     }
 

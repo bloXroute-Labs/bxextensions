@@ -39,6 +39,7 @@ public:
     size_t txn_count();
     size_t starting_offset();
     const std::vector<unsigned int>& short_ids();
+    const std::vector<unsigned int>& ignored_short_ids();
 
     size_t get_task_byte_size() const override;
 
@@ -56,6 +57,7 @@ private:
     PSha256_t _prev_block_hash, _block_hash, _compressed_block_hash;
     size_t _txn_count;
     std::vector<unsigned int> _short_ids;
+    std::vector<unsigned int> _ignored_short_ids;
     size_t _content_size;
     size_t _starting_offset;
     bool _enable_block_compression;

@@ -22,8 +22,6 @@ void bind_ont_consensus_block_compression_task(py::module& m) {
             .def("block_hash", &OntConsensusBlockCompressionTask_t::block_hash)
             .def("compressed_block_hash", &OntConsensusBlockCompressionTask_t::compressed_block_hash)
             .def("txn_count", &OntConsensusBlockCompressionTask_t::txn_count)
-            .def(
-                    "short_ids",
-                    &OntConsensusBlockCompressionTask_t::short_ids
-            );
+            .def("short_ids", &OntConsensusBlockCompressionTask_t::short_ids)
+            .def("ignored_short_ids", &OntConsensusBlockCompressionTask_t::ignored_short_ids);
 }

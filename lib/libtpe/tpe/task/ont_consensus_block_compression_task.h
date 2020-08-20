@@ -53,6 +53,7 @@ public:
     uint32_t txn_count();
 
     const std::vector<unsigned int>& short_ids();
+    const std::vector<unsigned int>& ignored_short_ids();
 
     size_t get_task_byte_size() const override;
 
@@ -72,6 +73,7 @@ private:
     PSha256_t _compressed_block_hash;
     uint32_t _txn_count;
     std::vector<unsigned int> _short_ids;
+    std::vector<unsigned int> _ignored_short_ids;
     bool _enable_block_compression;
     float _min_tx_age_seconds;
 };

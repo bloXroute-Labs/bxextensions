@@ -67,6 +67,11 @@ const std::vector<unsigned int>& OntConsensusBlockCompressionTask::short_ids() {
     return _short_ids;
 }
 
+const std::vector<unsigned int>& OntConsensusBlockCompressionTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
+}
+
 size_t OntConsensusBlockCompressionTask::get_task_byte_size() const {
     size_t block_buffer_size = _block_buffer->size() ? _block_buffer != nullptr: 0;
     return sizeof(OntConsensusBlockCompressionTask) + block_buffer_size + _output_buffer->size();
@@ -122,9 +127,15 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
         }
 
-        if ( ! _tx_service->has_short_id(tx_hash) or
-             not _enable_block_compression or
-             short_id_assign_time > max_timestamp_for_compression) {
+        bool has_short_id = _tx_service->has_short_id(tx_hash);
+        if (
+            ! has_short_id or
+            not _enable_block_compression or
+            short_id_assign_time > max_timestamp_for_compression
+            ) {
+            if ( has_short_id ) {
+                _ignored_short_ids.push_back(_tx_service->get_short_id(tx_hash));
+            }
             output_offset = _output_buffer->copy_from_buffer(
                     block_buffer,
                     output_offset,

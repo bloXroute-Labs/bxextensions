@@ -31,6 +31,7 @@ public:
 
 	const utils::common::ByteArray& output_buffer();
 	const std::vector<unsigned int>& short_ids();
+    const std::vector<unsigned int>& ignored_short_ids();
 
 
 protected:
@@ -43,6 +44,7 @@ private:
 	POffests_t _tx_offsets;
 	PTransactionService_t _tx_service;
 	std::vector<unsigned int> _short_ids;
+	std::vector<unsigned int> _ignored_short_ids;
 	bool _enable_block_compression;
 	float _min_tx_age_seconds;
 };

@@ -23,5 +23,6 @@ void bind_eth_block_compression_task(py::module& m) {
 	  .def("compressed_block_hash", &EthBlockCompressionTask_t::compressed_block_hash)
 	  .def("txn_count", &EthBlockCompressionTask_t::txn_count)
 	  .def("short_ids", &EthBlockCompressionTask_t::short_ids)
+	  .def("ignored_short_ids", &EthBlockCompressionTask_t::ignored_short_ids)
       .def("starting_offset", &EthBlockCompressionTask_t::starting_offset);
 }

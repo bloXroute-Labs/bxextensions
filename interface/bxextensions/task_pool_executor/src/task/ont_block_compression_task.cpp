@@ -22,8 +22,6 @@ void bind_ont_block_compression_task(py::module& m) {
             .def("block_hash", &OntBlockCompressionTask_t::block_hash)
             .def("compressed_block_hash", &OntBlockCompressionTask_t::compressed_block_hash)
             .def("txn_count", &OntBlockCompressionTask_t::txn_count)
-            .def(
-                    "short_ids",
-                    &OntBlockCompressionTask_t::short_ids
-            );
+            .def("short_ids", &OntBlockCompressionTask_t::short_ids)
+            .def("ignored_short_ids", &OntBlockCompressionTask_t::ignored_short_ids);
 }

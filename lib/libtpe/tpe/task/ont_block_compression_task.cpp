@@ -43,6 +43,7 @@ void OntBlockCompressionTask::init(
         _output_buffer->reset();
     }
     _short_ids.clear();
+    _ignored_short_ids.clear();
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _txn_count = 0;
     _enable_block_compression = enable_block_compression;
@@ -77,10 +78,14 @@ size_t OntBlockCompressionTask::txn_count() {
     return _txn_count;
 }
 
-const std::vector<unsigned int>&
-OntBlockCompressionTask::short_ids() {
+const std::vector<unsigned int>& OntBlockCompressionTask::short_ids() {
     assert_execution();
     return _short_ids;
+}
+
+const std::vector<unsigned int>& OntBlockCompressionTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
 }
 
 size_t OntBlockCompressionTask::get_task_byte_size() const {
@@ -208,13 +213,13 @@ size_t OntBlockCompressionTask::_on_sub_task_completed(
 {
     auto& output_buffer = tsk.output_buffer();
     auto& short_ids = tsk.short_ids();
+    auto& ignored_short_ids = tsk.ignored_short_ids();
+
     _output_buffer->operator +=(output_buffer);
     _short_ids.reserve(_short_ids.size() + short_ids.size());
-    _short_ids.insert(
-            _short_ids.end(),
-            short_ids.begin(),
-            short_ids.end()
-    );
+    _short_ids.insert(_short_ids.end(), short_ids.begin(), short_ids.end());
+    _ignored_short_ids.reserve(_ignored_short_ids.size() + ignored_short_ids.size());
+    _ignored_short_ids.insert(_ignored_short_ids.end(), ignored_short_ids.begin(), ignored_short_ids.end());
     return _output_buffer->size();
 }
 

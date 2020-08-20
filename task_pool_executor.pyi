@@ -281,7 +281,11 @@ class TransactionService:
     ) -> TxFromBdnProcessingResult: ...
 
     def process_gateway_transaction_from_node(
-        self, protocol: str, transaction_msg_contents: InputBytes
+        self,
+        transaction_msg_contents: InputBytes,
+        protocol: str,
+        min_tx_network_fee: int,
+        enable_transaction_validation: bool
     ) -> bytearray: ...
 
     def assign_short_id(self, transaction_hash: Sha256, short_id: int) -> bool: ...

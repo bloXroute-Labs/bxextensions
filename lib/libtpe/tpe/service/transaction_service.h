@@ -335,8 +335,10 @@ public:
     );
 
     PByteArray_t process_gateway_transaction_from_node(
+        PTxsMessageContents_t txs_message_contents,
         std::string protocol,
-        PTxsMessageContents_t txs_message_contents
+        uint64_t min_tx_network_fee,
+        bool enable_transaction_validation
     );
 
     PByteArray_t get_transactions_by_short_ids(const SearializedShortIds_t& msg);

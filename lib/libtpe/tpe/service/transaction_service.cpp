@@ -148,8 +148,9 @@ AssignShortIDResult_t TransactionService::assign_short_id(const Sha256_t& transa
 }
 
 SetTransactionContentsResult_t TransactionService::set_transaction_contents(
-            const Sha256_t& transaction_hash,
-            PTxContents_t transaction_contents) {
+    const Sha256_t& transaction_hash,
+    PTxContents_t transaction_contents)
+{
     SetTransactionContentsResult_t result;
 
     result.first = has_short_id(transaction_hash);
@@ -399,13 +400,13 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     }
 
     TxProcessingResult_t result(
-            tx_status,
-            tx_validation_status,
-            existing_short_ids,
-            assign_short_id_result,
-            set_transaction_contents_result,
-            contents_set,
-            short_id_assigned);
+        tx_status,
+        tx_validation_status,
+        existing_short_ids,
+        assign_short_id_result,
+        set_transaction_contents_result,
+        contents_set,
+        short_id_assigned);
     return std::move(result);
 }
 
@@ -467,9 +468,12 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
 }
 
 PByteArray_t TransactionService::process_gateway_transaction_from_node(
+    PTxsMessageContents_t txs_message_contents,
     std::string protocol,
-    PTxsMessageContents_t txs_message_contents
-) {
+    uint64_t min_tx_network_fee,
+    bool enable_transaction_validation
+)
+{
     const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
     ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
 
@@ -478,28 +482,36 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         total_result_size += parsed_transaction.length;
     }
-    total_result_size += TX_COUNT_LEN + parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN);
+    total_result_size += TX_COUNT_LEN +
+                         parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN + sizeof(uint32_t));
 
     PByteArray_t result_buffer = std::make_shared<ByteArray_t>(total_result_size);
 
     size_t offset = 0;
     offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
-
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
         TxsMessageContents_t message_contents = *txs_message_contents;
 
         const bool seen_transaction = has_transaction_contents(transaction_hash);
 
-        if (!seen_transaction) {
-            ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
-                    message_contents,
-                    parsed_transaction.length,
-                    parsed_transaction.offset);
+        ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
+            message_contents,
+            parsed_transaction.length,
+            parsed_transaction.offset);
 
+        if ( !seen_transaction ) {
             set_transaction_contents(
-                    transaction_hash,
-                    std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+                transaction_hash,
+                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+            );
+        }
+
+        const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
+        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+        if (enable_transaction_validation) {
+            tx_validation_status = tx_validation.transaction_validation(
+                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))), min_tx_network_fee
             );
         }
 
@@ -507,6 +519,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
         offset = result_buffer->copy_from_buffer(transaction_hash.binary(), offset, 0, transaction_hash.size());
         offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.offset), offset);
         offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.length), offset);
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(tx_validation_status), offset);
     }
 
     // remove all items from the vector to make sure that it is properly disposed

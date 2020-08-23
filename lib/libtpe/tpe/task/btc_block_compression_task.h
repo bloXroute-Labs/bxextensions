@@ -43,7 +43,7 @@ public:
         PBlockBuffer_t block_buffer,
         PTransactionService_t tx_service,
         bool enable_block_compression,
-        float min_tx_age_seconds
+        double min_tx_age_seconds
 	);
 
 	PByteArray_t bx_block();
@@ -89,7 +89,7 @@ private:
 	std::vector<unsigned int> _short_ids;
 	std::vector<unsigned int> _ignored_short_ids;
 	bool _enable_block_compression;
-	float _min_tx_age_seconds;
+	double _min_tx_age_seconds;
 };
 
 } // task

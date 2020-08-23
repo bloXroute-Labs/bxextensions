@@ -48,7 +48,7 @@ typedef utils::crypto::Sha256MapWrapper_t<PTxContents_t> Sha256ToContentMap_t;
 typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
-typedef utils::common::OrderedMap<unsigned int, float> ShortIdToTime_t;
+typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
@@ -266,7 +266,7 @@ public:
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
 	PTxSyncTxs_t get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content);
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
-    float get_short_id_assign_time(unsigned int short_id);
+    double get_short_id_assign_time(unsigned int short_id);
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
 
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;

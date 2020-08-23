@@ -27,7 +27,7 @@ void BtcBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
     bool enable_block_compression,
-    float min_tx_age_seconds
+    double min_tx_age_seconds
 )
 {
 	_tx_service = std::move(tx_service);

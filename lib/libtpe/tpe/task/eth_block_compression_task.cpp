@@ -29,7 +29,7 @@ void EthBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
     bool enable_block_compression,
-    float min_tx_age_seconds
+    double min_tx_age_seconds
 )
 {
     _tx_service = std::move(tx_service);
@@ -121,9 +121,10 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
 
-    float max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
+    double current_time = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
-    ).count() - _min_tx_age_seconds;
+    ).count();
+    double max_timestamp_for_compression = current_time - _min_tx_age_seconds;
 
     while (tx_from < txn_end_offset) {
         tx_offset = msg.get_next_tx_offset(tx_from);
@@ -139,7 +140,7 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 
         size_t tx_content_bytes_len = 0, tx_content_prefix_offset;
 
-        float short_id_assign_time = 0.0;
+        double short_id_assign_time = 0.0;
         if ( _tx_service->has_short_id(tx_hash) ) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
         }

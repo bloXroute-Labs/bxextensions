@@ -18,7 +18,7 @@ void OntConsensusBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
     bool enable_block_compression,
-    float min_tx_age_seconds
+    double min_tx_age_seconds
 )
 {
     _tx_service = std::move(tx_service);
@@ -114,7 +114,7 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     output_offset = _output_buffer->copy_from_buffer(msg.block_msg_buffer(), output_offset, 0, tx_offset);
     size_t from = tx_offset;
     auto block_buffer = std::move(msg.block_msg_buffer());
-    float max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
+    double max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count() - _min_tx_age_seconds;
 
@@ -122,7 +122,7 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
         tx_offset = msg.get_next_tx_offset(from);
         Sha256_t tx_hash = std::move(utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset));
 
-        float short_id_assign_time = 0.0;
+        double short_id_assign_time = 0.0;
         if (_tx_service->has_short_id(tx_hash)) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
         }

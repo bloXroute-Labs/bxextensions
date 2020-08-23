@@ -54,7 +54,7 @@ Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
 }
 
-float TransactionService::get_short_id_assign_time(unsigned int short_id){
+double TransactionService::get_short_id_assign_time(unsigned int short_id){
     return _containers.short_id_to_assign_time[short_id];
 }
 
@@ -139,7 +139,7 @@ AssignShortIDResult_t TransactionService::assign_short_id(const Sha256_t& transa
         _containers.short_id_to_tx_hash[short_id] = std::make_shared<Sha256_t>(transaction_hash);
     }
 
-    float current_time = std::chrono::duration_cast<std::chrono::seconds>(
+    double current_time = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
     _containers.short_id_to_assign_time.emplace(short_id, current_time);

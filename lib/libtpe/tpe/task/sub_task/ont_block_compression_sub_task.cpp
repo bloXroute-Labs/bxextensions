@@ -25,7 +25,7 @@ void OntBlockCompressionSubTask::init(
     const BlockBuffer_t* block_buffer,
     POffests_t tx_offsets,
     bool enable_block_compression,
-    float min_tx_age_seconds
+    double min_tx_age_seconds
 )
 {
     _tx_service = tx_service;
@@ -55,7 +55,7 @@ const std::vector<unsigned int>& OntBlockCompressionSubTask::ignored_short_ids()
 
 void OntBlockCompressionSubTask::_execute()  {
     size_t output_offset = 0;
-    float max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
+    double max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count() - _min_tx_age_seconds;
 
@@ -69,7 +69,7 @@ void OntBlockCompressionSubTask::_execute()  {
                         offset
                 ));
 
-        float short_id_assign_time = 0.0;
+        double short_id_assign_time = 0.0;
         if (_tx_service->has_short_id(sha)) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(sha));
         }

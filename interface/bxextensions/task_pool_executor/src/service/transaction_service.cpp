@@ -119,8 +119,9 @@ void bind_transaction_service(py::module& m) {
 
 	py::class_<TransactionService_t, PTransactionService_t>(m, "TransactionService")
 			.def(
-			        py::init<size_t, size_t, size_t>(),
+			        py::init<size_t, std::string, size_t, size_t>(),
 			        py::arg("pool_size"),
+                    py::arg("protocol"),
                     py::arg("tx_bucket_capacity") = BTC_DEFAULT_TX_BUCKET_SIZE,
                     py::arg("final_tx_confirmations_count") = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT
             )

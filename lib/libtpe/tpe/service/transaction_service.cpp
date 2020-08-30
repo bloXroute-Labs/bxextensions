@@ -1,4 +1,5 @@
 #include <chrono>
+#include <utility>
 #include <math.h>
 
 #include <utils/common/buffer_view.h>
@@ -8,6 +9,7 @@
 #include <utils/protocols/bitcoin/btc_transaction_validator.h>
 #include <utils/protocols/ethereum/eth_transaction_validator.h>
 #include <utils/protocols/ontology/ont_transaction_validator.h>
+#include <utils/protocols/blockchain_protocol.h>
 #include "tpe/service/transaction_service.h"
 
 #define HEADER_LENGTH 20 // global message header
@@ -34,11 +36,15 @@ namespace service {
 
 TransactionService::TransactionService(
         size_t pool_size,
+        std::string protocol,
         size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
         size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
 ):
         _containers(pool_size, tx_bucket_capacity),
-		_final_tx_confirmations_count(final_tx_confirmations_count)
+		_final_tx_confirmations_count(final_tx_confirmations_count),
+        _protocol(std::move(protocol)),
+        _message_parser(_create_message_parser()),
+        _tx_validation(_create_transaction_validator())
 {
 }
 
@@ -347,11 +353,9 @@ void TransactionService::clear_short_ids_seen_in_block() {
 TxProcessingResult_t TransactionService::process_transaction_msg(
     const Sha256_t& transaction_hash,
     PTxContents_t transaction_contents,
-    unsigned int network_num,
     unsigned int short_id,
     unsigned int timestamp,
     unsigned int current_time,
-    std::string protocol,
     bool enable_transaction_validation,
     uint64_t min_tx_network_fee
 )
@@ -369,7 +373,6 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         transaction_contents,
         timestamp,
         current_time,
-        protocol,
         enable_transaction_validation,
         min_tx_network_fee
     );
@@ -469,13 +472,11 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
 
 PByteArray_t TransactionService::process_gateway_transaction_from_node(
     PTxsMessageContents_t txs_message_contents,
-    std::string protocol,
     uint64_t min_tx_network_fee,
     bool enable_transaction_validation
 )
 {
-    const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
-    ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
+    ParsedTransactions_t parsed_transactions = _message_parser.parse_transactions_message(txs_message_contents);
 
     size_t total_result_size = 0;
 
@@ -507,10 +508,9 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
             );
         }
 
-        const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
         unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
         if (enable_transaction_validation) {
-            tx_validation_status = tx_validation.transaction_validation(
+            tx_validation_status = _tx_validation.transaction_validation(
                 std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))), min_tx_network_fee
             );
         }
@@ -669,7 +669,6 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     const PTxContents_t& transaction_contents,
     unsigned int timestamp,
     unsigned int current_time,
-    std::string protocol,
     bool enable_transaction_validation,
     uint64_t min_tx_network_fee
 )
@@ -729,40 +728,37 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
         tx_status |= TX_STATUS_TIMED_OUT;
     }
     if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and enable_transaction_validation ) {
-        const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
-        tx_validation_status = tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
+        tx_validation_status = _tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
     }
 
     return std::make_tuple(tx_status, tx_validation_status);
 }
 
-const AbstractMessageParser_t& TransactionService::_create_message_parser(std::string protocol) const {
-    if (protocol == "ontology") {
-        static const OntMessageParser_t message_converter = OntMessageParser_t();
-        return message_converter;
-    }
-
-    if (protocol == "ethereum") {
+const AbstractMessageParser_t& TransactionService::_create_message_parser() const {
+    if (_protocol == BLOCKCHAIN_PROTOCOL_ETHEREUM) {
         static const EthMessageParser_t message_converter = EthMessageParser_t();
         return message_converter;
     }
 
-    throw std::runtime_error("Message converter is not available for provided protocol");
+    else { // for now, we don't have implementation for the other blockchains, by default set to ontology
+        static const OntMessageParser_t message_converter = OntMessageParser_t();
+        return message_converter;
+    }
 }
 
-const AbstractTransactionValidator_t& TransactionService::_create_transaction_validator(std::string protocol) const
+const AbstractTransactionValidator_t& TransactionService::_create_transaction_validator() const
 {
-    if (protocol == "bitcoin" or protocol == "bitcoincash") {
+    if (_protocol == BLOCKCHAIN_PROTOCOL_BITCOIN or _protocol == BLOCKCHAIN_PROTOCOL_BITCOIN_CASH) {
         static const BtcTransactionValidator_t transaction_validator = BtcTransactionValidator_t();
         return transaction_validator;
     }
 
-    if (protocol == "ethereum") {
+    if (_protocol == BLOCKCHAIN_PROTOCOL_ETHEREUM) {
         static const EthTransactionValidator_t transaction_validator = EthTransactionValidator_t();
         return transaction_validator;
     }
 
-    if (protocol == "ontology") {
+    if (_protocol == BLOCKCHAIN_PROTOCOL_ONTOLOGY) {
         static const OntTransactionValidator_t transaction_validator = OntTransactionValidator_t();
         return transaction_validator;
     }

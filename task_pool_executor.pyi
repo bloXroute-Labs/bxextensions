@@ -49,7 +49,11 @@ class _BlockCompressionTask(MainTaskBase):
     def __init__(self, capacity: int, min_transaction_count: int): ...
 
     def init(
-        self, block_bytes: InputBytes, transaction_service: TransactionService, enable_block_compression: bool
+        self,
+        block_bytes: InputBytes,
+        transaction_service: TransactionService,
+        enable_block_compression: bool,
+        min_tx_age_seconds: float
     ) -> None: ...
 
     def bx_block(self) -> bytearray: ...
@@ -63,6 +67,8 @@ class _BlockCompressionTask(MainTaskBase):
     def txn_count(self) -> int: ...
 
     def short_ids(self) -> List[int]: ...
+
+    def ignored_short_ids(self) -> List[int]: ...
 
 
 class _BlockDecompressionTask(MainTaskBase):
@@ -253,10 +259,6 @@ class TransactionService:
 
     def tx_not_seen_in_blocks(self) -> Set[Sha256]: ...
 
-    def tx_hash_to_time_removed(self) -> Dict[Sha256, float]: ...
-
-    def short_id_to_time_removed(self) -> Dict[int, float]: ...
-
     def process_transaction_msg(
         self,
         transaction_cache_key: Sha256,
@@ -266,7 +268,8 @@ class TransactionService:
         timestamp: int,
         current_time: int,
         protocol: str,
-        enable_transaction_validation: bool
+        enable_transaction_validation: bool,
+        min_tx_network_fee: int
     ) -> TxProcessingResult: ...
 
     def process_gateway_transaction_from_bdn(
@@ -278,7 +281,11 @@ class TransactionService:
     ) -> TxFromBdnProcessingResult: ...
 
     def process_gateway_transaction_from_node(
-        self, protocol: str, transaction_msg_contents: InputBytes
+        self,
+        transaction_msg_contents: InputBytes,
+        protocol: str,
+        min_tx_network_fee: int,
+        enable_transaction_validation: bool
     ) -> bytearray: ...
 
     def assign_short_id(self, transaction_hash: Sha256, short_id: int) -> bool: ...

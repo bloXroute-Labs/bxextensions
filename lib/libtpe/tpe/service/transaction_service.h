@@ -48,9 +48,8 @@ typedef utils::crypto::Sha256MapWrapper_t<PTxContents_t> Sha256ToContentMap_t;
 typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
+typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
-typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
-typedef utils::common::OrderedMap<int, double> ShortIdToTime_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
@@ -105,8 +104,7 @@ struct Containers {
         short_id_to_tx_hash(),
         tx_hash_to_short_ids(tx_not_seen_in_blocks),
         short_ids_seen_in_block(),
-        tx_hash_to_time_removed(),
-        short_id_to_time_removed()
+        short_id_to_assign_time()
     {
 
     }
@@ -116,8 +114,7 @@ struct Containers {
     ShortIDToSha256Map_t short_id_to_tx_hash;
     Sha256ToContentMap_t tx_hash_to_contents;
     ShortIDsSeenInBlock_t short_ids_seen_in_block;
-    Sha256ToTime_t tx_hash_to_time_removed;
-    ShortIdToTime_t short_id_to_time_removed;
+    ShortIdToTime_t short_id_to_assign_time;
 
 };
 
@@ -269,9 +266,8 @@ public:
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
 	PTxSyncTxs_t get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content);
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
+    double get_short_id_assign_time(unsigned int short_id);
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
-    Sha256ToTime_t& tx_hash_to_time_removed();
-    ShortIdToTime_t& short_id_to_time_removed();
 
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;
@@ -284,7 +280,6 @@ public:
 	bool has_short_id(const Sha256_t& tx_hash) const;
 	bool has_short_id(unsigned int short_id) const;
 	bool has_transaction_contents(const Sha256_t& tx_hash) const;
-	bool removed_transaction(const Sha256_t& transaction_hash) const;
 
 	unsigned int get_short_id(const Sha256_t& tx_hash) const;
 
@@ -328,7 +323,8 @@ public:
         unsigned int timestamp,
         unsigned int current_time,
         std::string protocol,
-        bool enable_transaction_validation
+        bool enable_transaction_validation,
+        uint64_t min_tx_network_fee
     );
 
     TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
@@ -339,8 +335,10 @@ public:
     );
 
     PByteArray_t process_gateway_transaction_from_node(
+        PTxsMessageContents_t txs_message_contents,
         std::string protocol,
-        PTxsMessageContents_t txs_message_contents
+        uint64_t min_tx_network_fee,
+        bool enable_transaction_validation
     );
 
     PByteArray_t get_transactions_by_short_ids(const SearializedShortIds_t& msg);
@@ -359,7 +357,8 @@ private:
         unsigned int timestamp,
         unsigned int current_time,
         std::string protocol,
-        bool enable_transaction_validation
+        bool enable_transaction_validation,
+        uint64_t min_tx_network_fee
     );
 
     const AbstractMessageParser_t& _create_message_parser(std::string protocol) const;

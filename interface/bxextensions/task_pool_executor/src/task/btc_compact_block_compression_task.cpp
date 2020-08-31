@@ -26,8 +26,5 @@ void bind_btc_compact_block_compression_task(py::module& m) {
 	  .def("block_hash", &BtcCompactBlockCompressionTask_t::block_hash)
 	  .def("compressed_block_hash", &BtcCompactBlockCompressionTask_t::compressed_block_hash)
 	  .def("txn_count", &BtcCompactBlockCompressionTask_t::txn_count)
-	  .def(
-			  "short_ids",
-			  &BtcCompactBlockCompressionTask_t::short_ids
-	  );
+	  .def("short_ids", &BtcCompactBlockCompressionTask_t::short_ids);
 }

@@ -25,11 +25,13 @@ public:
         PTransactionService_t tx_service,
         const BlockBuffer_t* block_buffer,
         POffests_t tx_offsets,
-        bool enable_block_compression
+        bool enable_block_compression,
+        double min_tx_age_seconds
 	);
 
 	const utils::common::ByteArray& output_buffer();
 	const std::vector<unsigned int>& short_ids();
+    const std::vector<unsigned int>& ignored_short_ids();
 
 
 protected:
@@ -42,7 +44,9 @@ private:
 	POffests_t _tx_offsets;
 	PTransactionService_t _tx_service;
 	std::vector<unsigned int> _short_ids;
+	std::vector<unsigned int> _ignored_short_ids;
 	bool _enable_block_compression;
+	double _min_tx_age_seconds;
 };
 
 }

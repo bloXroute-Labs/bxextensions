@@ -54,6 +54,10 @@ Sha256ToContentMap_t& TransactionService::get_tx_hash_to_contents() {
 	return _containers.tx_hash_to_contents;
 }
 
+double TransactionService::get_short_id_assign_time(unsigned int short_id){
+    return _containers.short_id_to_assign_time[short_id];
+}
+
 PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content) {
     size_t total_tx_hashes = _containers.tx_hash_to_contents.size();
     size_t total_short_ids = _containers.short_id_to_tx_hash.size();
@@ -130,17 +134,23 @@ AssignShortIDResult_t TransactionService::assign_short_id(const Sha256_t& transa
         return std::move(result);
     }
 
-    if (!has_short_id(short_id)) {
+    if ( !has_short_id(short_id) ) {
         _containers.tx_hash_to_short_ids[transaction_hash].insert(short_id);
         _containers.short_id_to_tx_hash[short_id] = std::make_shared<Sha256_t>(transaction_hash);
     }
+
+    double current_time = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+    _containers.short_id_to_assign_time.emplace(short_id, current_time);
 
     return std::move(result);
 }
 
 SetTransactionContentsResult_t TransactionService::set_transaction_contents(
-            const Sha256_t& transaction_hash,
-            PTxContents_t transaction_contents) {
+    const Sha256_t& transaction_hash,
+    PTxContents_t transaction_contents)
+{
     SetTransactionContentsResult_t result;
 
     result.first = has_short_id(transaction_hash);
@@ -169,21 +179,8 @@ bool TransactionService::has_transaction_contents(const Sha256_t& tx_hash) const
     return iter != _containers.tx_hash_to_contents.end();
 }
 
-bool TransactionService::removed_transaction(const Sha256_t& tx_hash) const {
-    auto iter = _containers.tx_hash_to_time_removed.find(tx_hash);
-	return iter != _containers.tx_hash_to_time_removed.end();
-}
-
-Sha256ToTime_t& TransactionService::tx_hash_to_time_removed() {
-	return _containers.tx_hash_to_time_removed;
-}
-
-ShortIdToTime_t& TransactionService::short_id_to_time_removed() {
-	return _containers.short_id_to_time_removed;
-}
-
 unsigned int TransactionService::get_short_id(
-		const Sha256_t& tx_hash
+    const Sha256_t& tx_hash
 ) const {
 	auto iter = _containers.tx_hash_to_short_ids.find(tx_hash);
 	return *iter->second.begin();
@@ -198,7 +195,7 @@ PTxContents_t TransactionService::get_transaction(
 }
 
 const TxContents_t* TransactionService::get_tx_contents_raw_ptr(
-        unsigned int short_id
+    unsigned int short_id
 )
 {
     const Sha256_t& tx_hash = *_containers.short_id_to_tx_hash[short_id];
@@ -293,14 +290,10 @@ size_t TransactionService::remove_transactions_by_hashes(const std::vector<Sha25
 
 size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
     auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
-    double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
-        std::chrono::system_clock::now().time_since_epoch()
-    ).count();
-
     if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
         for (const uint32_t& short_id: short_ids_iter->second) {
             _containers.short_id_to_tx_hash.erase(short_id);
-            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
+            _containers.short_id_to_assign_time.erase(short_id);
         }
         _containers.tx_hash_to_short_ids.erase(sha);
     }
@@ -310,7 +303,6 @@ size_t TransactionService::remove_transaction_by_hash(const Sha256_t& sha) {
         content_length = content_iter->second->size();
         _containers.tx_hash_to_contents.erase(content_iter);
     }
-    _containers.tx_hash_to_time_removed.emplace(sha, time_removed);
     return content_length;
 }
 
@@ -323,9 +315,6 @@ size_t TransactionService::remove_transaction_by_short_id(
     if (sha_iter != _containers.short_id_to_tx_hash.end()) {
         const Sha256_t& sha = *sha_iter->second;
         auto short_ids_iter = _containers.tx_hash_to_short_ids.find(sha);
-        double time_removed = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
 
         if (short_ids_iter != _containers.tx_hash_to_short_ids.end()) {
             auto& short_ids = short_ids_iter->second;
@@ -333,12 +322,11 @@ size_t TransactionService::remove_transaction_by_short_id(
                 short_ids.erase(short_id);
                 for (const uint32_t& dup_short_id : short_ids) {
                     _containers.short_id_to_tx_hash.erase(dup_short_id);
-                    _containers.short_id_to_time_removed.emplace(dup_short_id, time_removed);
+                    _containers.short_id_to_assign_time.erase(dup_short_id);
                     dup_sids.push_back(dup_short_id);
                 }
             }
             _containers.tx_hash_to_short_ids.erase(sha);
-            _containers.short_id_to_time_removed.emplace(short_id, time_removed);
         }
         auto content_iter = _containers.tx_hash_to_contents.find(sha);
         if (content_iter != _containers.tx_hash_to_contents.end()) {
@@ -346,10 +334,8 @@ size_t TransactionService::remove_transaction_by_short_id(
             _containers.tx_hash_to_contents.erase(content_iter);
         }
 
-        _containers.tx_hash_to_time_removed.emplace(sha, std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count());
-
         _containers.short_id_to_tx_hash.erase(sha_iter);
+        _containers.short_id_to_assign_time.erase(short_id);
     }
     return contents_len;
 }
@@ -366,7 +352,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     unsigned int timestamp,
     unsigned int current_time,
     std::string protocol,
-    bool enable_transaction_validation
+    bool enable_transaction_validation,
+    uint64_t min_tx_network_fee
 )
 {
     unsigned int tx_status, tx_validation_status;
@@ -383,14 +370,13 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         timestamp,
         current_time,
         protocol,
-        enable_transaction_validation
+        enable_transaction_validation,
+        min_tx_network_fee
     );
 
     if (
-        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_FORMAT) or
-        has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_INVALID_SIGNATURE) or
-        has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) or
-        has_status_flag(tx_status, TX_STATUS_TIMED_OUT)
+        tx_validation_status != TX_VALIDATION_STATUS_VALID_TX or
+        has_status_flag(tx_status, (TX_STATUS_IGNORE_SEEN | TX_STATUS_TIMED_OUT))
     ) {
         TxProcessingResult_t result(tx_status, tx_validation_status);
         return std::move(result);
@@ -414,13 +400,13 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     }
 
     TxProcessingResult_t result(
-            tx_status,
-            tx_validation_status,
-            existing_short_ids,
-            assign_short_id_result,
-            set_transaction_contents_result,
-            contents_set,
-            short_id_assigned);
+        tx_status,
+        tx_validation_status,
+        existing_short_ids,
+        assign_short_id_result,
+        set_transaction_contents_result,
+        contents_set,
+        short_id_assigned);
     return std::move(result);
 }
 
@@ -482,9 +468,12 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
 }
 
 PByteArray_t TransactionService::process_gateway_transaction_from_node(
+    PTxsMessageContents_t txs_message_contents,
     std::string protocol,
-    PTxsMessageContents_t txs_message_contents
-) {
+    uint64_t min_tx_network_fee,
+    bool enable_transaction_validation
+)
+{
     const AbstractMessageParser_t &message_parser = _create_message_parser(protocol);
     ParsedTransactions_t parsed_transactions = message_parser.parse_transactions_message(txs_message_contents);
 
@@ -493,30 +482,36 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         total_result_size += parsed_transaction.length;
     }
-    total_result_size += TX_COUNT_LEN + parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN);
+    total_result_size += TX_COUNT_LEN +
+                         parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN + sizeof(uint32_t));
 
     PByteArray_t result_buffer = std::make_shared<ByteArray_t>(total_result_size);
 
     size_t offset = 0;
     offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
-
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
         TxsMessageContents_t message_contents = *txs_message_contents;
 
-        const bool seen_transaction =
-                has_transaction_contents(transaction_hash)
-                or removed_transaction(transaction_hash);
+        const bool seen_transaction = has_transaction_contents(transaction_hash);
 
-        if (!seen_transaction) {
-            ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
-                    message_contents,
-                    parsed_transaction.length,
-                    parsed_transaction.offset);
+        ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
+            message_contents,
+            parsed_transaction.length,
+            parsed_transaction.offset);
 
+        if ( !seen_transaction ) {
             set_transaction_contents(
-                    transaction_hash,
-                    std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+                transaction_hash,
+                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+            );
+        }
+
+        const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
+        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+        if (enable_transaction_validation) {
+            tx_validation_status = tx_validation.transaction_validation(
+                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))), min_tx_network_fee
             );
         }
 
@@ -524,6 +519,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
         offset = result_buffer->copy_from_buffer(transaction_hash.binary(), offset, 0, transaction_hash.size());
         offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.offset), offset);
         offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transaction.length), offset);
+        offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(tx_validation_status), offset);
     }
 
     // remove all items from the vector to make sure that it is properly disposed
@@ -674,11 +670,12 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     unsigned int timestamp,
     unsigned int current_time,
     std::string protocol,
-    bool enable_transaction_validation
+    bool enable_transaction_validation,
+    uint64_t min_tx_network_fee
 )
 {
     unsigned int tx_status;
-    unsigned int tx_validation_status = 0;
+    unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
 
     tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
 
@@ -698,9 +695,6 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     if (has_transaction_contents(transaction_hash)) {
         tx_status |= TX_STATUS_SEEN_CONTENT;
         tx_status |= TX_STATUS_SEEN_HASH;
-    }
-    if (removed_transaction(transaction_hash)) {
-        tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION;
     }
 
     // check all variations for previously seen Tx
@@ -728,10 +722,6 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
         tx_status |= TX_STATUS_IGNORE_SEEN;
     }
 
-    if (has_status_flag(tx_status, TX_STATUS_SEEN_REMOVED_TRANSACTION)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
     if (
         timestamp != NULL_TX_TIMESTAMP
         and current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S
@@ -740,7 +730,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     }
     if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and enable_transaction_validation ) {
         const AbstractTransactionValidator_t &tx_validation = _create_transaction_validator(protocol);
-        tx_validation_status = tx_validation.transaction_validation(transaction_contents);
+        tx_validation_status = tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
     }
 
     return std::make_tuple(tx_status, tx_validation_status);

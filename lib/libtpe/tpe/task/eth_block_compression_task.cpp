@@ -18,7 +18,8 @@ EthBlockCompressionTask::EthBlockCompressionTask(
         _content_size(0),
         _txn_count(0),
         _starting_offset(0),
-        _enable_block_compression(false)
+        _enable_block_compression(false),
+        _min_tx_age_seconds(0.0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -27,7 +28,8 @@ EthBlockCompressionTask::EthBlockCompressionTask(
 void EthBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
-    bool enable_block_compression
+    bool enable_block_compression,
+    double min_tx_age_seconds
 )
 {
     _tx_service = std::move(tx_service);
@@ -39,11 +41,13 @@ void EthBlockCompressionTask::init(
         _output_buffer->reset();
     }
     _short_ids.clear();
+    _ignored_short_ids.clear();
     _block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
     _content_size = 0;
     _txn_count = 0;
     _starting_offset = 0;
     _enable_block_compression = enable_block_compression;
+    _min_tx_age_seconds = min_tx_age_seconds;
 }
 
 PByteArray_t EthBlockCompressionTask::bx_block() {
@@ -79,6 +83,11 @@ const std::vector<unsigned int>& EthBlockCompressionTask::short_ids() {
     return _short_ids;
 }
 
+const std::vector<unsigned int>& EthBlockCompressionTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
+}
+
 size_t EthBlockCompressionTask::get_task_byte_size() const {
     size_t block_buffer_size = _block_buffer->size() ? _block_buffer != nullptr: 0;
     return sizeof(EthBlockCompressionTask) + block_buffer_size + _output_buffer->size();
@@ -112,6 +121,11 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
     is_short_tx_byte.push_back(ETH_SHORT_ID_INDICATOR);
 
+    double current_time = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+    double max_timestamp_for_compression = current_time - _min_tx_age_seconds;
+
     while (tx_from < txn_end_offset) {
         tx_offset = msg.get_next_tx_offset(tx_from);
 
@@ -126,7 +140,19 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 
         size_t tx_content_bytes_len = 0, tx_content_prefix_offset;
 
-        if ( ! _tx_service->has_short_id(tx_hash) or not _enable_block_compression ) {
+        double short_id_assign_time = 0.0;
+        if ( _tx_service->has_short_id(tx_hash) ) {
+            short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
+        }
+
+        bool has_short_id = _tx_service->has_short_id(tx_hash);
+
+        if ( ! has_short_id or
+             not _enable_block_compression or
+                 short_id_assign_time > max_timestamp_for_compression ) {
+            if ( has_short_id ) {
+                _ignored_short_ids.push_back(_tx_service->get_short_id(tx_hash));
+            }
             tx_content_bytes_len = tx_offset - tx_from;
             tx_content_prefix_offset = utils::encoding::get_length_prefix_str(
                 tx_content_prefix, tx_content_bytes_len, 0

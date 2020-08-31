@@ -42,13 +42,19 @@ bool EthTransactionValidator::_parse_transaction(
 }
 
 size_t EthTransactionValidator::transaction_validation (
-    const PTxContents_t& txs_message_contents
+    const PTxContents_t& txs_message_contents,
+    const uint64_t min_tx_network_fee
 ) const
 {
     EthTxMessage_t tx_msg;
     if ( _parse_transaction(txs_message_contents, tx_msg) ) {
-        if ( _verify_transaction_signature(tx_msg) ) {
-            return TX_VALIDATION_STATUS_VALID_TX;
+        if (_verify_transaction_signature(tx_msg)) {
+            if (tx_msg.gas_price() >= min_tx_network_fee) {
+                return TX_VALIDATION_STATUS_VALID_TX;
+            }
+            else {
+                return TX_VALIDATION_STATUS_INVALID_LOW_FEE;
+            }
         } else {
             return TX_VALIDATION_STATUS_INVALID_SIGNATURE;
         }

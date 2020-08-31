@@ -36,8 +36,6 @@ void bind_btc_block_compression_task(py::module& m) {
 	  .def("block_hash", &BtcBlockCompressionTask_t::block_hash)
 	  .def("compressed_block_hash", &BtcBlockCompressionTask_t::compressed_block_hash)
 	  .def("txn_count", &BtcBlockCompressionTask_t::txn_count)
-	  .def(
-			  "short_ids",
-			  &BtcBlockCompressionTask_t::short_ids
-	  );
+	  .def("short_ids", &BtcBlockCompressionTask_t::short_ids)
+	  .def("ignored_short_ids", &BtcBlockCompressionTask_t::ignored_short_ids);
 }

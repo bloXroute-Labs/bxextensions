@@ -16,7 +16,8 @@ BtcBlockCompressionTask::BtcBlockCompressionTask(
     _tx_service(nullptr),
     _minimal_tx_count(minimal_tx_count),
     _txn_count(0),
-    _enable_block_compression(false)
+    _enable_block_compression(false),
+    _min_tx_age_seconds(0.0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -25,7 +26,8 @@ BtcBlockCompressionTask::BtcBlockCompressionTask(
 void BtcBlockCompressionTask::init(
     PBlockBuffer_t block_buffer,
     PTransactionService_t tx_service,
-    bool enable_block_compression
+    bool enable_block_compression,
+    double min_tx_age_seconds
 )
 {
 	_tx_service = std::move(tx_service);
@@ -39,9 +41,11 @@ void BtcBlockCompressionTask::init(
 		_output_buffer->reset();
 	}
 	_short_ids.clear();
+	_ignored_short_ids.clear();
 	_block_hash = _prev_block_hash = _compressed_block_hash = nullptr;
 	_txn_count = 0;
     _enable_block_compression = enable_block_compression;
+    _min_tx_age_seconds = min_tx_age_seconds;
 }
 
 PByteArray_t
@@ -72,10 +76,14 @@ size_t BtcBlockCompressionTask::txn_count() {
 	return _txn_count;
 }
 
-const std::vector<unsigned int>&
-BtcBlockCompressionTask::short_ids() {
+const std::vector<unsigned int>& BtcBlockCompressionTask::short_ids() {
 	assert_execution();
 	return _short_ids;
+}
+
+const std::vector<unsigned int>& BtcBlockCompressionTask::ignored_short_ids() {
+    assert_execution();
+    return _ignored_short_ids;
 }
 
 size_t BtcBlockCompressionTask::get_task_byte_size() const {
@@ -200,13 +208,12 @@ size_t BtcBlockCompressionTask::_on_sub_task_completed(
 {
 	auto& output_buffer = tsk.output_buffer();
 	auto& short_ids = tsk.short_ids();
+	auto& ignored_short_ids = tsk.ignored_short_ids();
 	_output_buffer->operator +=(output_buffer);
 	_short_ids.reserve(_short_ids.size() + short_ids.size());
-	_short_ids.insert(
-			_short_ids.end(),
-			short_ids.begin(),
-			short_ids.end()
-	);
+	_short_ids.insert(_short_ids.end(), short_ids.begin(), short_ids.end());
+    _ignored_short_ids.reserve(_ignored_short_ids.size() + ignored_short_ids.size());
+    _ignored_short_ids.insert(_ignored_short_ids.end(), ignored_short_ids.begin(), ignored_short_ids.end());
 	return _output_buffer->size();
 }
 
@@ -220,11 +227,7 @@ void BtcBlockCompressionTask::_set_output_buffer(
 			0
 	);
 	const unsigned int short_ids_size = _short_ids.size();
-	output_offset = utils::common::set_little_endian_value(
-			*_output_buffer,
-			short_ids_size,
-			output_offset
-	);
+	output_offset = utils::common::set_little_endian_value(*_output_buffer, short_ids_size, output_offset);
 	if (short_ids_size > 0) {
 		const size_t short_ids_byte_size = short_ids_size * sizeof(unsigned int);
 		_output_buffer->resize(output_offset + short_ids_byte_size);
@@ -247,7 +250,8 @@ void BtcBlockCompressionTask::_enqueue_task(
         _tx_service,
         _block_buffer.get(),
         data.offsets,
-        _enable_block_compression
+        _enable_block_compression,
+        _min_tx_age_seconds
 	);
 	sub_pool.enqueue_task(data.sub_task);
 }

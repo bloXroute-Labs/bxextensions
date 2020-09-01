@@ -57,17 +57,20 @@ COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
+COPY build/ubuntu-18.04 build/local
 
 RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
 ENV PYTHONS="/usr/bin/python3.7 /usr/bin/python3.8 python3"
 
+RUN echo "build extensions $TAG for ubuntu-18.04"
 RUN cd /app/bxextensions && \
-    /usr/bin/python3.6 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    /usr/bin/python3.7 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    /usr/bin/python3.8 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+    PYTHON_VER=3.6 /usr/bin/python3.6 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+    PYTHON_VER=3.7 /usr/bin/python3.7 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+    PYTHON_VER=3.8 /usr/bin/python3.8 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
     mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/
 
 FROM scratch AS export-stage
-COPY --from=builder /app/bxextensions/release/lib/ /
+COPY --from=builder /app/bxextensions/release/lib/ /release_tag/ubuntu-18.04
+COPY --from=builder /app/bxextensions/build/local/ /build/ubuntu-18.04

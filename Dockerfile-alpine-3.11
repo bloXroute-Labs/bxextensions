@@ -50,6 +50,7 @@ COPY interface/ interface/
 COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
+COPY build/alpine-3.11 build/local
 
 RUN  chown -R ${UID}:${GID} /app/bxextensions
 
@@ -57,10 +58,14 @@ ENV PYTHONPATH=/app/bxextensions
 ENV PYTHONS="python3"
 
 ARG TAG=latest
-RUN echo "build extensions $TAG"
+
+RUN echo "build extensions $TAG for alpine-3.11"
 RUN cd /app/bxextensions && \
-    python build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/
+   PYTHON_VER=3.8 python build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
+   mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/
+
 
 FROM scratch AS export-stage
-COPY --from=builder /app/bxextensions/release/lib/ /
+COPY --from=builder /app/bxextensions/release/lib/ /release_tag/alpine-3.11
+COPY --from=builder /app/bxextensions/build/local/ /build/alpine-3.11
+

@@ -5,7 +5,7 @@ import subprocess
 import json
 
 DEFAULT_SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_BUILD_DIR = os.path.join(DEFAULT_SRC_DIR, "build")
+DEFAULT_BUILD_DIR = os.path.join(DEFAULT_SRC_DIR, "build/local", os.environ.get("PYTHON_VER", ""))
 DEFAULT_OUTPUT_DIR = DEFAULT_SRC_DIR
 DEFAULT_EXTENSIONS_FOLDER = os.path.join(DEFAULT_SRC_DIR, "interface", "bxextensions")
 DEFAULT_EXTENSIONS_LIST = ";".join(

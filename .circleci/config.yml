@@ -60,6 +60,7 @@ commands:
           name: Build bxextensions Docker image (<< parameters.os >>)
           command: |
             cd ~/ws/bxextensions
+            mkdir build/<< parameters.os >>
             docker build -f Dockerfile-<< parameters.os >> --cache-from=app --build-arg UID=$(id -u) --build-arg GID=$(id -g) . -t app
       - run:
           name: Save Docker image layer cache

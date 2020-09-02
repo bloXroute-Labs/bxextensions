@@ -27,16 +27,19 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
     do
       DOCKER_FILE="Dockerfile-${os}"
       mkdir -p build/${os}
-      mkdir -p release_tag/${os}
+      mkdir -p release_tag/${TAG}/${os}
       echo "Building container from $DOCKER_FILE"
-      bash_cmd="DOCKER_BUILDKIT=1 docker build \\
-                -f ${DOCKER_FILE} \\
-                --build-arg TAG=${TAG} \\
-                --build-arg UID=$(id -u) \\
-                --build-arg GID=$(id -g) \\
-                --rm=false \\
-                $BUILD_CONTEXT \\
-                --output type=local,dest=$(pwd);"
+      bash_cmd="docker stop bxextensions_${os}; \\
+            docker rm -f bxextensions_${os}; \\
+            DOCKER_BUILDKIT=1 docker build -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;  \\
+            docker run --name bxextensions_${os} \\
+               --volume $(pwd)/release_tag/${TAG}/${os}:/app/bxextensions/release \\
+               --volume $(pwd)/build/${os}:/app/bxextensions/build/local \\
+               --volume $(pwd)/interface:/app/bxextensions/interface \\
+               --volume $(pwd)/lib:/app/bxextensions/lib \\
+               --volume $(pwd)/include:/app/bxextensions/include \\
+               --user $(id -u):$(id -g) \\
+               bxextensions_${os}"
       echo ${bash_cmd}
       if [ ${PARALLELISM} == "True" ]; then
         sh -c "${bash_cmd}" &
@@ -57,11 +60,6 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
       fi
     done
     echo "$(git rev-parse HEAD)" > release_tag/${TAG}/COMMIT_HASH
-    for os in $OS_LIST
-      do
-        rm -rf release_tag/${TAG}/${os}
-        mv -f release_tag/${os} release_tag/${TAG}/${os}
-      done
     cp release/MANIFEST.MF release_tag/${TAG}
 elif [ "${ACTION}" == "pull" ]; then
   aws s3 cp s3://files.bloxroute.com/bxextensions/"${TAG}" release_tag/"${TAG}" --recursive

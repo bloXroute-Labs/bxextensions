@@ -50,27 +50,15 @@ RUN apt install -y \
 #upgrade pip
 RUN pip3 install --upgrade pip setuptools
 
+COPY docker-entrypoint.sh /usr/local/bin/
 WORKDIR /app/bxextensions
 RUN mkdir release/
 COPY release/MANIFEST.MF release/MANIFEST.MF
-COPY interface/ interface/
-COPY lib/ lib/
 COPY build_extensions.py ./
 COPY CMakeLists.txt ./
-COPY build/ubuntu-18.04 build/local
+COPY tests tests
 
-RUN chown -R ${UID}:${GID} /app/bxextensions
 
 ENV PYTHONPATH=/app/bxextensions
-ENV PYTHONS="/usr/bin/python3.7 /usr/bin/python3.8 python3"
-
-RUN echo "build extensions $TAG for ubuntu-18.04"
-RUN cd /app/bxextensions && \
-    PYTHON_VER=3.6 /usr/bin/python3.6 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    PYTHON_VER=3.7 /usr/bin/python3.7 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    PYTHON_VER=3.8 /usr/bin/python3.8 build_extensions.py --build-type Debug --src-dir /app/bxextensions --package-installation --no-cache && \
-    mkdir -p /app/bxextensions/release/lib/ && cp -r ./*.so /app/bxextensions/release/lib/
-
-FROM scratch AS export-stage
-COPY --from=builder /app/bxextensions/release/lib/ /release_tag/ubuntu-18.04
-COPY --from=builder /app/bxextensions/build/local/ /build/ubuntu-18.04
+ENV PYTHONS="python3 /usr/bin/python3.7 /usr/bin/python3.8"
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

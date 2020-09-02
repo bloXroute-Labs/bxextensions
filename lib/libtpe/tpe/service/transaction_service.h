@@ -258,6 +258,7 @@ public:
 
 	TransactionService(
         size_t pool_size,
+        std::string protocol,
         size_t tx_bucket_capacity = BTC_DEFAULT_TX_BUCKET_SIZE,
         size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT
     );
@@ -318,11 +319,9 @@ public:
     TxProcessingResult_t process_transaction_msg(
         const Sha256_t& transaction_hash,
         PTxContents_t transaction_contents,
-        unsigned int network_num,
         unsigned int short_id,
         unsigned int timestamp,
         unsigned int current_time,
-        std::string protocol,
         bool enable_transaction_validation,
         uint64_t min_tx_network_fee
     );
@@ -336,7 +335,6 @@ public:
 
     PByteArray_t process_gateway_transaction_from_node(
         PTxsMessageContents_t txs_message_contents,
-        std::string protocol,
         uint64_t min_tx_network_fee,
         bool enable_transaction_validation
     );
@@ -349,6 +347,9 @@ private:
 
     size_t _final_tx_confirmations_count;
     Containers _containers;
+    std::string _protocol;
+    const AbstractMessageParser_t &_message_parser;
+    const AbstractTransactionValidator_t &_tx_validation;
 
     std::tuple<TxStatus_t , TxValidationStatus_t> _msg_tx_build_tx_status(
         unsigned int short_id,
@@ -356,13 +357,12 @@ private:
         const PTxContents_t& transaction_contents,
         unsigned int timestamp,
         unsigned int current_time,
-        std::string protocol,
         bool enable_transaction_validation,
         uint64_t min_tx_network_fee
     );
 
-    const AbstractMessageParser_t& _create_message_parser(std::string protocol) const;
-    const AbstractTransactionValidator_t & _create_transaction_validator(std::string protocol) const;
+    const AbstractMessageParser_t& _create_message_parser() const;
+    const AbstractTransactionValidator_t & _create_transaction_validator() const;
 };
 
 

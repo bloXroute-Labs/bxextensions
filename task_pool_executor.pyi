@@ -230,7 +230,7 @@ class TxFromBdnProcessingResult:
 
 class TransactionService:
     def __init__(
-        self, pool_size: int, tx_bucket_capacity: int, final_tx_confirmation_count: int
+        self, pool_size: int, protocol: str, tx_bucket_capacity: int, final_tx_confirmation_count: int
     ): ...
 
     def tx_hash_to_short_ids(self) -> Dict[Sha256, List[int]]: ...
@@ -263,11 +263,9 @@ class TransactionService:
         self,
         transaction_cache_key: Sha256,
         transaction_contents: InputBytes,
-        network_num: int,
         short_id: int,
         timestamp: int,
         current_time: int,
-        protocol: str,
         enable_transaction_validation: bool,
         min_tx_network_fee: int
     ) -> TxProcessingResult: ...
@@ -283,7 +281,6 @@ class TransactionService:
     def process_gateway_transaction_from_node(
         self,
         transaction_msg_contents: InputBytes,
-        protocol: str,
         min_tx_network_fee: int,
         enable_transaction_validation: bool
     ) -> bytearray: ...

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <tpe/service/transaction_service.h>
+#include <utils/protocols/blockchain_protocol.h>
 
 typedef service::TransactionService TransactionService_t;
 typedef service::Sha256_t Sha256_t;
@@ -11,7 +12,7 @@ typedef service::Sha256_t Sha256_t;
 class TransactionServiceTest : public ::testing::Test {
 public:
 
-    TransactionServiceTest(): _tx_service(1) {
+    TransactionServiceTest(): _tx_service(1, BLOCKCHAIN_PROTOCOL_ETHEREUM) {
 
     }
 

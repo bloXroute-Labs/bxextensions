@@ -323,7 +323,8 @@ public:
         unsigned int timestamp,
         unsigned int current_time,
         bool enable_transaction_validation,
-        uint64_t min_tx_network_fee
+        uint64_t min_tx_network_fee,
+        bool from_relay
     );
 
     TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
@@ -358,7 +359,8 @@ private:
         unsigned int timestamp,
         unsigned int current_time,
         bool enable_transaction_validation,
-        uint64_t min_tx_network_fee
+        uint64_t min_tx_network_fee,
+        bool from_relay
     );
 
     const AbstractMessageParser_t& _create_message_parser() const;

@@ -357,7 +357,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     unsigned int timestamp,
     unsigned int current_time,
     bool enable_transaction_validation,
-    uint64_t min_tx_network_fee
+    uint64_t min_tx_network_fee,
+    bool from_relay
 )
 {
     unsigned int tx_status, tx_validation_status;
@@ -374,7 +375,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         timestamp,
         current_time,
         enable_transaction_validation,
-        min_tx_network_fee
+        min_tx_network_fee,
+        from_relay
     );
 
     if (
@@ -670,7 +672,8 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     unsigned int timestamp,
     unsigned int current_time,
     bool enable_transaction_validation,
-    uint64_t min_tx_network_fee
+    uint64_t min_tx_network_fee,
+    bool from_relay
 )
 {
     unsigned int tx_status;
@@ -724,6 +727,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     if (
         timestamp != NULL_TX_TIMESTAMP
         and current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S
+        and !from_relay
     ) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }

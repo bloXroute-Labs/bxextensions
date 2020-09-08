@@ -314,7 +314,7 @@ public:
             uint32_t short_id, ShortIDs_t &dup_sids
     );
 
-    void clear_short_ids_seen_in_block();
+    void clear();
 
     TxProcessingResult_t process_transaction_msg(
         const Sha256_t& transaction_hash,

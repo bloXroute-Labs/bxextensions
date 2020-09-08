@@ -173,8 +173,8 @@ void bind_transaction_service(py::module& m) {
 					py::return_value_policy::reference
 			).
 			def(
-                    "clear_short_ids_seen_in_block",
-                    &TransactionService_t::clear_short_ids_seen_in_block
+                    "clear",
+                    &TransactionService_t::clear
             ).
 			def(
                     "tx_not_seen_in_blocks",

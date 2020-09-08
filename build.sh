@@ -39,6 +39,7 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
                --volume $(pwd)/lib:/app/bxextensions/lib \\
                --volume $(pwd)/include:/app/bxextensions/include \\
                --user $(id -u):$(id -g) \\
+               --env bxextensions_os=${os} \\
                bxextensions_${os}"
       echo ${bash_cmd}
       if [ ${PARALLELISM} == "True" ]; then

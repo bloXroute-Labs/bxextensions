@@ -3,7 +3,7 @@ set -e
 cd /app/bxextensions
 if [[ "${bxextensions_os}" == "centos-7" ]]; then
   cd lib/third_party
-  autoreconf --force --install
+  # autoreconf --force --install
   cd ../..
 fi
 

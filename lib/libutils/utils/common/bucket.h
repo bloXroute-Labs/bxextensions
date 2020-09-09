@@ -83,6 +83,10 @@ public:
 		return _set.find(val) != _set.end();
 	}
 
+	void clear() {
+	    _set.clear();
+	}
+
 private:
 	Set_t _set;
 	uint32_t _bucket_index;

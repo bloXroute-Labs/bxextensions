@@ -112,8 +112,19 @@ public:
 	}
 
 	void clear() {
-		erase([](const T& item) {return true;});
-	}
+        std::lock_guard<std::mutex> lock(_mtx);
+        for (Bucket_t &bucket: _buckets) {
+            if (is_reading()) {
+                for (const T &item: bucket) {
+                    _items_to_remove.push(
+                        std::make_pair(item, bucket.bucket_index())
+                    );
+                }
+            } else {
+                bucket.clear();
+            }
+        }
+    }
 
 	void erase(const ItemRemovePredicate_t& predicate) {
 		std::lock_guard<std::mutex> lock(_mtx);

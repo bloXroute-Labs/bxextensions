@@ -347,12 +347,12 @@ size_t TransactionService::remove_transaction_by_short_id(
 }
 
 void TransactionService::clear() {
-    _containers.tx_hash_to_contents.clear();
-    _containers.tx_hash_to_short_ids.clear();
-    _containers.short_id_to_tx_hash.clear();
     _containers.short_ids_seen_in_block.clear();
+    _containers.short_id_to_tx_hash.clear();
+    _containers.tx_hash_to_contents.clear();
     _containers.short_id_to_assign_time.clear();
     _containers.tx_not_seen_in_blocks.clear();
+    _containers.tx_hash_to_short_ids.clear();
 }
 
 TxProcessingResult_t TransactionService::process_transaction_msg(

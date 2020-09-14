@@ -19,27 +19,33 @@ PIDS=""
 BUILD_CONTEXT="."
 TAG="${TAG:-$(git rev-parse HEAD)}"
 
-echo "running build extensions with: ACTION: $ACTION TAG: $TAG SYSTEMS: $OS_LIST"
+echo "running build extensions with: ACTION: $ACTION TAG: ${TAG} SYSTEMS: $OS_LIST"
 if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
-  echo "creating release tag folder in release_tag/$TAG"
-  mkdir -p release_tag/$TAG
+  echo "creating release tag folder in release_tag/${TAG}"
+  mkdir -p release_tag/${TAG}
   for os in $OS_LIST
     do
-      DOCKER_FILE="Dockerfile-$os"
+      DOCKER_FILE="Dockerfile-${os}"
+      mkdir -p build/${os}
+      mkdir -p release_tag/${TAG}/${os}
       echo "Building container from $DOCKER_FILE"
-      bash_cmd="DOCKER_BUILDKIT=1 docker build \\
-                -f ${DOCKER_FILE} \\
-                --build-arg TAG=$TAG \\
-                --build-arg UID=$(id -u) \\
-                --build-arg GID=$(id -g) \\
-                --rm=false \\
-                $BUILD_CONTEXT \\
-                --output type=local,dest=release_tag/$TAG/${os};"
+      bash_cmd="docker stop bxextensions_${os}; \\
+            docker rm -f bxextensions_${os}; \\
+            DOCKER_BUILDKIT=1 docker build -f ${DOCKER_FILE} -t bxextensions_${os} --build-arg UID=$(id -u) --build-arg GID=$(id -g) . ;  \\
+            docker run --name bxextensions_${os} \\
+               --volume $(pwd)/release_tag/${TAG}/${os}:/app/bxextensions/release \\
+               --volume $(pwd)/build/${os}:/app/bxextensions/build/local \\
+               --volume $(pwd)/interface:/app/bxextensions/interface \\
+               --volume $(pwd)/lib:/app/bxextensions/lib \\
+               --volume $(pwd)/include:/app/bxextensions/include \\
+               --user $(id -u):$(id -g) \\
+               --env bxextensions_os=${os} \\
+               bxextensions_${os}"
       echo ${bash_cmd}
       if [ ${PARALLELISM} == "True" ]; then
         sh -c "${bash_cmd}" &
         PID=$!
-        echo "docker run of $os process id ${PID}"
+        echo "docker run of ${os} process id ${PID}"
         PIDS="$PIDS $!"
       else
         sh -c "${bash_cmd}"
@@ -54,30 +60,30 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
         RETURN_CODE=$status
       fi
     done
-    echo "$(git rev-parse HEAD)" > release_tag/$TAG/COMMIT_HASH
-    cp release/MANIFEST.MF release_tag/$TAG
+    echo "$(git rev-parse HEAD)" > release_tag/${TAG}/COMMIT_HASH
+    cp release/MANIFEST.MF release_tag/${TAG}
 elif [ "${ACTION}" == "pull" ]; then
-  aws s3 cp s3://files.bloxroute.com/bxextensions/"$TAG" release_tag/"$TAG" --recursive
-  if [ ! -d release_tag/"$TAG" ] || [[ -z `ls -A release_tag/"$TAG"` ]]; then
+  aws s3 cp s3://files.bloxroute.com/bxextensions/"${TAG}" release_tag/"${TAG}" --recursive
+  if [ ! -d release_tag/"${TAG}" ] || [[ -z `ls -A release_tag/"${TAG}"` ]]; then
     echo "tag not found in S3 exists."
     exit 1
   else
     rm -rf release
-    cp -rf release_tag/"$TAG" release
+    cp -rf release_tag/"${TAG}" release
   fi
 fi
 
 if [ "${ACTION}" == "push" ] || [ "${ACTION}" == "deploy" ]; then
-  aws s3 cp release_tag/"$TAG" s3://files.bloxroute.com/bxextensions/"$TAG" --recursive
+  aws s3 cp release_tag/"${TAG}" s3://files.bloxroute.com/bxextensions/"${TAG}" --recursive
 fi
 
 if [ "${ACTION}" == "push_as_tag" ] ; then
-  aws s3 cp release/ s3://files.bloxroute.com/bxextensions/"$TAG" --recursive
+  aws s3 cp release/ s3://files.bloxroute.com/bxextensions/"${TAG}" --recursive
 fi
 
 if [ "${ACTION}" == "copy" ] || [ "${ACTION}" == "deploy" ] || [ "${ACTION}" == "build" ]; then
   rm -rf release
-  cp -rf release_tag/"$TAG" release
+  cp -rf release_tag/"${TAG}" release
 fi
 
 exit $RETURN_CODE

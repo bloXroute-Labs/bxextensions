@@ -314,7 +314,7 @@ public:
             uint32_t short_id, ShortIDs_t &dup_sids
     );
 
-    void clear_short_ids_seen_in_block();
+    void clear();
 
     TxProcessingResult_t process_transaction_msg(
         const Sha256_t& transaction_hash,
@@ -323,7 +323,8 @@ public:
         unsigned int timestamp,
         unsigned int current_time,
         bool enable_transaction_validation,
-        uint64_t min_tx_network_fee
+        uint64_t min_tx_network_fee,
+        bool from_relay
     );
 
     TxFromBdnProcessingResult_t process_gateway_transaction_from_bdn(
@@ -358,7 +359,8 @@ private:
         unsigned int timestamp,
         unsigned int current_time,
         bool enable_transaction_validation,
-        uint64_t min_tx_network_fee
+        uint64_t min_tx_network_fee,
+        bool from_relay
     );
 
     const AbstractMessageParser_t& _create_message_parser() const;

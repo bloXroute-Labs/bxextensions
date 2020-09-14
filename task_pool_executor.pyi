@@ -255,7 +255,7 @@ class TransactionService:
 
     def tx_hash_to_contents(self) -> Dict[Sha256, bytearray]: ...
 
-    def clear_short_ids_seen_in_block(self) -> None: ...
+    def clear(self) -> None: ...
 
     def tx_not_seen_in_blocks(self) -> Set[Sha256]: ...
 
@@ -267,7 +267,8 @@ class TransactionService:
         timestamp: int,
         current_time: int,
         enable_transaction_validation: bool,
-        min_tx_network_fee: int
+        min_tx_network_fee: int,
+        from_relay: bool
     ) -> TxProcessingResult: ...
 
     def process_gateway_transaction_from_bdn(

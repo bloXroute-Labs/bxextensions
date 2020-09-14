@@ -143,3 +143,8 @@ TEST_F(SafeBucketContainerTest, test_single_read_lock) {
 	EXPECT_TRUE(r_container[1].contains(item));
 	EXPECT_FALSE(r_container[0].contains(item_to_delete));
 }
+
+TEST_F(SafeBucketContainerTest, test_clear) {
+	SafeBucketContainer_t& w_container = write_container();
+    w_container.clear();
+}

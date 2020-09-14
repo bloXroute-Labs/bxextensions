@@ -346,8 +346,13 @@ size_t TransactionService::remove_transaction_by_short_id(
     return contents_len;
 }
 
-void TransactionService::clear_short_ids_seen_in_block() {
+void TransactionService::clear() {
     _containers.short_ids_seen_in_block.clear();
+    _containers.short_id_to_tx_hash.clear();
+    _containers.tx_hash_to_contents.clear();
+    _containers.short_id_to_assign_time.clear();
+    _containers.tx_not_seen_in_blocks.clear();
+    _containers.tx_hash_to_short_ids.clear();
 }
 
 TxProcessingResult_t TransactionService::process_transaction_msg(
@@ -357,7 +362,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     unsigned int timestamp,
     unsigned int current_time,
     bool enable_transaction_validation,
-    uint64_t min_tx_network_fee
+    uint64_t min_tx_network_fee,
+    bool from_relay
 )
 {
     unsigned int tx_status, tx_validation_status;
@@ -374,7 +380,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         timestamp,
         current_time,
         enable_transaction_validation,
-        min_tx_network_fee
+        min_tx_network_fee,
+        from_relay
     );
 
     if (
@@ -670,7 +677,8 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     unsigned int timestamp,
     unsigned int current_time,
     bool enable_transaction_validation,
-    uint64_t min_tx_network_fee
+    uint64_t min_tx_network_fee,
+    bool from_relay
 )
 {
     unsigned int tx_status;
@@ -724,6 +732,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     if (
         timestamp != NULL_TX_TIMESTAMP
         and current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S
+        and !from_relay
     ) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }

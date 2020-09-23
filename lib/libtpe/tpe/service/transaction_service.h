@@ -344,6 +344,8 @@ public:
 
     PByteArray_t process_txs_msg(const TxsMsg_t& msg);
 
+    PByteArray_t process_tx_sync_message(PTxContents_t tx_sync_msg);
+
 private:
 
     size_t _final_tx_confirmations_count;

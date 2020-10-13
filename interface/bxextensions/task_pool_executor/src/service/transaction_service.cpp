@@ -200,6 +200,10 @@ void bind_transaction_service(py::module& m) {
                     "process_txs_msg",
                     &TransactionService_t::process_txs_msg,
                     py::return_value_policy::reference
+            ).def(
+                    "process_tx_sync_message",
+                    &TransactionService_t::process_tx_sync_message,
+                    py::return_value_policy::reference
             );
 
 	py::class_<TxProcessingResult_t, PTxProcessingResult_t>(m, "TxProcessingResult")

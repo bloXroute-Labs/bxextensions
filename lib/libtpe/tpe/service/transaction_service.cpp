@@ -670,6 +670,73 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
 }
 
 
+PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_msg) {
+    uint32_t offset = HEADER_LENGTH + NETWORK_NUM_LEN;
+    uint32_t tx_count;
+
+    offset = utils::common::get_little_endian_value<uint32_t>(*tx_sync_msg, tx_count, offset);
+
+    size_t result_len = TX_COUNT_LEN + tx_count *
+                                       (SHA256_LEN + CONTENT_LEN + EXPIRATION_DATE_LEN + SHORT_IDS_COUNT_LEN +
+                                        SHORT_ID_LEN + QUOTA_TYPE_LEN);
+    PByteArray_t buffer = std::make_shared<ByteArray_t>(result_len);
+    size_t output_buff_offset = 0;
+
+    output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, tx_count, output_buff_offset);
+
+    for (size_t tx = 0; tx < tx_count; ++tx) {
+        uint32_t content_length = 0;
+        uint16_t short_ids_count = 0;
+
+        Sha256_t tx_hash(*tx_sync_msg, offset);
+        offset += SHA256_LEN;
+        output_buff_offset = buffer->copy_from_buffer(tx_hash.binary(), output_buff_offset, 0, SHA256_LEN);
+
+        offset = utils::common::get_little_endian_value<uint32_t>(*tx_sync_msg, content_length, offset);
+
+        if (content_length > 0) {
+            BufferCopy_t transaction_content(TxContents_t(*tx_sync_msg, content_length, offset));
+            set_transaction_contents(
+                    tx_hash,
+                    std::move(std::make_shared<BufferCopy_t>(std::move(transaction_content)))
+            );
+        }
+        offset += content_length;
+        offset += EXPIRATION_DATE_LEN;
+        output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, content_length,
+                                                                              output_buff_offset);
+
+        offset = utils::common::get_little_endian_value<uint16_t>(*tx_sync_msg, short_ids_count, offset);
+        output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, short_ids_count,
+                                                                              output_buff_offset);
+
+        // Memory is already allocated for 1 short id. Allocate more if more than one.
+        if (short_ids_count > 1) {
+            result_len += (short_ids_count - 1) * (SHORT_ID_LEN + QUOTA_TYPE_LEN);
+            buffer->resize(result_len);
+        }
+
+        for (int short_id_index = 0; short_id_index < short_ids_count; ++short_id_index) {
+            uint32_t short_id;
+            offset = utils::common::get_little_endian_value<uint32_t>(*tx_sync_msg, short_id, offset);
+            output_buff_offset = utils::common::set_little_endian_value<uint32_t>(*buffer, short_id,
+                                                                                  output_buff_offset);
+            if (!has_short_id(short_id)) {
+                assign_short_id(tx_hash, short_id);
+            }
+        }
+
+        buffer->copy_from_buffer(*tx_sync_msg, output_buff_offset, offset, short_ids_count * QUOTA_TYPE_LEN);
+        offset += short_ids_count * QUOTA_TYPE_LEN;
+        output_buff_offset += short_ids_count * QUOTA_TYPE_LEN;
+    }
+
+    buffer->resize(output_buff_offset);
+    buffer->set_output();
+    return buffer;
+}
+
+
 std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_tx_status(
     unsigned int short_id,
     const Sha256_t& transaction_hash,

@@ -212,25 +212,12 @@ jobs:
       - run:
           name: Package
           command: 'echo "Yay deploy!"'
-  build:
-    docker:
-      - image: circleci/python:3.8
-    working_directory: ~/ws
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/ws
-      - run:
-          name: Package
-          command: 'echo "Yay build!"'
+
 workflows:
   version: 2
   test-build:
     jobs:
       - initialize
-      - build:
-          requires:
-           - initialize
       - test:
           requires:
             - initialize

@@ -32,7 +32,7 @@ def main():
     for test_exec_file in test_exec_files:
         subprocess.check_call(test_exec_file)
     print("\n\n**********************Python TESTS*************************\n\n")
-    unittest.main()
+    # unittest.main()
 
 
 if __name__ == "__main__":

@@ -11,11 +11,44 @@ typedef std::shared_ptr<ShortIDs_t> PShortIDs_t;
 typedef service::Sha256_t Sha256_t;
 typedef service::TxNotSeenInBlocks_t TxNotSeenInBlocks_t;
 typedef service::Sha256ToContentMap_t Sha256ToContentMap_t;
+typedef service::Sha256ToTime_t Sha256ToTime_t;
+typedef service::ShortIdToTime_t ShortIdToTime_t;
 typedef service::PTxContents_t PTxContents_t;
+typedef service::PTxSyncTxs_t PTxSyncTxs_t;
 typedef service::TxProcessingResult_t TxProcessingResult_t;
 typedef service::PTxProcessingResult_t PTxProcessingResult_t;
 typedef service::TxFromBdnProcessingResult_t TxFromBdnProcessingResult_t;
 typedef service::PTxFromBdnProcessingResult_t PTxFromBdnProcessingResult_t;
+
+
+static void cleanup_removed_hashes_history(
+    Sha256ToTime_t& map, double now, double removed_hashes_expiration_time_s, size_t max_items_count
+)
+{
+    auto hash_iter = map.begin();
+    while (
+        hash_iter != map.end() and
+        (now - hash_iter->second > removed_hashes_expiration_time_s or map.size() > max_items_count)) {
+
+        map.erase(hash_iter->first);
+        hash_iter = map.begin();
+    }
+}
+
+
+static void cleanup_removed_short_ids_history(
+    ShortIdToTime_t& map, double now, double removed_short_ids_expiration_time_s, size_t max_items_count
+)
+{
+    auto hash_iter = map.begin();
+    while (
+        hash_iter != map.end() and
+        (now - hash_iter->second > removed_short_ids_expiration_time_s or map.size() > max_items_count)) {
+
+        map.erase(hash_iter->first);
+        hash_iter = map.begin();
+    }
+}
 
 
 void bind_transaction_service(py::module& m) {
@@ -66,6 +99,92 @@ void bind_transaction_service(py::module& m) {
                 return sizeof(Sha256ToShortIDsMap_t) + col.get_allocator().total_bytes_allocated();
             })
 			.def("__contains__", [](Sha256ToShortIDsMap_t& map, const Sha256_t& key) {
+					auto iter = map.find(key);
+					return iter != map.end();
+			});
+
+	py::class_<Sha256ToTime_t>(m, "Sha256ToTime")
+			.def("__getitem__",
+			        [](
+			        		Sha256ToTime_t& map,
+							const Sha256_t& sha
+			        ) -> double {
+			            return map[sha];
+			        }
+			)
+			.def("__len__", &Sha256ToTime_t::size)
+			.def("__iter__", [](Sha256ToTime_t& map) {
+					return py::make_key_iterator(map.begin(), map.end());
+				},
+				py::keep_alive<0, 1>()
+			)
+			.def("__delitem__", [](Sha256ToTime_t& map, const Sha256_t& key) {
+					map.erase(key);
+				}
+			)
+			.def("__setitem__", [](Sha256ToTime_t& map, const Sha256_t& key, double val) {
+                    auto iter = map.find(key);
+                    if (iter != map.end()) {
+                        iter->second = val;
+                    } else {
+                        map.emplace(key, val);
+                    }
+                 }
+            )
+			.def("pop", [](Sha256ToTime_t& map, const Sha256_t& key) -> double {
+			    double val = map[key];
+			    map.erase(key);
+                return val;
+			})
+            .def("clear", &Sha256ToTime_t::clear)
+            .def("get_bytes_length" , [](Sha256ToTime_t& col) {
+                return sizeof(Sha256ToTime_t) + col.get_allocator().total_bytes_allocated();
+            })
+            .def("cleanup_removed_hashes_history", &cleanup_removed_hashes_history)
+			.def("__contains__", [](Sha256ToTime_t& map, const Sha256_t& key) {
+					auto iter = map.find(key);
+					return iter != map.end();
+			});
+
+	py::class_<ShortIdToTime_t>(m, "ShortIdToTime")
+			.def("__getitem__",
+			        [](
+			        		ShortIdToTime_t& map,
+							const uint32_t& short_id
+			        ) -> double {
+			            return map[short_id];
+			        }
+			)
+			.def("__len__", &ShortIdToTime_t::size)
+			.def("__iter__", [](ShortIdToTime_t& map) {
+					return py::make_key_iterator(map.begin(), map.end());
+				},
+				py::keep_alive<0, 1>()
+			)
+			.def("__delitem__", [](ShortIdToTime_t& map, const uint32_t& key) {
+					map.erase(key);
+				}
+			)
+			.def("__setitem__", [](ShortIdToTime_t& map, const uint32_t& key, double val) {
+                    auto iter = map.find(key);
+                    if (iter != map.end()) {
+                        iter->second = val;
+                    } else {
+                        map.emplace(key, val);
+                    }
+                 }
+            )
+			.def("pop", [](ShortIdToTime_t& map, const uint32_t& key) -> double {
+			    double val = map[key];
+			    map.erase(key);
+                return val;
+			})
+            .def("clear", &ShortIdToTime_t::clear)
+            .def("get_bytes_length" , [](ShortIdToTime_t& map) {
+                return map.size() * sizeof(uint32_t);
+            })
+            .def("cleanup_removed_short_ids_history", &cleanup_removed_short_ids_history)
+			.def("__contains__", [](ShortIdToTime_t& map, const uint32_t& key) {
 					auto iter = map.find(key);
 					return iter != map.end();
 			});
@@ -180,6 +299,14 @@ void bind_transaction_service(py::module& m) {
                     "tx_not_seen_in_blocks",
                     &TransactionService_t::tx_not_seen_in_blocks,
                     py::return_value_policy::reference
+            ).def(
+					"tx_hash_to_time_removed",
+					&TransactionService_t::tx_hash_to_time_removed,
+					py::return_value_policy::reference
+            ).def(
+					"short_id_to_time_removed",
+					&TransactionService_t::short_id_to_time_removed,
+					py::return_value_policy::reference
 			).def(
 					"process_transaction_msg",
 					&TransactionService_t::process_transaction_msg,
@@ -212,9 +339,9 @@ void bind_transaction_service(py::module& m) {
 					&TxProcessingResult_t::get_tx_status,
 					py::return_value_policy::reference
 			).def(
-                    "get_tx_validation_status",
-                    &TxProcessingResult_t::get_tx_validation_status,
-                    py::return_value_policy::reference
+                "get_tx_validation_status",
+                &TxProcessingResult_t::get_tx_validation_status,
+                py::return_value_policy::reference
             ).def(
 					"get_existing_short_ids",
 					&TxProcessingResult_t::get_existing_short_ids,

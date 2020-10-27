@@ -20,7 +20,7 @@
 #define CONTENT_LEN 4 // sizeof(uint_32_t)
 #define SHORT_IDS_COUNT_LEN 2
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
-#define QUOTA_TYPE_LEN 1
+#define TRANSACTION_FLAG_LEN 2
 #define SEEN_FLAG_LEN 1
 #define HAS_TX_HASH_LEN 1
 
@@ -68,9 +68,12 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     size_t total_tx_hashes = _containers.tx_hash_to_contents.size();
     size_t total_short_ids = _containers.short_id_to_tx_hash.size();
 
-    size_t total_size = (TX_COUNT_LEN +
-            (SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
-            ((SHORT_ID_LEN + QUOTA_TYPE_LEN) * total_short_ids);
+    size_t total_size = (
+        TX_COUNT_LEN +
+        (SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
+        (
+            (SHORT_ID_LEN + TRANSACTION_FLAG_LEN) * total_short_ids
+        );
 
     if (sync_tx_content)
         total_size += all_txs_content_size;
@@ -103,13 +106,13 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
         const auto& tx_hash_to_short_id = _containers.tx_hash_to_short_ids.find(tx_hash_to_contents.first);
 
         if (tx_hash_to_short_id != _containers.tx_hash_to_short_ids.end()) {
-            uint16_t short_ids = tx_hash_to_short_id->second.size();
-            current_pos = utils::common::set_little_endian_value(*buffer, short_ids, current_pos);
+            uint16_t short_ids_count = tx_hash_to_short_id->second.size();
+            current_pos = utils::common::set_little_endian_value(*buffer, short_ids_count, current_pos);
             for (const auto& sid: tx_hash_to_short_id->second) {
                 current_pos = utils::common::set_little_endian_value(*buffer, sid, current_pos);
             }
-            // TODO: once extensions knows sid quota, need to enter the quota of each short id here
-            current_pos += tx_hash_to_short_id->second.size();
+            // TODO: once extensions knows sid flag, need to enter the flag of each short id here
+            current_pos += (short_ids_count * TRANSACTION_FLAG_LEN);
         } else {
             current_pos += SHORT_IDS_COUNT_LEN;
         }
@@ -709,7 +712,7 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
 
     size_t result_len = TX_COUNT_LEN + tx_count *
                                        (SHA256_LEN + CONTENT_LEN + EXPIRATION_DATE_LEN + SHORT_IDS_COUNT_LEN +
-                                        SHORT_ID_LEN + QUOTA_TYPE_LEN);
+                                        SHORT_ID_LEN + TRANSACTION_FLAG_LEN);
     PByteArray_t buffer = std::make_shared<ByteArray_t>(result_len);
     size_t output_buff_offset = 0;
 
@@ -743,7 +746,7 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
 
         // Memory is already allocated for 1 short id. Allocate more if more than one.
         if (short_ids_count > 1) {
-            result_len += (short_ids_count - 1) * (SHORT_ID_LEN + QUOTA_TYPE_LEN);
+            result_len += (short_ids_count - 1) * (SHORT_ID_LEN + TRANSACTION_FLAG_LEN);
             buffer->resize(result_len);
         }
 
@@ -757,9 +760,9 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
             }
         }
 
-        buffer->copy_from_buffer(*tx_sync_msg, output_buff_offset, offset, short_ids_count * QUOTA_TYPE_LEN);
-        offset += short_ids_count * QUOTA_TYPE_LEN;
-        output_buff_offset += short_ids_count * QUOTA_TYPE_LEN;
+        buffer->copy_from_buffer(*tx_sync_msg, output_buff_offset, offset, short_ids_count * TRANSACTION_FLAG_LEN);
+        offset += short_ids_count * TRANSACTION_FLAG_LEN;
+        output_buff_offset += short_ids_count * TRANSACTION_FLAG_LEN;
     }
 
     buffer->resize(output_buff_offset);

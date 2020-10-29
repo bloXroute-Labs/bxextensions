@@ -50,6 +50,7 @@ typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
+typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;
 typedef std::pair<bool, unsigned int> SetTransactionContentsResult_t;
 typedef utils::common::BufferView TxsMessageContents_t;
@@ -104,7 +105,9 @@ struct Containers {
         short_id_to_tx_hash(),
         tx_hash_to_short_ids(tx_not_seen_in_blocks),
         short_ids_seen_in_block(),
-        short_id_to_assign_time()
+        short_id_to_assign_time(),
+        tx_hash_to_time_removed(),
+        short_id_to_time_removed()
     {
 
     }
@@ -115,7 +118,8 @@ struct Containers {
     Sha256ToContentMap_t tx_hash_to_contents;
     ShortIDsSeenInBlock_t short_ids_seen_in_block;
     ShortIdToTime_t short_id_to_assign_time;
-
+    Sha256ToTime_t tx_hash_to_time_removed;
+    ShortIdToTime_t short_id_to_time_removed;
 };
 
 class TxProcessingResult {
@@ -269,6 +273,8 @@ public:
 	Sha256ToContentMap_t& get_tx_hash_to_contents();
     double get_short_id_assign_time(unsigned int short_id);
     TxNotSeenInBlocks_t& tx_not_seen_in_blocks();
+    Sha256ToTime_t& tx_hash_to_time_removed();
+    ShortIdToTime_t& short_id_to_time_removed();
 
 	const Sha256ToShortIDsMap_t& tx_hash_to_short_ids() const;
 	const Sha256ToContentMap_t& tx_hash_to_contents() const;
@@ -281,6 +287,7 @@ public:
 	bool has_short_id(const Sha256_t& tx_hash) const;
 	bool has_short_id(unsigned int short_id) const;
 	bool has_transaction_contents(const Sha256_t& tx_hash) const;
+	bool removed_transaction(const Sha256_t& transaction_hash) const;
 
 	unsigned int get_short_id(const Sha256_t& tx_hash) const;
 

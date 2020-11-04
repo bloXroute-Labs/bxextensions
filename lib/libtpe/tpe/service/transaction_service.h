@@ -142,6 +142,20 @@ public:
     }
 
     TxProcessingResult(
+        unsigned int tx_status,
+        unsigned int tx_validation_status,
+        SetTransactionContentsResult_t set_transaction_contents_result,
+        bool contents_set
+        ) : _tx_status(tx_status),
+            _tx_validation_status(tx_validation_status),
+            _set_transaction_contents_result(set_transaction_contents_result),
+            _contents_set(contents_set),
+            _short_id_assigned(),
+            _assign_short_id_result(false)
+    {
+    }
+
+    TxProcessingResult(
         unsigned int tx_status, unsigned int tx_validation_status
     ) :  _tx_status(tx_status), _tx_validation_status(tx_validation_status), _contents_set(), _short_id_assigned()
     {

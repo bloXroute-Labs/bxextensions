@@ -41,8 +41,10 @@ const utils::common::ByteArray & EncryptionTask::key() {
 	return _key;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void EncryptionTask::_execute(SubPool_t& sub_pool) {
 	utils::crypto::encrypt(_plain, _key, _cipher);
 }
-
+#pragma GCC diagnostic pop
 }

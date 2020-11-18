@@ -40,8 +40,8 @@ TransactionService::TransactionService(
         size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
         size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
 ):
-        _containers(pool_size, tx_bucket_capacity),
 		_final_tx_confirmations_count(final_tx_confirmations_count),
+        _containers(pool_size, tx_bucket_capacity),
         _protocol(std::move(protocol)),
         _message_parser(_create_message_parser()),
         _tx_validation(_create_transaction_validator())
@@ -689,7 +689,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
            missing = true;
         }
 
-        if (! has_transaction_contents(tx_hash) & content_length > 0) {
+        if (! has_transaction_contents(tx_hash) and content_length > 0) {
             BufferCopy_t transaction_content(TxContents_t(msg, content_length, offset));
             set_transaction_contents(
                 tx_hash,

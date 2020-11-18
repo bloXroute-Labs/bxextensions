@@ -59,7 +59,7 @@ void bind_tasks(py::module& m) {
     bind_block_confirmation_cleanup_task(m);
     bind_tpe(m);
 #ifdef BUILD_TYPE
-	if (BUILD_TYPE == "TESTING") {
+	if (strcmp(BUILD_TYPE, "TESTING")) {
 		  bind_test_task(m);
 		  bind_w2_task(m);
 	}

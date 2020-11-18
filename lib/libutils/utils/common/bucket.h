@@ -20,23 +20,23 @@ public:
 	typedef typename Set_t::const_iterator const_iterator;
 
 	Bucket(size_t capacity, uint32_t bucket_index, TAllocator allocator = std::allocator<T>()):
-		_capacity(capacity),
+		_set(allocator),
 		_bucket_index(bucket_index),
-		_set(allocator)
+		_capacity(capacity)
 	{
 		_set.reserve(capacity);
 	}
 
 	Bucket(Bucket&& other) noexcept {
-		_capacity = other._capacity;
-		_bucket_index = other._bucket_index;
 		_set = other._set;
+		_bucket_index = other._bucket_index;
+		_capacity = other._capacity;
 	}
 
 	Bucket& operator =(Bucket&& rhs) noexcept {
-		_capacity = rhs._capacity;
-		_bucket_index = rhs._bucket_index;
 		_set = std::move(rhs._set);
+		_bucket_index = rhs._bucket_index;
+		_capacity = rhs._capacity;
 		return *this;
 	}
 

@@ -31,11 +31,11 @@ public:
 			size_t bucket_capacity, uint32_t bucket_count, TAllocator allocator = TAllocator()
 	):
 		_reader_count(0),
+		_current_bucket_idx(0),
+		_stop_requested(false),
 		_bucket_capacity(bucket_capacity),
 		_bucket_count(bucket_count),
-		_mtx(),
-		_current_bucket_idx(0),
-		_stop_requested(false)
+		_mtx()
 	{
 		for (size_t idx = 0 ; idx < _bucket_count ; ++idx) {
 			_buckets.push_back(

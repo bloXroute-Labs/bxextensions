@@ -11,10 +11,10 @@ namespace task {
 OntBlockCompressionSubTask::OntBlockCompressionSubTask(
     size_t capacity):
     SubTaskBase(),
-    _tx_service(nullptr),
     _output_buffer(capacity),
-    _tx_offsets(nullptr),
     _block_buffer(nullptr),
+    _tx_offsets(nullptr),
+    _tx_service(nullptr),
     _enable_block_compression(false),
     _min_tx_age_seconds(0.0)
 {

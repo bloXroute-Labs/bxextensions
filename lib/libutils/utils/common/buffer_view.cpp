@@ -47,15 +47,15 @@ BufferView::BufferView(
 
 BufferView::BufferView(const BufferView& other):
 	_buffer(other._buffer),
-	_size(other._size),
-	_from(other._from)
+	_from(other._from),
+	_size(other._size)
 {
 }
 
 BufferView::BufferView(BufferView&& rhs) noexcept:
 			_buffer(rhs._buffer),
-			_size(rhs._size),
-			_from(rhs._from)
+			_from(rhs._from),
+			_size(rhs._size)
 {
 }
 

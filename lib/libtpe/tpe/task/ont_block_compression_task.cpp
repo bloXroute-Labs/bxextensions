@@ -192,7 +192,7 @@ size_t OntBlockCompressionTask::_dispatch(
             std::max(pool_size, _minimal_tx_count)
     );
     size_t idx = 0;
-    for (int count = 0 ; count < tx_count ; ++count) {
+    for (uint32_t count = 0 ; count < tx_count ; ++count) {
         size_t from = offset;
         idx = std::min((size_t) (count / bulk_size), pool_size - 1);
         offset = msg.get_next_tx_offset(offset);

@@ -55,7 +55,7 @@ public:
   void reset();
   void resize(size_t length);
   void clear();
-  void shift_left(int shift_count);
+  void shift_left(size_t shift_count);
 
   void set_output();
 

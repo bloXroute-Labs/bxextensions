@@ -11,27 +11,27 @@ BxBtcBlockMessage::BxBtcBlockMessage(
         const common::BufferView& buffer,
         uint64_t short_ids_offset
 ) :
+        _bx_block(buffer),
+        _short_ids_offset(short_ids_offset),
         _block_message(common::BufferView(
                 buffer,
                 short_ids_offset - offset_diff,
                 offset_diff
-        )),
-        _bx_block(buffer),
-        _short_ids_offset(short_ids_offset)
+        ))
 {
 }
 
 BxBtcBlockMessage::BxBtcBlockMessage(BxBtcBlockMessage&& rhs) noexcept:
-        _block_message(std::move(rhs._block_message)),
         _bx_block(std::move(rhs._bx_block)),
-        _short_ids_offset(rhs._short_ids_offset)
+        _short_ids_offset(rhs._short_ids_offset),
+        _block_message(std::move(rhs._block_message))
 {
 }
 
 BxBtcBlockMessage& BxBtcBlockMessage::operator =(BxBtcBlockMessage&& rhs) noexcept {
-    _block_message = std::move(rhs._block_message);
     _bx_block = std::move(rhs._bx_block);
     _short_ids_offset = rhs._short_ids_offset;
+    _block_message = std::move(rhs._block_message);
     return *this;
 }
 

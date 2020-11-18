@@ -58,7 +58,7 @@ private:
     size_t _txn_count;
     std::vector<unsigned int> _short_ids;
     std::vector<unsigned int> _ignored_short_ids;
-    size_t _content_size;
+    uint64_t _content_size;
     size_t _starting_offset;
     bool _enable_block_compression;
     double _min_tx_age_seconds;

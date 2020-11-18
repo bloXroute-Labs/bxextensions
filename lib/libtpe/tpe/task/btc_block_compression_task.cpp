@@ -15,6 +15,9 @@ BtcBlockCompressionTask::BtcBlockCompressionTask(
     MainTaskBase(),
     _tx_service(nullptr),
     _minimal_tx_count(minimal_tx_count),
+	_prev_block_hash(nullptr),
+    _block_hash(nullptr),
+    _compressed_block_hash(nullptr),
     _txn_count(0),
     _enable_block_compression(false),
     _min_tx_age_seconds(0.0)
@@ -186,7 +189,7 @@ size_t BtcBlockCompressionTask::_dispatch(
 			std::max(pool_size, _minimal_tx_count)
 	);
 	size_t idx = 0;
-	for (int count = 0 ; count < tx_count ; ++count) {
+	for (size_t count = 0 ; count < tx_count ; ++count) {
 		size_t from = offset;
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);
 		size_t witness_offset;

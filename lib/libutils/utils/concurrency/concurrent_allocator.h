@@ -32,15 +32,15 @@ public:
     const size_t max_count_per_allocation;
 
     inline explicit ConcurrentAllocator(
-            size_t max_allocation_pointer_count = MAX_ALLOCATION_POINTER_COUNT,
-            size_t max_count_per_allocation = MAX_COUNT_PER_ALLOCATION,
-            MemoryAllocationThread* executor = nullptr
+        size_t max_allocation_pointer_count = MAX_ALLOCATION_POINTER_COUNT,
+        size_t max_count_per_allocation = MAX_COUNT_PER_ALLOCATION,
+        MemoryAllocationThread* executor = nullptr
     ):
-        _executor(executor),
         max_allocation_pointer_count(max_allocation_pointer_count),
         max_count_per_allocation(max_count_per_allocation),
-        _idx(0),
         _allocation_queues(max_count_per_allocation),
+        _idx(0),
+        _executor(executor),
         _total_bytes_allocated(0)
     {
         if (executor != nullptr) {
@@ -49,11 +49,11 @@ public:
     }
 
     inline ConcurrentAllocator(const ConcurrentAllocator& other):
-        _executor(other._executor),
-        _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
         _allocation_queues(max_count_per_allocation),
+        _idx(0),
+        _executor(other._executor),
         _total_bytes_allocated(other.total_bytes_allocated())
 
     {
@@ -64,11 +64,11 @@ public:
 
     template <class U>
     inline explicit ConcurrentAllocator(const ConcurrentAllocator<U>& other):
-        _executor(other.executor()),
-        _idx(0),
         max_allocation_pointer_count(other.max_allocation_pointer_count),
         max_count_per_allocation(other.max_count_per_allocation),
         _allocation_queues(other.max_count_per_allocation),
+        _idx(0),
+        _executor(other.executor()),
         _total_bytes_allocated(other.total_bytes_allocated())
 
     {
@@ -108,6 +108,8 @@ public:
     }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     inline pointer allocate(size_type n, const_pointer hint = 0) {
         pointer p;
         bool should_notify = false;
@@ -132,6 +134,7 @@ public:
         }
         return p;
     }
+#pragma GCC diagnostic pop
 
     inline void deallocate(pointer p, size_type n) {
         { // lock scope
@@ -176,7 +179,7 @@ public:
         _executor = other_executor;
     }
 
-    MemoryAllocationThread * const executor() const {
+    MemoryAllocationThread * executor() const {
         return _executor;
     }
 

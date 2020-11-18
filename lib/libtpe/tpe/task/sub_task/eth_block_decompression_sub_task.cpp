@@ -9,8 +9,12 @@ namespace task {
 typedef utils::common::ByteArray ByteArray_t;
 
 EthBlockDecompressionSubTask::EthBlockDecompressionSubTask():
-    SubTaskBase(), _tx_service(nullptr), _tx_offsets(nullptr),
-    _block_buffer(nullptr), _content_size(0), _short_ids(nullptr)
+    SubTaskBase(),
+    _block_buffer(nullptr),
+    _tx_offsets(nullptr),
+    _tx_service(nullptr),
+    _short_ids(nullptr),
+    _content_size(0)
 {
 }
 
@@ -63,9 +67,8 @@ void EthBlockDecompressionSubTask::_execute()  {
     for (auto& offsets : *_tx_offsets) {
         size_t tx_content_offset = std::get<0>(offsets);
         size_t is_short = std::get<1>(offsets);
-        uint64_t tx_content_len = std::get<2>(offsets);
+        size_t tx_content_len = std::get<2>(offsets);
         const service::TxContents_t* p_contents = nullptr;
-
 
         if ( ! is_short ) {
             if (tx_content_len > 0) {

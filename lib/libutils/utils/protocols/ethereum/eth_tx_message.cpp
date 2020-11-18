@@ -1,4 +1,5 @@
 #include <climits>
+#include <assert.h>
 
 #include "utils/protocols/ethereum/eth_tx_message.h"
 #include <utils/encoding/rlp_encoder.h>
@@ -15,16 +16,19 @@ typedef utils::common::ByteArray ByteArray_t;
 size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     const size_t from = offset;
     Rlp_t rlp(msg_buf,0, 0, offset);
-    _rlp_list.clear();
-    _r.clear();
-    _s.clear();
-    _address.clear();
+//    _r.clear();
+//    _s.clear();
+//    _address.clear();
     _rlp_list = rlp.get_rlp_list();
+    if (_rlp_list.size() < S_IDX) {
+        return from;
+    }
+
     _nonce = _rlp_list[NONCE_IDX].as_int();
     _gas_price = _rlp_list[GAS_PRICE_IDX].as_int();
     _start_gas = _rlp_list[START_GAS_IDX].as_int();
     _address = _rlp_list[TO_IDX].as_vector();
-    _value = _rlp_list[VALUE_IDX].as_int();
+    _value = _rlp_list[VALUE_IDX].as_large_int();
     _data = _rlp_list[DATA_IDX].as_rlp_string();
     _v = _rlp_list[V_IDX].as_int();
     _r = _rlp_list[R_IDX].as_vector();
@@ -32,7 +36,6 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
 
     offset += rlp.val_offset() + rlp.length();
     _sha = std::move(crypto::keccak_sha3(msg_buf.byte_array(), from, offset - from));
-
     return offset;
 }
 
@@ -123,26 +126,26 @@ bool EthTxMessage::_deserialize_int(Rlp_t& rlp) {
 }
 
 bool EthTxMessage::_deserialize_string(size_t string_len, size_t max_length) {
-    return (0 <= string_len <= max_length);
+    return (string_len <= max_length);
 }
 
-const uint64_t EthTxMessage::nonce() const {
+uint64_t EthTxMessage::nonce() const {
     return _nonce;
 }
 
-const uint64_t EthTxMessage::gas_price() const {
+uint64_t EthTxMessage::gas_price() const {
     return _gas_price;
 }
 
-const uint64_t EthTxMessage::start_gas() const {
+uint64_t EthTxMessage::start_gas() const {
     return _start_gas;
 }
 
-const uint64_t EthTxMessage::value() const {
+const std::vector<uint64_t>& EthTxMessage::value() const {
     return _value;
 }
 
-const uint64_t EthTxMessage::v() const {
+uint64_t EthTxMessage::v() const {
     return _v;
 }
 

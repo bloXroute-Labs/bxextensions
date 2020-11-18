@@ -16,8 +16,8 @@ BxEthBlockMessage::BxEthBlockMessage(const common::BufferView& buffer) :
 
 BxEthBlockMessage::BxEthBlockMessage(BxEthBlockMessage&& rhs) noexcept:
         _block_header(rhs._block_header),
-        _block_trailer(rhs._block_trailer),
         _buffer(std::move(rhs._buffer)),
+        _block_trailer(rhs._block_trailer),
         _short_ids_offset(rhs._short_ids_offset),
         _block_hash(std::move(rhs._block_hash)),
         _txn_offset(rhs._txn_offset),
@@ -26,10 +26,10 @@ BxEthBlockMessage::BxEthBlockMessage(BxEthBlockMessage&& rhs) noexcept:
 }
 
 BxEthBlockMessage& BxEthBlockMessage::operator =(BxEthBlockMessage&& rhs) noexcept {
-    _buffer = std::move(rhs._buffer);
-    _short_ids_offset = rhs._short_ids_offset;
     _block_header = std::move(rhs._block_header);
+    _buffer = std::move(rhs._buffer);
     _block_trailer = std::move(rhs._block_trailer);
+    _short_ids_offset = rhs._short_ids_offset;
     _block_hash = std::move(rhs._block_hash);
     _txn_offset = rhs._txn_offset;
     _txn_end_offset = rhs._txn_end_offset;
@@ -70,7 +70,6 @@ void BxEthBlockMessage::parse()
 {
     uint64_t block_item_len, block_header_len, block_txs_len;
     size_t short_ids_offset = common::get_little_endian_value<uint64_t >(_buffer, _short_ids_offset, 0);
-
     size_t block_item_offset = encoding::consume_length_prefix(_buffer, block_item_len, short_ids_offset);
 
     size_t block_header_offset = encoding::consume_length_prefix(_buffer, block_header_len, block_item_offset);

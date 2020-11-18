@@ -169,7 +169,7 @@ size_t BtcBlockDecompressionTask::_dispatch(
 	size_t output_offset = offset - BxBtcBlockMessage_t::offset_diff;
 	size_t prev_output_offset = output_offset;
 	bool is_short;
-	for (int count = 0 ; count < _tx_count ; ++count) {
+	for (uint64_t count = 0 ; count < _tx_count ; ++count) {
 		size_t from = offset;
 		auto& tdata = _sub_tasks[idx]->task_data();
 		idx = std::min((size_t) (count / bulk_size), pool_size - 1);

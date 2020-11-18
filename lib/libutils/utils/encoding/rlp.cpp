@@ -5,54 +5,54 @@ namespace utils {
 namespace encoding {
 
 //public:
-Rlp::Rlp(): _length(0), _val_offset(0), _rlp_starting_offset(0) {
+Rlp::Rlp(): _val_offset(0), _rlp_starting_offset(0), _length(0) {
 
 }
 
-Rlp::Rlp(const BufferView_t& rlp): _rlp(rlp), _length(0), _val_offset(0), _rlp_starting_offset(0) {
+Rlp::Rlp(const BufferView_t& rlp): _rlp(rlp), _val_offset(0), _rlp_starting_offset(0), _length(0) {
 
 }
 
 Rlp::Rlp(const BufferView_t& rlp, uint64_t length, size_t val_offset/* = 0*/, size_t rlp_starting_offset/* = 0*/):
-_rlp(rlp), _length(length), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset) {
+_rlp(rlp), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset), _length(length) {
 }
 
-Rlp::Rlp(BufferView_t&& rlp): _rlp(std::move(rlp)), _length(0), _val_offset(0), _rlp_starting_offset(0) {
+Rlp::Rlp(BufferView_t&& rlp): _rlp(std::move(rlp)), _val_offset(0), _rlp_starting_offset(0), _length(0) {
 }
 
 Rlp::Rlp(BufferView_t&& rlp, uint64_t length, size_t val_offset/* = 0*/, size_t rlp_starting_offset/* = 0*/):
-_rlp(std::move(rlp)), _length(length), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset){
+_rlp(std::move(rlp)), _val_offset(val_offset), _rlp_starting_offset(rlp_starting_offset), _length(length) {
 }
 
 Rlp::Rlp(Rlp&& rhs):
     _rlp(std::move(rhs._rlp)),
-    _length(rhs._length),
     _val_offset(rhs._val_offset),
-    _rlp_starting_offset(rhs._rlp_starting_offset)
+    _rlp_starting_offset(rhs._rlp_starting_offset),
+    _length(rhs._length)
 {
 }
 
 Rlp::Rlp(const Rlp& rhs):
     _rlp(rhs._rlp),
-    _length(rhs._length),
     _val_offset(rhs._val_offset),
-    _rlp_starting_offset(rhs._rlp_starting_offset)
+    _rlp_starting_offset(rhs._rlp_starting_offset),
+    _length(rhs._length)
 {
 }
 
 Rlp& Rlp::operator =(const Rlp& rhs) {
     _rlp = rhs._rlp;
     _val_offset = rhs._val_offset;
-    _length = rhs._length;
     _rlp_starting_offset = rhs._rlp_starting_offset;
+    _length = rhs._length;
     return *this;
 }
 
 Rlp& Rlp::operator =(Rlp&& rhs) {
     _rlp = std::move(rhs._rlp);
     _val_offset = rhs._val_offset;
-    _length = rhs._length;
     _rlp_starting_offset = rhs._rlp_starting_offset;
+    _length = rhs._length;
     return *this;
 }
 
@@ -102,8 +102,13 @@ uint64_t Rlp::as_int() const {
     }
     uint64_t val;
     size_t end_offset;
-    if ( _val_offset > 0 and _length > 0 ) {
-        end_offset = get_big_endian_rlp_value(_rlp, val, _rlp_starting_offset + _val_offset , _length);
+    if ( _val_offset > 0) {
+        if (_length > sizeof(uint64_t) ) {
+            std::vector<uint64_t> values;
+            end_offset = get_big_endian_rlp_large_value(_rlp, val, _rlp_starting_offset + _val_offset, _length, values);
+        } else {
+            end_offset = get_big_endian_rlp_value(_rlp, val, _rlp_starting_offset + _val_offset, _length);
+        }
     } else {
         end_offset = decode_int(_rlp, val, _rlp_starting_offset);
     }
@@ -114,6 +119,23 @@ uint64_t Rlp::as_int() const {
     return val;
 }
 
+std::vector<uint64_t> Rlp::as_large_int() const {
+    if (_rlp_starting_offset + _val_offset + _length > _rlp.size()) {
+        throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
+    }
+    std::vector<uint64_t> values;
+    uint64_t val;
+    size_t end_offset = 0;
+    if ( _val_offset > 0) {
+        end_offset = get_big_endian_rlp_large_value(_rlp, val, _rlp_starting_offset + _val_offset, _length, values);
+    }
+
+    if ( end_offset == 0 or end_offset > _rlp_starting_offset + _val_offset + _length ) {
+        throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
+    }
+    return std::move(values);
+}
+
 std::vector<uint8_t> Rlp::as_vector() const {
     if (_rlp_starting_offset + _val_offset + _length > _rlp.size()) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
@@ -121,7 +143,7 @@ std::vector<uint8_t> Rlp::as_vector() const {
     return _rlp.vector(_rlp_starting_offset + _val_offset, _length);
 }
 
-size_t Rlp::length() const {
+uint64_t Rlp::length() const {
     return _length;
 }
 

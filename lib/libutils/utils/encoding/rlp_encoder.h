@@ -24,7 +24,9 @@ static size_t set_big_endian_rlp_value(
     size_t length
 )
 {
-    if (length > 4) {
+    if ( length > 8 ) {
+        offset = utils::common::set_big_endian_value<__int128>(buffer, value, offset, length);
+    } else if (length > 4) {
         offset = utils::common::set_big_endian_value<uint64_t>(buffer, value, offset, length);
     } else if ( length > 2 ) {
         offset = utils::common::set_big_endian_value<uint32_t>(buffer, value, offset, length);
@@ -62,7 +64,9 @@ static size_t get_big_endian_rlp_value(
     size_t length
 )
 {
-    if ( length > 4 ) {
+    if ( length > 8 ) {
+        offset = utils::common::get_big_endian_value<__int128>(buffer, value, offset, length);
+    } else if ( length > 4 ) {
         offset = utils::common::get_big_endian_value<uint64_t>(buffer, value, offset, length);
     } else if ( length > 2 ) {
         offset = utils::common::get_big_endian_value<uint32_t>(buffer, value, offset, length);
@@ -73,6 +77,7 @@ static size_t get_big_endian_rlp_value(
     } else {
         value = 0;
     }
+
 
     return offset;
 }
@@ -174,7 +179,10 @@ size_t get_length_prefix(
         offset = utils::common::set_big_endian_value(
             buffer, (uint8_t) (encoding_type + 56 - 1 + length_size), offset, sizeof(uint8_t)
         );
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
         offset = set_big_endian_rlp_value(buffer, (uint64_t&)value, offset, length_size);
+#pragma GCC diagnostic pop
     }
 
     return offset;

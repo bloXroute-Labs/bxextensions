@@ -39,11 +39,11 @@ public:
     bool deserialize();
     std::vector<uint8_t> get_unsigned_msg();
 
-    const uint64_t nonce() const;
-    const uint64_t gas_price() const;
-    const uint64_t start_gas() const;
-    const uint64_t value() const;
-    const uint64_t v() const;
+    uint64_t nonce() const;
+    uint64_t gas_price() const;
+    uint64_t start_gas() const;
+    const std::vector<uint64_t>& value() const;
+    uint64_t v() const;
     const std::vector<uint8_t>& r() const;
     const std::vector<uint8_t>& s() const;
     const Address_t address() const;
@@ -51,8 +51,9 @@ public:
     const Sha256_t& hash() const;
 
 private:
-    uint64_t _nonce, _gas_price, _start_gas, _value, _v;
+    uint64_t _nonce, _gas_price, _start_gas, _v;
     std::vector<uint8_t> _r, _s;
+    std::vector<uint64_t> _value;
     Address_t _address;
     BufferView_t _data;
     Sha256_t _sha;

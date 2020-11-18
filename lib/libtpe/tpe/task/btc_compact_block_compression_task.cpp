@@ -19,8 +19,8 @@ BtcCompactBlockCompressionTask::BtcCompactBlockCompressionTask(
 			size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/
 ):
 		_magic(0),
-		_block_hash(nullptr),
 		_prev_block_hash(nullptr),
+		_block_hash(nullptr),
 		_compressed_block_hash(nullptr),
 		_txn_count(0)
 {

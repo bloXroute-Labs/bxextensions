@@ -32,10 +32,11 @@ public:
     const BufferView_t& payload() const;
 
     uint64_t as_int() const;
+    std::vector<uint64_t> as_large_int() const;
 
     std::vector<uint8_t> as_vector() const;
 
-    size_t length() const;
+    uint64_t length() const;
     size_t val_offset() const;
     size_t rlp_starting_offset() const;
 

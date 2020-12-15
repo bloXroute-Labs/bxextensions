@@ -10,7 +10,12 @@ namespace ontology {
 namespace consensus {
 
 BxOntConsensusMessage::BxOntConsensusMessage(const common::BufferView& buffer):
-    _buffer(buffer), _consensus_data_len(0), _consensus_data_type(0), _tx_offset(0), _tx_count(0), _short_ids_offset(0)
+    _buffer(buffer),
+    _consensus_data_type(0),
+    _tx_count(0),
+    _consensus_data_len(0),
+    _tx_offset(0),
+    _short_ids_offset(0)
 {
 }
 

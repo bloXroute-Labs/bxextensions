@@ -101,15 +101,14 @@ struct Containers {
             size_t tx_bucket_capacity
     ):
         tx_not_seen_in_blocks(tx_bucket_capacity, pool_size),
-        tx_hash_to_contents(PTxContentsTracker()),
-        short_id_to_tx_hash(),
         tx_hash_to_short_ids(tx_not_seen_in_blocks),
+        short_id_to_tx_hash(),
+        tx_hash_to_contents(PTxContentsTracker()),
         short_ids_seen_in_block(),
         short_id_to_assign_time(),
         tx_hash_to_time_removed(),
         short_id_to_time_removed()
     {
-
     }
 
     TxNotSeenInBlocks_t tx_not_seen_in_blocks;
@@ -142,8 +141,28 @@ public:
     }
 
     TxProcessingResult(
-        unsigned int tx_status, unsigned int tx_validation_status
-    ) :  _tx_status(tx_status), _tx_validation_status(tx_validation_status), _contents_set(), _short_id_assigned()
+        unsigned int tx_status,
+        unsigned int tx_validation_status,
+        SetTransactionContentsResult_t set_transaction_contents_result,
+        bool contents_set
+        ) : _tx_status(tx_status),
+            _tx_validation_status(tx_validation_status),
+            _assign_short_id_result(false),
+            _set_transaction_contents_result(set_transaction_contents_result),
+            _contents_set(contents_set),
+            _short_id_assigned()
+    {
+    }
+
+    TxProcessingResult(
+        unsigned int tx_status,
+        unsigned int tx_validation_status
+        ) : _tx_status(tx_status),
+            _tx_validation_status(tx_validation_status),
+            _assign_short_id_result(false),
+            _set_transaction_contents_result(),
+            _contents_set(),
+            _short_id_assigned()
     {
     }
 

@@ -7,8 +7,8 @@ typedef utils::protocols::internal::BlockConfirmationMessage BlockConfirmationMe
 
 BlockConfirmationCleanupTask::BlockConfirmationCleanupTask():
         _tx_service(nullptr),
-        _tx_count(0),
-        _total_content_removed(0)
+        _total_content_removed(0),
+        _tx_count(0)
 {
     _msg_buffer = std::make_shared<BufferView_t>(BufferView_t::empty());
 }
@@ -17,8 +17,8 @@ void BlockConfirmationCleanupTask::init(PBufferView_t msg_buffer, PTransactionSe
     _msg_buffer = std::move(msg_buffer);
     _tx_service = std::move(tx_service);
     _block_hash.clear();
-    _tx_count = 0;
     _total_content_removed = 0;
+    _tx_count = 0;
     _short_ids.clear();
 }
 
@@ -83,7 +83,10 @@ void BlockConfirmationCleanupTask::cleanup() {
     _tx_service = nullptr;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void BlockConfirmationCleanupTask::_execute(SubPool_t &sub_pool) {
 }
+#pragma GCC diagnostic pop
 
 } // task

@@ -12,7 +12,7 @@ typedef utils::protocols::PTxsMessageContents_t PTxsMessageContents_t;
 
 class EthMessageParser: public AbstractMessageParser_t {
 public:
-    ParsedTransactions_t parse_transactions_message(PTxsMessageContents_t txs_message_contents) const;
+    ParsedTransactions_t parse_transactions_message(PTxsMessageContents_t msg_buf) const;
 };
 
 }

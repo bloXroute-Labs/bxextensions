@@ -81,6 +81,8 @@ void OntConsensusBlockDecompressionTask::cleanup() {
     _tx_service = nullptr;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void OntConsensusBlockDecompressionTask::_execute(task::SubPool_t &sub_pool) {
     BxOntConsensusMessage_t msg(*_block_buffer);
     msg.parse();
@@ -124,5 +126,6 @@ void OntConsensusBlockDecompressionTask::_execute(task::SubPool_t &sub_pool) {
     _output_buffer->copy_from_buffer(msg.owner_and_signature(), output_offset, 0, msg.owner_and_signature().size());
     _output_buffer->set_output();
 }
+#pragma GCC diagnostic pop
 
 } // tast

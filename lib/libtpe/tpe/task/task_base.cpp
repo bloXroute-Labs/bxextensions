@@ -6,9 +6,10 @@ namespace task {
 
 TaskBase::TaskBase():
     _is_completed(false),
-    _is_initialized(false),
     _current_queue_idx(-1),
-    _last_executed_id(0){
+    _last_executed_id(0),
+    _is_initialized(false)
+{
     _task_id = ++_TASK_ID_CTR;
 }
 

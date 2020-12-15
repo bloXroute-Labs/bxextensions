@@ -16,7 +16,8 @@ ParsedTransactions_t EthMessageParser::parse_transactions_message(PTxsMessageCon
     offset = encoding::consume_length_prefix(*msg_buf, tx_bytes_length, offset);
     size_t end = offset + tx_bytes_length;
 
-    uint64_t tx_offset, tx_length, tx_end;
+    uint64_t tx_offset,  tx_end;
+    uint64_t tx_length;
 
     while (offset < end) {
         tx_offset = encoding::consume_length_prefix(*msg_buf, tx_length, offset);

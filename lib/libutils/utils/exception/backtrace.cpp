@@ -24,14 +24,14 @@ void Backtrace::set_backtrace(int skip/* = 1*/) noexcept {
 			char *demangled = NULL;
 			int status;
 			demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
-			snprintf(_buf, FRAME_BUFFER_SIZE, "%-3d %*0p %s + %zd\n",
-					 i, 2 + sizeof(void*) * 2, _callstack[i],
-					 status == 0 ? demangled : info.dli_sname,
-					 (char *)_callstack[i] - (char *)info.dli_saddr);
+			snprintf(_buf, FRAME_BUFFER_SIZE, "%-3d %*p %s + %zd\n",
+					 i, (int) (2 + sizeof(void*) * 2), _callstack[i],
+					 (char*) (status == 0 ? demangled : info.dli_sname),
+                     (size_t) ((char *)_callstack[i] - (char *)info.dli_saddr));
 			free(demangled);
 		} else {
-			snprintf(_buf, FRAME_BUFFER_SIZE, "%-3d %*0p\n",
-					 i, 2 + sizeof(void*) * 2, _callstack[i]);
+			snprintf(_buf, FRAME_BUFFER_SIZE, "%-3d %*p\n",
+					 i, (int) (2 + sizeof(void*) * 2), _callstack[i]);
 		}
 		if (i == skip) {
 			_set_separator(std::string("-=begin stack trace=-"), _start);

@@ -44,13 +44,15 @@ public:
         return _total_bytes_allocated;
     }
 
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     inline pointer allocate(size_type n, const_pointer hint = 0) {
         size_type p_size = n * sizeof(T);
         auto p = reinterpret_cast<pointer>(::operator new(p_size));
         _total_bytes_allocated += p_size;
         return p;
     }
+#pragma GCC diagnostic pop
 
     inline void deallocate(pointer p, size_type n) {
         ::operator delete(p);

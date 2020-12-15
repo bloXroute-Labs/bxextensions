@@ -28,12 +28,10 @@ bool EthTransactionValidator::_parse_transaction(
 ) const
 {
     try {
-        EthTxMessage_t msg;
-        msg.decode(*txs_message_contents, 0);
-        if ( ! msg.deserialize() ) {
+        tx_msg.decode(*txs_message_contents, 0);
+        if ( ! tx_msg.deserialize() ) {
             return false;
         }
-        tx_msg = EthTxMessage_t(std::move(msg));
         return true;
     } catch (...) {
         // TODO catch a better exception
@@ -47,6 +45,7 @@ size_t EthTransactionValidator::transaction_validation (
 ) const
 {
     EthTxMessage_t tx_msg;
+
     if ( _parse_transaction(txs_message_contents, tx_msg) ) {
         if (_verify_transaction_signature(tx_msg)) {
             if (tx_msg.gas_price() >= min_tx_network_fee) {

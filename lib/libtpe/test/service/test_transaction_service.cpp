@@ -18,7 +18,7 @@ public:
 
 	static const Sha256_t sha256;
 
-	const TransactionService_t& tx_service() const {
+	TransactionService_t& tx_service() {
 		return _tx_service;
 	}
 
@@ -45,4 +45,8 @@ TEST_F(TransactionServiceTest, test_has_short_id) {
 
 TEST_F(TransactionServiceTest, test_get_short_id) {
 	EXPECT_EQ(tx_service().get_short_id(sha256), SHORT_ID);
+}
+
+TEST_F(TransactionServiceTest, test_clear) {
+    tx_service().clear();
 }

@@ -25,7 +25,7 @@ public:
 	void parse();
 
 private:
-	common::BufferView _buffer, _block_header, _block_trailer;
+	common::BufferView _block_header, _buffer, _block_trailer;
 	uint64_t _short_ids_offset;
     crypto::Sha256 _block_hash;
     size_t _txn_offset, _txn_end_offset;

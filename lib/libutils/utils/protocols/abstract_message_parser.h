@@ -24,7 +24,6 @@ struct ParsedTransaction {
         offset(tx_offset) {}
 };
 
-typedef utils::common::BufferView ParsedTxContents_t;
 typedef ParsedTransaction ParsedTransaction_t;
 typedef std::vector<ParsedTransaction_t> ParsedTransactions_t;
 typedef utils::common::BufferView TxsMessageContents_t;
@@ -32,9 +31,12 @@ typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
 
 class AbstractMessageParser {
 public:
-    virtual ParsedTransactions_t parse_transactions_message(PTxsMessageContents_t txs_message_contents) const {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+    virtual ParsedTransactions_t parse_transactions_message(PTxsMessageContents_t msg_buf) const {
         throw std::runtime_error("parse_transactions_message is not implemented in abstract class.");
     }
+#pragma GCC diagnostic pop
 };
 
 }

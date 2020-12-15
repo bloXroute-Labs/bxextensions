@@ -2,12 +2,14 @@
 #include <gtest/gtest.h>
 #include <utils/common/byte_array.h>
 #include <utils/protocols/ethereum/eth_tx_message.h>
+#include <utils/protocols/ethereum/eth_transaction_validator.h>
 #include <utils/common/string_helper.h>
 #include <utils/crypto/signature.h>
 
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView BufferView_t;
 typedef utils::protocols::ethereum::EthTxMessage EthTxMessage_t;
+typedef utils::protocols::ethereum::EthTransactionValidator EthTransactionValidator_t;
 
 class EthTxMessageTest : public ::testing::Test {
 };
@@ -25,7 +27,11 @@ TEST_F(EthTxMessageTest, test_tx_decoding) {
     EXPECT_EQ(51000000000, msg.gas_price());
     EXPECT_EQ(21000, msg.start_gas());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
-    EXPECT_EQ(2600000000000000, msg.value());
+    std::vector<uint64_t> expected_values(1,2600000000000000);
+    std::vector<uint64_t> values = msg.value();
+    for (size_t i = 0; i < values.size(); i++) {
+        EXPECT_EQ(expected_values[i], values[i]);
+    }
     EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
     EXPECT_EQ(38, msg.v());
 
@@ -59,7 +65,11 @@ TEST_F(EthTxMessageTest, test_tx_decoding_empty_data) {
     EXPECT_EQ(300000, msg.gas_price());
     EXPECT_EQ(100000, msg.start_gas());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
-    EXPECT_EQ(1000000, msg.value());
+    std::vector<uint64_t> expected_values(1, 1000000);
+    std::vector<uint64_t> values = msg.value();
+    for (size_t i = 0; i < values.size(); i++) {
+        EXPECT_EQ(expected_values[i], values[i]);
+    }
     EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
     EXPECT_EQ(27, msg.v());
 
@@ -92,7 +102,11 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
     EXPECT_EQ(5625000000, msg.gas_price());
     EXPECT_EQ(53000, msg.start_gas());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
-    EXPECT_EQ(0, msg.value());
+    std::vector<uint64_t> expected_values(1, 0);
+    std::vector<uint64_t> values = msg.value();
+    for (size_t i = 0; i < values.size(); i++) {
+        EXPECT_EQ(expected_values[i], values[i]);
+    }
     EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
     EXPECT_EQ(37, msg.v());
 
@@ -110,4 +124,28 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
     utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
     ASSERT_TRUE(sig.verify(public_key, unsigned_msg));
+}
+
+TEST_F(EthTxMessageTest, test_tx_validtor) {
+    std::string rlp_str = "f86b018501723ef6f282520894a4e5961b58dbe487639929643dcb1dc3848daf5e870543eaa7ca14008025a065d379c2058be6befc3cf98e10683557c8d8a4c12d32d66602a56af2d2701506a04b39134aca875a7117f302252b4e99d61a93b866cc39add02ef54658479f5b9b";
+    std::vector<uint8_t> rlp_vec;
+    EthTransactionValidator_t eth_validator;
+
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
+
+    eth_validator.transaction_validation(
+        std::move(std::make_shared<BufferView_t>(std::move(bf))),
+        0
+    );
+
+    rlp_str = "f9015582da98850fd51da800830288ac94d9e1ce17f2641f24ae83637ab66a2cca9c378b9f8901a055690d9db80000b8e47ff36ab5000000000000000000000000000000000000000000000237027f7cc2ef1ba38f00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000dc411b17d337af85d83ea5a3577d09132aae866000000000000000000000000000000000000000000000000000000005fb26cb70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000006b3595068778dd592e39a122f4f5a5cf09c90fe225a01945291e6d750eb41d07b74838a601aa32334898c8da5b731960108a7db54beca05b48c4c31f5836b3fb35194b8d73bf907d795cd6bed65dc6c57ed1edc35dd3f7";
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    bf = BufferView_t(&rlp_vec.at(0), rlp_vec.size());
+
+    eth_validator.transaction_validation(
+        std::move(std::make_shared<BufferView_t>(std::move(bf))),
+        0
+    );
+
 }

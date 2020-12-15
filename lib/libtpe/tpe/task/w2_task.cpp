@@ -11,15 +11,18 @@ void W2Task::init(unsigned long long nw2) {
   _nw2 = nw2;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void W2Task::_execute(SubPool_t& sub_pool) {
-  for (unsigned long long i = 0 ;
-      i < _nw2 ;
-      ++i) {
-      volatile unsigned long long j = i;
-  }
+    volatile unsigned long long j = 0;
+    for (unsigned long long i = 0; i < _nw2; ++i) {
+        j = i;
+    }
+
+    if (j == 0) {
+        std::cout << "error in W2Task::_execute" << std::endl;
+    }
 }
-
-
-
+#pragma GCC diagnostic pop
 
 } // task

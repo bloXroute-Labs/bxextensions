@@ -6,13 +6,13 @@ namespace utils {
 namespace protocols {
 namespace ontology {
 
-ParsedTransactions_t OntMessageParser::parse_transactions_message(PTxsMessageContents_t txs_message_contents) const {
-    const size_t tx_contents_len = txs_message_contents->size() - ONT_HDR_COMMON_OFF;
+ParsedTransactions_t OntMessageParser::parse_transactions_message(PTxsMessageContents_t msg_buf) const {
+    const size_t tx_contents_len = msg_buf->size() - ONT_HDR_COMMON_OFF;
 
     Sha256_t tx_hash = ontology::get_tx_id(
-        *txs_message_contents,
+        *msg_buf,
         ONT_HDR_COMMON_OFF,
-        txs_message_contents->size() - ONT_HDR_COMMON_OFF
+        msg_buf->size() - ONT_HDR_COMMON_OFF
     );
 
     ParsedTransaction_t parsed_transaction = ParsedTransaction_t(

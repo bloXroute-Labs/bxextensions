@@ -83,8 +83,7 @@ private:
 	PTransactionService_t _tx_service;
 	SubTasksData_t _sub_tasks;
 	const size_t _minimal_tx_count;
-	PSha256_t _prev_block_hash, _block_hash;
-	PSha256_t _compressed_block_hash;
+	PSha256_t _prev_block_hash, _block_hash, _compressed_block_hash;
 	size_t _txn_count;
 	std::vector<unsigned int> _short_ids;
 	std::vector<unsigned int> _ignored_short_ids;

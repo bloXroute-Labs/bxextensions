@@ -20,7 +20,7 @@
 #define CONTENT_LEN 4 // sizeof(uint_32_t)
 #define SHORT_IDS_COUNT_LEN 2
 #define SHORT_ID_LEN 4 // sizeof(uint_32_t)
-#define QUOTA_TYPE_LEN 1
+#define TRANSACTION_FLAG_LEN 2
 #define SEEN_FLAG_LEN 1
 #define HAS_TX_HASH_LEN 1
 
@@ -40,8 +40,8 @@ TransactionService::TransactionService(
         size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
         size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
 ):
-        _containers(pool_size, tx_bucket_capacity),
 		_final_tx_confirmations_count(final_tx_confirmations_count),
+        _containers(pool_size, tx_bucket_capacity),
         _protocol(std::move(protocol)),
         _message_parser(_create_message_parser()),
         _tx_validation(_create_transaction_validator())
@@ -68,9 +68,12 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     size_t total_tx_hashes = _containers.tx_hash_to_contents.size();
     size_t total_short_ids = _containers.short_id_to_tx_hash.size();
 
-    size_t total_size = (TX_COUNT_LEN +
-            (SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
-            ((SHORT_ID_LEN + QUOTA_TYPE_LEN) * total_short_ids);
+    size_t total_size = (
+        TX_COUNT_LEN +
+        (SHA256_LEN + EXPIRATION_DATE_LEN + CONTENT_LEN + SHORT_IDS_COUNT_LEN) * total_tx_hashes) +
+        (
+            (SHORT_ID_LEN + TRANSACTION_FLAG_LEN) * total_short_ids
+        );
 
     if (sync_tx_content)
         total_size += all_txs_content_size;
@@ -103,13 +106,13 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
         const auto& tx_hash_to_short_id = _containers.tx_hash_to_short_ids.find(tx_hash_to_contents.first);
 
         if (tx_hash_to_short_id != _containers.tx_hash_to_short_ids.end()) {
-            uint16_t short_ids = tx_hash_to_short_id->second.size();
-            current_pos = utils::common::set_little_endian_value(*buffer, short_ids, current_pos);
+            uint16_t short_ids_count = tx_hash_to_short_id->second.size();
+            current_pos = utils::common::set_little_endian_value(*buffer, short_ids_count, current_pos);
             for (const auto& sid: tx_hash_to_short_id->second) {
                 current_pos = utils::common::set_little_endian_value(*buffer, sid, current_pos);
             }
-            // TODO: once extensions knows sid quota, need to enter the quota of each short id here
-            current_pos += tx_hash_to_short_id->second.size();
+            // TODO: once extensions knows sid flag, need to enter the flag of each short id here
+            current_pos += (short_ids_count * TRANSACTION_FLAG_LEN);
         } else {
             current_pos += SHORT_IDS_COUNT_LEN;
         }
@@ -411,15 +414,16 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     );
 
     if (
-        tx_validation_status != TX_VALIDATION_STATUS_VALID_TX or
-        has_status_flag(tx_status, (TX_STATUS_IGNORE_SEEN | TX_STATUS_TIMED_OUT))
-    ) {
-        TxProcessingResult_t result(tx_status, tx_validation_status);
-        return std::move(result);
-    }
-
-    if ( has_status_flag(tx_status, TX_STATUS_SEEN_HASH) ) {
-        existing_short_ids = _containers.tx_hash_to_short_ids[transaction_hash];
+        has_status_flag(tx_status, (TX_STATUS_IGNORE_SEEN | TX_STATUS_TIMED_OUT)) or
+        has_status_flag(
+            tx_validation_status,
+            (TX_VALIDATION_STATUS_INVALID_FORMAT | TX_VALIDATION_STATUS_INVALID_SIGNATURE)
+            )
+        ) {
+        TxProcessingResult_t ignore_seen_result(
+            tx_status,
+            tx_validation_status);
+        return std::move(ignore_seen_result);
     }
 
     if (
@@ -430,7 +434,21 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         contents_set = true;
     }
 
-    if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) ) {
+    if (tx_validation_status == TX_VALIDATION_STATUS_INVALID_LOW_FEE) {
+        TxProcessingResult_t low_fee_result(
+            tx_status,
+            tx_validation_status,
+            set_transaction_contents_result,
+            contents_set);
+        return std::move(low_fee_result);
+    }
+
+    if (has_status_flag(tx_status, TX_STATUS_SEEN_HASH)) {
+        existing_short_ids = _containers.tx_hash_to_short_ids[transaction_hash];
+    }
+
+
+    if (has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID)) {
         assign_short_id_result = assign_short_id(transaction_hash, short_id);
         short_id_assigned = true;
     }
@@ -462,8 +480,9 @@ TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from
     bool existing_contents = has_transaction_contents(transaction_hash);
 
     if (
-        (short_id == NULL_TX_SID and has_short_id(transaction_hash) and existing_contents)
-        || removed_transaction(transaction_hash)
+        (short_id == NULL_TX_SID or existing_short_id)
+        and existing_contents
+        or removed_transaction(transaction_hash)
     ) {
         return TxFromBdnProcessingResult_t(
             true,
@@ -671,7 +690,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
            missing = true;
         }
 
-        if (! has_transaction_contents(tx_hash) & content_length > 0) {
+        if (! has_transaction_contents(tx_hash) and content_length > 0) {
             BufferCopy_t transaction_content(TxContents_t(msg, content_length, offset));
             set_transaction_contents(
                 tx_hash,
@@ -709,7 +728,7 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
 
     size_t result_len = TX_COUNT_LEN + tx_count *
                                        (SHA256_LEN + CONTENT_LEN + EXPIRATION_DATE_LEN + SHORT_IDS_COUNT_LEN +
-                                        SHORT_ID_LEN + QUOTA_TYPE_LEN);
+                                        SHORT_ID_LEN + TRANSACTION_FLAG_LEN);
     PByteArray_t buffer = std::make_shared<ByteArray_t>(result_len);
     size_t output_buff_offset = 0;
 
@@ -743,7 +762,7 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
 
         // Memory is already allocated for 1 short id. Allocate more if more than one.
         if (short_ids_count > 1) {
-            result_len += (short_ids_count - 1) * (SHORT_ID_LEN + QUOTA_TYPE_LEN);
+            result_len += (short_ids_count - 1) * (SHORT_ID_LEN + TRANSACTION_FLAG_LEN);
             buffer->resize(result_len);
         }
 
@@ -757,9 +776,9 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
             }
         }
 
-        buffer->copy_from_buffer(*tx_sync_msg, output_buff_offset, offset, short_ids_count * QUOTA_TYPE_LEN);
-        offset += short_ids_count * QUOTA_TYPE_LEN;
-        output_buff_offset += short_ids_count * QUOTA_TYPE_LEN;
+        buffer->copy_from_buffer(*tx_sync_msg, output_buff_offset, offset, short_ids_count * TRANSACTION_FLAG_LEN);
+        offset += short_ids_count * TRANSACTION_FLAG_LEN;
+        output_buff_offset += short_ids_count * TRANSACTION_FLAG_LEN;
     }
 
     buffer->resize(output_buff_offset);
@@ -779,72 +798,81 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     bool from_relay
 )
 {
-    unsigned int tx_status;
+    unsigned int tx_status = 0;
     unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
 
-    tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
-
-    //set tx status flags, flag (right side of and clause) will be set if the condition in the left side is met
-    if (transaction_contents->size() == 0) {
-        tx_status |= TX_STATUS_MSG_NO_CONTENT;
-    } else {
-        tx_status |= TX_STATUS_MSG_HAS_CONTENT;
-    }
-
-    if (has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and has_short_id(short_id)) {
-        tx_status |= TX_STATUS_SEEN_SHORT_ID;
-    }
-    if (has_short_id(transaction_hash)) {
-        tx_status |= TX_STATUS_SEEN_HASH;
-    }
-    if (has_transaction_contents(transaction_hash)) {
-        tx_status |= TX_STATUS_SEEN_CONTENT;
-        tx_status |= TX_STATUS_SEEN_HASH;
-    }
     if (removed_transaction(transaction_hash)) {
-        tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION;
+        tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION | TX_STATUS_IGNORE_SEEN;
     }
-
-    // check all variations for previously seen Tx
-    if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
-        has_status_flag(tx_status, TX_STATUS_MSG_NO_SHORT_ID)) {
-
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-    if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
-    if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
-        has_status_flag(tx_status,  TX_STATUS_MSG_NO_SHORT_ID)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
-    if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
-        has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
-    if (has_status_flag(tx_status, TX_STATUS_SEEN_REMOVED_TRANSACTION)) {
-        tx_status |= TX_STATUS_IGNORE_SEEN;
-    }
-
-    if (
-        timestamp != NULL_TX_TIMESTAMP
-        and current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S
-        and !from_relay
-    ) {
+    else if ( timestamp != NULL_TX_TIMESTAMP and
+              current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S and
+              ! from_relay ) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }
-    if ( has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and enable_transaction_validation ) {
-        tx_validation_status = _tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
-    }
+    else {
+        tx_status = (short_id != NULL_TX_SID) ? TX_STATUS_MSG_HAS_SHORT_ID : TX_STATUS_MSG_NO_SHORT_ID;
+        if (transaction_contents->size() == 0) {
+            tx_status |= TX_STATUS_MSG_NO_CONTENT;
+         } else {
+             tx_status |= TX_STATUS_MSG_HAS_CONTENT;
+         }
 
+        if (
+            has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and
+            has_short_id(short_id)
+            ) {
+            tx_status |= TX_STATUS_SEEN_SHORT_ID | TX_STATUS_SEEN_HASH;
+        }
+
+        if (has_transaction_contents(transaction_hash)) {
+            if (has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT)) {
+                tx_status |= TX_STATUS_SEEN_CONTENT | TX_STATUS_SEEN_HASH;
+            } else {
+                tx_status |= TX_STATUS_SEEN_HASH;
+            }
+        }
+
+        // check all variations for previously seen Tx
+        if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+            has_status_flag(tx_status, TX_STATUS_MSG_NO_SHORT_ID)) {
+
+            tx_status |= TX_STATUS_IGNORE_SEEN;
+        }
+        if (has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
+            tx_status |= TX_STATUS_IGNORE_SEEN;
+        }
+
+        if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+            has_status_flag(tx_status, TX_STATUS_MSG_NO_SHORT_ID)) {
+            tx_status |= TX_STATUS_IGNORE_SEEN;
+        }
+
+        if (has_status_flag(tx_status, TX_STATUS_MSG_NO_CONTENT) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_HASH) and
+            has_status_flag(tx_status, TX_STATUS_SEEN_SHORT_ID)) {
+            tx_status |= TX_STATUS_IGNORE_SEEN;
+        }
+
+        if (
+            ! has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) and
+            has_status_flag(tx_status, TX_STATUS_MSG_NO_SHORT_ID) and
+            has_short_id(transaction_hash)
+            ) {
+            tx_status |= TX_STATUS_SEEN_HASH;
+        }
+
+        if (
+            ! has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) and
+            has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and
+            enable_transaction_validation
+            ) {
+            tx_validation_status = _tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
+        }
+    }
     return std::make_tuple(tx_status, tx_validation_status);
 }
 

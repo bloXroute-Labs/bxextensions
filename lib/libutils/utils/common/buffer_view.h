@@ -85,7 +85,7 @@ protected:
 	void _set_buffer(const uint8_t* buffer, size_t size);
 private:
 	const uint8_t* _buffer;
-	size_t _size, _from;
+	size_t _from, _size;
 };
 
 } // common

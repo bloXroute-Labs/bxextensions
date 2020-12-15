@@ -13,8 +13,8 @@ typedef exception::IndexError IndexError_t;
 
 ByteArray::ByteArray():
   _length(0),
-  _has_ownership(true),
-  _capacity(0)
+  _capacity(0),
+  _has_ownership(true)
 {
 	_array = new std::vector<uint8_t>();
 	_shape.resize(1);
@@ -22,8 +22,8 @@ ByteArray::ByteArray():
 
 ByteArray::ByteArray(size_t capacity):
     _length(0),
-	_has_ownership(true),
-    _capacity(capacity)
+    _capacity(capacity),
+	_has_ownership(true)
 {
 	_array = new std::vector<uint8_t>();
 	_array->resize(capacity + 1, '\0');
@@ -33,10 +33,10 @@ ByteArray::ByteArray(size_t capacity):
 ByteArray::ByteArray(ByteArray&& rhs) noexcept:
 	_has_ownership(true)
 {
-	_capacity = rhs._capacity;
 	_array = rhs.transfer_ownership();
-	_length = rhs._length;
 	_shape = rhs._shape;
+	_length = rhs._length;
+	_capacity = rhs._capacity;
 }
 
 ByteArray::~ByteArray() {
@@ -47,10 +47,10 @@ ByteArray::~ByteArray() {
 }
 
 ByteArray& ByteArray::operator =(ByteArray&& rhs) noexcept {
-	_capacity = rhs._capacity;
 	_array = rhs.transfer_ownership();
-	_length = rhs._length;
 	_shape = rhs._shape;
+	_length = rhs._length;
+	_capacity = rhs._capacity;
 	return *this;
 }
 
@@ -196,7 +196,7 @@ void ByteArray::clear() {
 	}
 }
 
-void ByteArray::shift_left(int shift_count) {
+void ByteArray::shift_left(size_t shift_count) {
   if (shift_count > _length) {
       shift_count = _length - 1;
   }

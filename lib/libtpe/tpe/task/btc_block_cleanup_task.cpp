@@ -82,7 +82,7 @@ void BtcBlockCleanupTask::_execute(SubPool_t &sub_pool) {
     POffests_t offsets = std::make_shared<TXOffsets_t>();
     size_t idx = 0, prev_idx = 0;
     std::list<std::shared_ptr<BtcBlockCleanupSubTask>> sub_tasks;
-    for (int count = 0 ; count < _tx_count ; ++count) {
+    for (uint64_t count = 0 ; count < _tx_count ; ++count) {
         from = offset;
         idx = std::min((size_t) (count / bulk_size), pool_size - 1);
         size_t witness_offset;

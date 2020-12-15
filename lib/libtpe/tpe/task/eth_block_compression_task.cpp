@@ -12,14 +12,17 @@ EthBlockCompressionTask::EthBlockCompressionTask(
     size_t capacity/* = ETH_DEFAULT_BLOCK_SIZE*/,
     size_t minimal_tx_count/* = ETH_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ):
-        MainTaskBase(),
-        _tx_service(nullptr),
-        _minimal_tx_count(minimal_tx_count),
-        _content_size(0),
-        _txn_count(0),
-        _starting_offset(0),
-        _enable_block_compression(false),
-        _min_tx_age_seconds(0.0)
+    MainTaskBase(),
+    _tx_service(nullptr),
+    _minimal_tx_count(minimal_tx_count),
+    _prev_block_hash(nullptr),
+    _block_hash(nullptr),
+    _compressed_block_hash(nullptr),
+    _txn_count(0),
+    _content_size(0),
+    _starting_offset(0),
+    _enable_block_compression(false),
+    _min_tx_age_seconds(0.0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
@@ -99,6 +102,8 @@ void EthBlockCompressionTask::cleanup() {
     _tx_service = nullptr;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     utils::protocols::ethereum::EthBlockMessage msg(*_block_buffer);
     msg.parse();
@@ -241,5 +246,6 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
         )
     );
 }
+#pragma GCC diagnostic pop
 
 } // task

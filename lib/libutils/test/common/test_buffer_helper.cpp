@@ -82,7 +82,7 @@ protected:
 		offset = set_le_val(min_long_int_val, _buf, offset);
 
 		_be_buf.reserve(500);
-		offset = offset = set_be_val(max_byte_val, _be_buf, base_offset);
+		offset = set_be_val(max_byte_val, _be_buf, base_offset);
 		offset = set_be_val(min_byte_val, _be_buf, offset);
 		offset = set_be_val(max_short_val, _be_buf, offset);
 		offset = set_be_val(min_short_val, _be_buf, offset);

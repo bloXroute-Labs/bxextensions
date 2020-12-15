@@ -82,6 +82,8 @@ void OntConsensusBlockCompressionTask::cleanup() {
     _tx_service = nullptr;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     ConsensusOntMessage_t msg(*_block_buffer);
     constexpr uint8_t short_id_flag = BTC_SHORT_ID_INDICATOR;
@@ -175,5 +177,6 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     _compressed_block_hash = std::make_shared<Sha256_t>(std::move(temp_compressed_block_hash));
     _output_buffer->set_output();
 }
+#pragma GCC diagnostic pop
 
 } // task

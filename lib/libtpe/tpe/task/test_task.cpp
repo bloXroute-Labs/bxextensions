@@ -29,18 +29,30 @@ unsigned long long TestTask::t3() {
 	return _t3;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 void TestTask::_execute(SubPool_t& sub_pool) {
-  _t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch()).count();
-  _do_something();
-  _t3 = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::system_clock::now().time_since_epoch()).count();
+    _t2 = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
+
+    _do_something();
+
+    _t3 = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
 }
+#pragma GCC diagnostic pop
 
 void TestTask::_do_something() {
-  for (int i = 0 ; i < 1000000000 ; ++i) {
-      volatile int j = i;
-  }
+    volatile int j = 0;
+    for (int i = 0 ; i < 1000000000 ; ++i) {
+        j = i;
+    }
+
+    if (j == 0) {
+        std::cout << "error in TestTask::_do_something" << std::endl;
+    }
 }
 
 }

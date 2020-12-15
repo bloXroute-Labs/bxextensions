@@ -14,9 +14,12 @@
 namespace utils {
 namespace common {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void add_to_stream(std::ostringstream&) {
 	// Do nothing here
 }
+#pragma GCC diagnostic pop
 
 template<typename T, typename... Args>
 static void add_to_stream(std::ostringstream& ss,

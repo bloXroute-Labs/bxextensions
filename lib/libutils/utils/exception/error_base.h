@@ -19,8 +19,7 @@ public:
 protected:
 	ErrorBase() = delete;
 	ErrorBase(const std::string& error_type) :
-		_error_type(error_type),
-		std::exception()
+		_error_type(error_type)
 	{
 		_backtrace.set_backtrace();
 	}
@@ -30,7 +29,7 @@ protected:
 	}
 
 private:
-	const std::string _error_type;
+	const std::string _error_type = "";
 	Backtrace _backtrace;
 
 };

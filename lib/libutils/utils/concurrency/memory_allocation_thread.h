@@ -31,9 +31,9 @@ private:
 
     void _thread_loop();
 
+    volatile bool _stop_requested;
     std::condition_variable _condition;
     std::mutex _mtx;
-    volatile bool _stop_requested;
     uint32_t _last_idx;
     std::unordered_map<uint32_t, std::function<void(void)>> _callbacks;
     std::unique_ptr<std::thread> _thread;

@@ -32,7 +32,7 @@ public:
 	  	  void(std::shared_ptr<TItem>)>& item_dequeued_func
   )
   {
-    for (int i = 0 ;
+    for (size_t i = 0 ;
         i < pool_size ;
         ++i) {
 	_pool.push_back(
@@ -67,14 +67,14 @@ public:
   }
 
   void enqueue_item(
-		  std::shared_ptr<TItem> pitem,
-		  int queue_idx = -1
+      std::shared_ptr<TItem> pitem,
+      int queue_idx = -1
   )
   {
 	  if (queue_idx < 0) {
 		  queue_idx = get_available_queue();
 	  }
-	  assert(queue_idx >= 0 && queue_idx < size());
+	  assert(queue_idx >= 0 and (unsigned int) queue_idx < size());
 	  _pool[queue_idx]->enqueue(pitem);
   }
 

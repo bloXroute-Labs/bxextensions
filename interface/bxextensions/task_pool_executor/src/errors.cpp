@@ -38,7 +38,7 @@ static void register_error(py::module m, std::string py_error) {
 	);
 	py::register_exception<TError>(m, py_error.c_str());
 #ifdef BUILD_TYPE
-	if (BUILD_TYPE == "DEBUG" || BUILD_TYPE == "TESTING") {
+	if (strcmp(BUILD_TYPE, "DEBUG") or strcmp(BUILD_TYPE, "TESTING")) {
 		std::string throw_name = utils::common::concatenate(
 				"throw_", py_error
 		);

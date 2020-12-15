@@ -46,6 +46,7 @@ size_t get_big_endian_value(
 {
     constexpr size_t type_size = sizeof(ParseType);
     std::array<uint8_t, type_size> val_array {};
+    memset(&val_array[0], 0, type_size);
 
     memcpy(&val_array[type_size - value_size], &buffer[offset], value_size);
     std::reverse(val_array.begin(), val_array.end());

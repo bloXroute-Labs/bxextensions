@@ -16,7 +16,7 @@ private:
 
 TEST_F(RlpEncoderTest, test_encode_int_byte) {
     uint64_t value = 50;
-    uint8_t output_value = 0;
+    uint64_t output_value = 0;
     size_t offset = utils::encoding::encode_int(array(), value, 0);
     size_t output_offset = utils::common::get_big_endian_value<uint8_t>(array(), output_value, 0);
     EXPECT_EQ(value, output_value);

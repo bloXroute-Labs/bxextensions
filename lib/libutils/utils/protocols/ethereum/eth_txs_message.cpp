@@ -13,7 +13,9 @@ size_t EthTxsMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     while (offset < end) {
         EthTxMessage tx;
         offset = tx.decode(msg_buf, offset);
-        size_t end = offset + length;
+        if (offset == 0) {
+            throw std::runtime_error("bad transaction RLP!"); // TODO: throw proper exception here.
+        }
         _transactions.push_back(std::move(tx));
     }
     return end;

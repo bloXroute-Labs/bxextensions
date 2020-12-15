@@ -14,8 +14,8 @@ CompactBlockDataService::CompactBlockDataService(
 		PBufferView_t block_buffer,
 		const Sha256ToShortIDsMap_t* short_id_map
 ):
-		_short_id_map(short_id_map),
 		_block_buffer(block_buffer),
+		_short_id_map(short_id_map),
 		_total_tx_count(0),
 		_compact_tx_count(0)
 {
@@ -37,10 +37,10 @@ CompactBlockDataService::CompactBlockDataService(
 
 CompactBlockDataService&
 CompactBlockDataService::operator =(CompactBlockDataService&& rhs) noexcept {
-	_short_id_map = rhs._short_id_map;
+	_tx_placeholders = std::move(rhs._tx_placeholders);
 	_msg = std::move(rhs._msg);
 	_block_buffer = std::move(rhs._block_buffer);
-	_tx_placeholders = std::move(rhs._tx_placeholders);
+	_short_id_map = rhs._short_id_map;
 	_total_tx_count = rhs._total_tx_count;
 	return *this;
 }

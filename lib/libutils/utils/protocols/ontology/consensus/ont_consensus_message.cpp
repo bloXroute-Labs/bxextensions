@@ -13,7 +13,12 @@ namespace ontology {
 namespace consensus {
 
 OntConsensusMessage::OntConsensusMessage(const common::BufferView& buffer):
-        _buffer(buffer), _consensus_data_type(0), _header_offset(0), _txn_count(0), _tx_offset(0), _consensus_data_len(0)
+        _buffer(buffer),
+        _consensus_data_type(0),
+        _header_offset(0),
+        _txn_count(0),
+        _consensus_data_len(0),
+        _tx_offset(0)
 {
 }
 

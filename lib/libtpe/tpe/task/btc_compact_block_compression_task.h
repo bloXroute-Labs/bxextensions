@@ -65,9 +65,7 @@ private:
 	PByteArray_t _output_buffer;
 	PRecoveredTransactions_t _recovered_transactions;
 	int _magic;
-	PSha256_t _prev_block_hash;
-	PSha256_t _block_hash;
-	PSha256_t _compressed_block_hash;
+	PSha256_t _prev_block_hash, _block_hash, _compressed_block_hash;
 	uint64_t _txn_count;
 	std::vector<uint32_t> _short_ids;
 	std::vector<uint8_t> _block_header;

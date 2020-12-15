@@ -20,7 +20,7 @@ namespace task {
     typedef std::shared_ptr<BlockBuffer_t> PBlockBuffer_t;
     typedef utils::common::BufferView TxBuffer_t;
     typedef service::ShortIDToSha256Map_t ShortIDToSha256Map_t;
-    typedef std::list<std::tuple<size_t, size_t, uint64_t>> EthTXOffsets_t;
+    typedef std::list<std::tuple<size_t, size_t, size_t>> EthTXOffsets_t;
     typedef std::shared_ptr<EthTXOffsets_t> PEthOffests_t;
     typedef service::UnknownTxHashes_t UnknownTxHashes_t;
     typedef service::ShortIDs_t UnknownTxSIDs_t;

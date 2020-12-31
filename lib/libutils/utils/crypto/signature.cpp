@@ -85,7 +85,7 @@ std::vector<uint8_t> Signature::recover(Sha256 unsigned_msg_hash) {
     // Expect single byte header of value 0x04 -- uncompressed public key.
     assert(serialized_public_key[0] == 0x04);
     // Create the Public skipping the header.
-    return std::move(std::vector<uint8_t>(serialized_public_key.begin() + 1,  serialized_public_key.end()));
+    return std::vector<uint8_t>(serialized_public_key.begin() + 1,  serialized_public_key.end());
 }
 
 // taken from https://github.com/ethereum/aleth/libsevcrypto/Common.cpp

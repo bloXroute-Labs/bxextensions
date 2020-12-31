@@ -16,21 +16,21 @@ typedef service::TransactionPlaceholderType TransactionPlaceholderType_t;
 typedef std::shared_ptr<BtcCompactBlockCompressionSubTask> PBtcCompactBlockCompressionSubTask;
 
 BtcCompactBlockCompressionTask::BtcCompactBlockCompressionTask(
-			size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/
+    size_t capacity/* = BTC_DEFAULT_BLOCK_SIZE*/
 ):
-		_magic(0),
-		_prev_block_hash(nullptr),
-		_block_hash(nullptr),
-		_compressed_block_hash(nullptr),
-		_txn_count(0)
+    _magic(0),
+    _prev_block_hash(nullptr),
+    _block_hash(nullptr),
+    _compressed_block_hash(nullptr),
+    _txn_count(0)
 {
 	_output_buffer = std::make_shared<ByteArray_t>(capacity);
 	_recovered_transactions = std::make_shared<RecoveredTransactions_t>();
 }
 
 void BtcCompactBlockCompressionTask::init(
-		CompactBlockDataService_t data_service,
-		int magic
+    CompactBlockDataService_t data_service,
+    int magic
 )
 {
 	_magic = magic;
@@ -44,12 +44,8 @@ void BtcCompactBlockCompressionTask::init(
 		_output_buffer->clear();
 	}
 	_data_service = std::move(data_service);
-	_block_hash = std::make_shared<Sha256_t>(std::move(
-			_data_service.msg().block_hash()
-	));
-	_prev_block_hash = std::make_shared<Sha256_t>(std::move(
-			_data_service.msg().prev_block_hash()
-	));
+	_block_hash = std::make_shared<Sha256_t>(_data_service.msg().block_hash());
+	_prev_block_hash = std::make_shared<Sha256_t>(_data_service.msg().prev_block_hash());
 	_block_header.clear();
 	_short_ids.clear();
 	_compressed_block_hash = nullptr;
@@ -58,7 +54,7 @@ void BtcCompactBlockCompressionTask::init(
 }
 
 void BtcCompactBlockCompressionTask::add_recovered_transactions(
-		PRecoveredTransactions_t recovered_transactions
+    PRecoveredTransactions_t recovered_transactions
 )
 {
 	_recovered_transactions = std::move(recovered_transactions);
@@ -103,7 +99,7 @@ size_t BtcCompactBlockCompressionTask::get_task_byte_size() const {
         }
     }
     return sizeof(BtcCompactBlockCompressionTask) + _output_buffer->capacity() + recovered_tx_size +
-            _block_header.size() + (_short_ids.capacity() * sizeof(uint32_t) + _data_service.byte_size());
+        _block_header.size() + (_short_ids.capacity() * sizeof(uint32_t) + _data_service.byte_size());
 }
 
 void BtcCompactBlockCompressionTask::cleanup() {
@@ -114,26 +110,25 @@ void BtcCompactBlockCompressionTask::cleanup() {
 void BtcCompactBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	_txn_count = _data_service.total_tx_count();
 	size_t offset = _set_header();
-	PBtcCompactBlockCompressionSubTask sub_task =
-			std::make_shared<BtcCompactBlockCompressionSubTask>(
-					_data_service.tx_placeholders(),
-					*_recovered_transactions,
-					_block_header
-			);
+	PBtcCompactBlockCompressionSubTask sub_task = std::make_shared<BtcCompactBlockCompressionSubTask>(
+    _data_service.tx_placeholders(),
+    *_recovered_transactions,
+    _block_header
+    );
 	sub_pool.enqueue_task(sub_task);
 	offset = _fill_block_transactions(offset);
-	_compressed_block_hash = std::make_shared<Sha256_t>(std::move(
-			utils::crypto::double_sha256(
-					_output_buffer->array(),
-					0,
-					_output_buffer->size()
-			)
-	));
+	_compressed_block_hash = std::make_shared<Sha256_t>(
+        utils::crypto::double_sha256(
+        _output_buffer->array(),
+        0,
+        _output_buffer->size()
+        )
+    );
 	sub_task->wait();
 	_set_output_buffer(
-			offset,
-			sub_task->payload_length(),
-			sub_task->checksum()
+        offset,
+        sub_task->payload_length(),
+        sub_task->checksum()
 	);
 }
 
@@ -141,31 +136,29 @@ size_t BtcCompactBlockCompressionTask::_set_header() {
 	static constexpr size_t MSG_TYPE_LENGTH = 12;
 	static const std::array<uint8_t, MSG_TYPE_LENGTH> _BLOCK_MSG_TYPE = {'b', 'l', 'o', 'c', 'k', 0};
 	static const service::BufferView_t BLOCK_MSG_TYPE(
-			&_BLOCK_MSG_TYPE.at(0),
-			MSG_TYPE_LENGTH
+        &_BLOCK_MSG_TYPE.at(0),
+        MSG_TYPE_LENGTH
 	);
-	service::BufferView_t cmpt_header = std::move(
-			_data_service.msg().get_block_header()
-	);
+	service::BufferView_t cmpt_header = _data_service.msg().get_block_header();
 	size_t offset = sizeof(uint64_t);
 	offset = utils::common::set_little_endian_value<int>(
-			*_output_buffer,
-			_magic,
-			offset
+        *_output_buffer,
+        _magic,
+        offset
 	);
 	offset = _output_buffer->copy_from_buffer(
-			BLOCK_MSG_TYPE, offset, 0, BLOCK_MSG_TYPE.size()
+	    BLOCK_MSG_TYPE, offset, 0, BLOCK_MSG_TYPE.size()
 	);
 	offset += 2 * sizeof(uint32_t);
 	offset = _output_buffer->copy_from_buffer(
-			cmpt_header, offset, 0, cmpt_header.size()
+		cmpt_header, offset, 0, cmpt_header.size()
 	);
 	_txn_count = _data_service.total_tx_count();
 	size_t txn_count_size = offset;
 	offset = utils::protocols::bitcoin::set_varint(
-			*_output_buffer,
-			_txn_count,
-			offset
+        *_output_buffer,
+        _txn_count,
+        offset
 	);
 	txn_count_size = offset - txn_count_size;
 	_block_header.resize(BTC_BLOCK_HDR_SIZE + txn_count_size, 0);
@@ -178,13 +171,13 @@ size_t BtcCompactBlockCompressionTask::_set_header() {
 }
 
 size_t BtcCompactBlockCompressionTask::_fill_block_transactions(
-		size_t offset
+    size_t offset
 )
 {
 	auto recovered_iter = _recovered_transactions->begin();
 	for(
-			const TransactionPlaceholder_t& placeholder:
-			_data_service.tx_placeholders()
+        const TransactionPlaceholder_t& placeholder:
+        _data_service.tx_placeholders()
 	)
 	{
 		PTxBuffer_t tx = nullptr;
@@ -223,16 +216,16 @@ size_t BtcCompactBlockCompressionTask::_fill_block_transactions(
 }
 
 void BtcCompactBlockCompressionTask::_set_output_buffer(
-		size_t output_offset,
-		uint32_t payload_length,
-		uint32_t checksum
+    size_t output_offset,
+    uint32_t payload_length,
+    uint32_t checksum
 )
 {
 	size_t offset = utils::common::set_little_endian_value(
-			*_output_buffer,
-			(uint64_t)output_offset,
-			0
-	);
+        *_output_buffer,
+        (uint64_t)output_offset,
+        0
+    );
 	offset += BTC_BLOCK_LENGTH_OFFSET;
 	offset = utils::common::set_little_endian_value(
 			*_output_buffer,

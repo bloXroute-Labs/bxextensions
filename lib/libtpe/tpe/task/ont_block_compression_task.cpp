@@ -10,8 +10,8 @@
 namespace task {
 
 OntBlockCompressionTask::OntBlockCompressionTask(
-        size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
-        size_t minimal_tx_count/* = ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
+    size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
+    size_t minimal_tx_count/* = ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 
 ):
     MainTaskBase(),
@@ -110,12 +110,8 @@ void OntBlockCompressionTask::cleanup() {
 
 void OntBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     utils::protocols::ontology::OntBlockMessage msg(*_block_buffer);
-    _prev_block_hash = std::make_shared<Sha256_t>(
-            std::move(msg.prev_block_hash())
-    );
-    _block_hash = std::make_shared<Sha256_t>(
-            std::move(msg.block_hash())
-    );
+    _prev_block_hash = std::make_shared<Sha256_t>(msg.prev_block_hash());
+    _block_hash = std::make_shared<Sha256_t>(msg.block_hash());
     uint32_t tx_count = 0;
     size_t offset = msg.get_txn_count(tx_count);
     _txn_count = tx_count;
@@ -123,13 +119,13 @@ void OntBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     size_t output_offset = sizeof(uint64_t);
     constexpr uint8_t is_consensus_flag = 0x00;
     output_offset = utils::common::set_little_endian_value(*_output_buffer, is_consensus_flag, output_offset);
-    auto merkle_root = std::move(msg.merkle_root());
+    auto merkle_root = msg.merkle_root();
     output_offset = _output_buffer->copy_from_buffer(merkle_root, output_offset, 0, merkle_root.size());
     output_offset = _output_buffer->copy_from_buffer(
-            *_block_buffer,
-            output_offset,
-            0,
-            offset
+        *_block_buffer,
+        output_offset,
+        0,
+        offset
     );
     for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
         TaskData& data = _sub_tasks.at(idx);
@@ -137,36 +133,32 @@ void OntBlockCompressionTask::_execute(SubPool_t& sub_pool) {
         output_offset = _on_sub_task_completed(*data.sub_task);
     }
     _set_output_buffer(output_offset);
-    _compressed_block_hash = std::make_shared<Sha256_t>(std::move(
-            utils::crypto::double_sha256(
-                    _output_buffer->array(),
-                    0,
-                    _output_buffer->size()
-            )
-    ));
+    _compressed_block_hash = std::make_shared<Sha256_t>(
+        utils::crypto::double_sha256(
+                _output_buffer->array(),
+                0,
+                _output_buffer->size()
+        )
+    );
 }
 
 void OntBlockCompressionTask::_init_sub_tasks(
-        size_t pool_size,
-        size_t tx_count
+    size_t pool_size,
+    size_t tx_count
 )
 {
     if (_sub_tasks.size() < pool_size) {
         size_t default_count = ONT_DEFAULT_TX_COUNT;
         size_t capacity = std::max(
-                default_count,
-                (size_t) (tx_count / pool_size)
+            default_count,
+            (size_t) (tx_count / pool_size)
         ) * ONT_DEFAULT_TX_SIZE;
-        for (
-                size_t i = _sub_tasks.size() ;
-                i < pool_size ;
-                ++i
-                )
+        for (size_t i = _sub_tasks.size() ; i < pool_size ; ++i)
         {
             TaskData task_data;
             task_data.sub_task = std::make_shared<
-                    OntBlockCompressionSubTask>(
-                    capacity
+                OntBlockCompressionSubTask>(
+                capacity
             );
             task_data.offsets = std::make_shared<TXOffsets_t>();
             _sub_tasks.push_back(std::move(task_data));
@@ -179,17 +171,17 @@ void OntBlockCompressionTask::_init_sub_tasks(
 }
 
 size_t OntBlockCompressionTask::_dispatch(
-        uint32_t tx_count,
-        utils::protocols::ontology::OntBlockMessage& msg,
-        size_t offset,
-        SubPool_t& sub_pool
+    uint32_t tx_count,
+    utils::protocols::ontology::OntBlockMessage& msg,
+    size_t offset,
+    SubPool_t& sub_pool
 )
 {
     size_t pool_size = sub_pool.size(), prev_idx = 0;
     _init_sub_tasks(pool_size, tx_count);
     size_t bulk_size = std::max(
-            (size_t) (tx_count / pool_size),
-            std::max(pool_size, _minimal_tx_count)
+        (size_t) (tx_count / pool_size),
+        std::max(pool_size, _minimal_tx_count)
     );
     size_t idx = 0;
     for (uint32_t count = 0 ; count < tx_count ; ++count) {
@@ -197,7 +189,8 @@ size_t OntBlockCompressionTask::_dispatch(
         idx = std::min((size_t) (count / bulk_size), pool_size - 1);
         offset = msg.get_next_tx_offset(offset);
         _sub_tasks[idx].offsets->push_back(
-                std::make_tuple(from, offset, 0));
+            std::make_tuple(from, offset, 0)
+        );
         if(idx > prev_idx) {
             _enqueue_task(prev_idx, sub_pool);
         }
@@ -208,7 +201,7 @@ size_t OntBlockCompressionTask::_dispatch(
 }
 
 size_t OntBlockCompressionTask::_on_sub_task_completed(
-        OntBlockCompressionSubTask& tsk
+    OntBlockCompressionSubTask& tsk
 )
 {
     auto& output_buffer = tsk.output_buffer();
@@ -224,36 +217,35 @@ size_t OntBlockCompressionTask::_on_sub_task_completed(
 }
 
 void OntBlockCompressionTask::_set_output_buffer(
-        size_t output_offset
+    size_t output_offset
 )
 {
     utils::common::set_little_endian_value(
-            *_output_buffer,
-            (uint64_t)output_offset,
-            0
+        *_output_buffer,
+        (uint64_t)output_offset,
+        0
     );
     const unsigned int short_ids_size = _short_ids.size();
     output_offset = utils::common::set_little_endian_value(
-            *_output_buffer,
-            short_ids_size,
-            output_offset
+        *_output_buffer,
+        short_ids_size,
+        output_offset
     );
     if (short_ids_size > 0) {
-        const size_t short_ids_byte_size  =
-                short_ids_size * sizeof(unsigned int);
+        const size_t short_ids_byte_size = short_ids_size * sizeof(unsigned int);
         _output_buffer->resize(output_offset + short_ids_byte_size);
         memcpy(
-                &_output_buffer->at(output_offset),
-                (unsigned char*) &_short_ids.at(0),
-                short_ids_byte_size
+            &_output_buffer->at(output_offset),
+            (unsigned char*) &_short_ids.at(0),
+            short_ids_byte_size
         );
     }
     _output_buffer->set_output();
 }
 
 void OntBlockCompressionTask::_enqueue_task(
-        size_t task_idx,
-        SubPool_t& sub_pool
+    size_t task_idx,
+    SubPool_t& sub_pool
 )
 {
     TaskData& data = _sub_tasks[task_idx];

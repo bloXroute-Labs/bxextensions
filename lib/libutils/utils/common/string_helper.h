@@ -46,7 +46,7 @@ std::string to_hex_string(
     for (unsigned char byte : bytes) {
         ss << std::setw(2) << std::setfill('0') << (short) byte;
     }
-    return std::move(ss.str());
+    return ss.str();
 }
 
 void from_hex_string(

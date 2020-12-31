@@ -119,7 +119,7 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     }
     buffer->resize(current_pos);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {
@@ -170,7 +170,7 @@ SetTransactionContentsResult_t TransactionService::set_transaction_contents(
         _containers.tx_hash_to_contents.emplace(transaction_hash, std::move(transaction_contents));
     }
 
-    return std::move(result);
+    return result;
 }
 
 bool TransactionService::has_short_id(const Sha256_t& tx_hash) const {
@@ -291,7 +291,7 @@ TrackSeenResult_t TransactionService::track_seen_short_ids(
         }
         _containers.short_ids_seen_in_block.erase(final_short_ids_iter->first);
     }
-    return std::move(result);
+    return result;
 }
 
 void TransactionService::on_block_cleaned_up(const Sha256_t& block_hash) {
@@ -423,7 +423,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
-        return std::move(ignore_seen_result);
+        return ignore_seen_result;
     }
 
     if (
@@ -440,7 +440,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
             tx_validation_status,
             set_transaction_contents_result,
             contents_set);
-        return std::move(low_fee_result);
+        return low_fee_result;
     }
 
     if (has_status_flag(tx_status, TX_STATUS_SEEN_HASH)) {
@@ -461,7 +461,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         set_transaction_contents_result,
         contents_set,
         short_id_assigned);
-    return std::move(result);
+    return result;
 }
 
 TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
@@ -561,14 +561,15 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
         if ( !seen_transaction ) {
             set_transaction_contents(
                 transaction_hash,
-                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)))
+                std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))
             );
         }
 
         unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
         if (enable_transaction_validation) {
             tx_validation_status = _tx_validation.transaction_validation(
-                std::move(std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))), min_tx_network_fee
+                std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)),
+                min_tx_network_fee
             );
         }
 
@@ -583,7 +584,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     parsed_transactions.clear();
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::get_transactions_by_short_ids(const SearializedShortIds_t& msg) {
@@ -655,7 +656,7 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
@@ -694,7 +695,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
             BufferCopy_t transaction_content(TxContents_t(msg, content_length, offset));
             set_transaction_contents(
                 tx_hash,
-                std::move(std::make_shared<BufferCopy_t>(std::move(transaction_content)))
+                std::make_shared<BufferCopy_t>(std::move(transaction_content))
             );
             offset += content_length;
             missing = true;
@@ -716,7 +717,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
 
     buffer->resize(output_buff_offset);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 
@@ -748,7 +749,7 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
             BufferCopy_t transaction_content(TxContents_t(*tx_sync_msg, content_length, offset));
             set_transaction_contents(
                     tx_hash,
-                    std::move(std::make_shared<BufferCopy_t>(std::move(transaction_content)))
+                    std::make_shared<BufferCopy_t>(std::move(transaction_content))
             );
         }
         offset += content_length;

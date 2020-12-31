@@ -109,11 +109,11 @@ void BtcBlockDecompressionTask::cleanup() {
 
 void BtcBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 	size_t offset;
-	BxBtcBlockMessage_t msg = std::move(_parse_block_header(offset, _tx_count));
+	BxBtcBlockMessage_t msg = _parse_block_header(offset, _tx_count);
 	_success = _tx_service->get_missing_transactions(
         _unknown_tx_hashes, _unknown_tx_sids, _short_ids
 	);
-    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_message().block_hash()));
+    _block_hash = std::make_shared<Sha256_t>(msg.block_message().block_hash());
     if (!_success) {
         return;
 	}
@@ -242,7 +242,7 @@ BtcBlockDecompressionTask::_parse_block_header(
 	);
 	offset = msg.get_tx_count(tx_count);
 	msg.deserialize_short_ids(_short_ids);
-	return std::move(msg);
+	return msg;
 }
 
 void BtcBlockDecompressionTask::_extend_output_buffer(

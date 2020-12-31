@@ -115,7 +115,7 @@ crypto::Sha256 get_prev_block_hash(
 {
 	crypto::Sha256 sha(buffer, BTC_PREV_BLOCK_OFFSET);
 	sha.reverse();
-	return std::move(sha);
+	return sha;
 }
 
 template <class TBuffer>
@@ -151,10 +151,10 @@ crypto::Sha256 get_tx_id(
     offset = segwit.second;
     ctx.update(data, offset, witness_offset - offset);
     ctx.update(data, end - BTC_TX_LOCK_TIME_SIZE, BTC_TX_LOCK_TIME_SIZE);
-    crypto::Sha256 tx_hash = std::move(ctx.digest());
+    crypto::Sha256 tx_hash = ctx.digest();
     tx_hash.double_sha256();
     tx_hash.reverse();
-    return std::move(tx_hash);
+    return tx_hash;
 }
 
 } // bitcoin

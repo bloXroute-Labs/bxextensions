@@ -25,9 +25,9 @@ public:
 
 	std::unordered_set<uint32_t> ref_set(void) const {
 		std::unordered_set<uint32_t> set(
-				_ref_set.begin(), _ref_set.end()
+        _ref_set.begin(), _ref_set.end()
 		);
-		return std::move(set);
+		return set;
 	}
 
 protected:
@@ -61,7 +61,7 @@ TEST_F(SafeBucketContainerTest, test_fill_single_bucket) {
 	ASSERT_EQ(r_container.size(), bucket_capacity);
 	EXPECT_FALSE(r_container[0].empty());
 	EXPECT_TRUE(r_container[0].is_full());
-	std::unordered_set<uint32_t> ref_items = std::move(ref_set());
+	std::unordered_set<uint32_t> ref_items = ref_set();
 	for(const uint32_t& item: r_container[0]) {
 		EXPECT_TRUE(ref_items.find(item) != ref_items.end());
 		ref_items.erase(item);

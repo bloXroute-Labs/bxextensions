@@ -92,7 +92,7 @@ void bind_transaction_service(py::module& m) {
 			.def("pop", [](Sha256ToShortIDsMap_t& map, const Sha256_t& key) -> ShortIDs_t {
 			    auto val = std::move(map.at(key));
 			    map.erase(key);
-                return std::move(val);
+                return val;
 			})
             .def("clear", &Sha256ToShortIDsMap_t::clear)
             .def("get_bytes_length" , [](Sha256ToShortIDsMap_t& col) {

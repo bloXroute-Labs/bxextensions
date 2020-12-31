@@ -59,15 +59,15 @@ size_t OntBlockMessage::get_txn_count(uint32_t& tx_count) {
 }
 
 crypto::Sha256 OntBlockMessage::block_hash() const {
-    return std::move(generate_block_hash(_buffer, _header_offset));
+    return generate_block_hash(_buffer, _header_offset);
 }
 
 crypto::Sha256 OntBlockMessage::prev_block_hash() const {
-    return std::move(get_prev_block_hash(_buffer));
+    return get_prev_block_hash(_buffer);
 }
 
 common::BufferView OntBlockMessage::merkle_root() const {
-    return std::move(get_merkle_root(_buffer));
+    return get_merkle_root(_buffer);
 }
 
 } // ontology

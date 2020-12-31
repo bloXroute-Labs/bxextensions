@@ -20,7 +20,7 @@ TxShortIds_t& Sha256ToShortIdsMap::operator[](
 {
 	auto iter = _map.find(key);
 	if(iter == end()) {
-		_map[key] = std::move(_item_factory());
+		_map[key] = _item_factory();
 		_tx_not_seen.insert(key);
 	}
 	return _map[key];

@@ -10,23 +10,25 @@ namespace protocols {
 namespace ontology {
 
 BxOntBlockMessage::BxOntBlockMessage(
-        const common::BufferView& buffer,
-        uint64_t short_ids_offset
+    const common::BufferView& buffer,
+    uint64_t short_ids_offset
 ) :
-        _bx_block(buffer),
-        _short_ids_offset(short_ids_offset),
-        _block_message(common::BufferView(
-                buffer,
-                short_ids_offset - offset_diff,
-                offset_diff
-        ))
+    _bx_block(buffer),
+    _short_ids_offset(short_ids_offset),
+    _block_message(
+        common::BufferView(
+            buffer,
+            short_ids_offset - offset_diff,
+            offset_diff
+        )
+    )
 {
 }
 
 BxOntBlockMessage::BxOntBlockMessage(BxOntBlockMessage&& rhs) noexcept:
-        _bx_block(std::move(rhs._bx_block)),
-        _short_ids_offset(rhs._short_ids_offset),
-        _block_message(std::move(rhs._block_message))
+    _bx_block(std::move(rhs._bx_block)),
+    _short_ids_offset(rhs._short_ids_offset),
+    _block_message(std::move(rhs._block_message))
 {
 }
 
@@ -61,21 +63,21 @@ size_t BxOntBlockMessage::get_tx_count(uint32_t &tx_count) {
 }
 
 void BxOntBlockMessage::deserialize_short_ids(
-        std::vector<unsigned int> &short_ids
+    std::vector<unsigned int> &short_ids
 )
 {
     size_t offset = _short_ids_offset;
     unsigned int short_ids_count = 0;
     offset = utils::common::get_little_endian_value<uint32_t>(
-            _bx_block,
-            short_ids_count,
-            offset
+        _bx_block,
+        short_ids_count,
+        offset
     );
     if (offset + (sizeof(uint32_t) * short_ids_count) > _bx_block.size()) {
         std::string error = utils::common::concatenate(
-                "Message is improperly formatted. Expected ",
-                short_ids_count,
-                " short ids, but not enough space has been allocated."
+            "Message is improperly formatted. Expected ",
+            short_ids_count,
+            " short ids, but not enough space has been allocated."
         );
         throw std::runtime_error(error);
     }
@@ -83,9 +85,9 @@ void BxOntBlockMessage::deserialize_short_ids(
     for (uint32_t idx = 0; idx < short_ids_count; ++idx) {
         uint32_t short_id = 0;
         offset = utils::common::get_little_endian_value<uint32_t>(
-                _bx_block,
-                short_id,
-                offset
+            _bx_block,
+            short_id,
+            offset
         );
         short_ids.push_back(short_id);
     }
@@ -96,7 +98,7 @@ uint32_t BxOntBlockMessage::get_original_block_size(const common::BufferView &bu
 }
 
 common::BufferView BxOntBlockMessage::merkle_root() const {
-    return std::move(common::BufferView(_bx_block, SHA256_BINARY_SIZE, ONT_BX_MERKLE_ROOT_OFFSET));
+    return common::BufferView(_bx_block, SHA256_BINARY_SIZE, ONT_BX_MERKLE_ROOT_OFFSET);
 }
 
 } // ontology

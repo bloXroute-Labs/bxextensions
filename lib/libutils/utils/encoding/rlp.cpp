@@ -78,7 +78,7 @@ RlpList Rlp::get_rlp_list() {
         offset = next_offset + length;
     }
 
-    return std::move(rlp_list);
+    return rlp_list;
 }
 
 BufferView_t Rlp::as_rlp_string() const {
@@ -86,7 +86,7 @@ BufferView_t Rlp::as_rlp_string() const {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }
     if (_length > 0) {
-        return std::move(BufferView_t(_rlp, _length, _val_offset + _rlp_starting_offset));
+        return BufferView_t(_rlp, _length, _val_offset + _rlp_starting_offset);
     } else {
         return BufferView_t::empty();
     }
@@ -133,7 +133,7 @@ std::vector<uint64_t> Rlp::as_large_int() const {
     if ( end_offset == 0 or end_offset > _rlp_starting_offset + _val_offset + _length ) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }
-    return std::move(values);
+    return values;
 }
 
 std::vector<uint8_t> Rlp::as_vector() const {

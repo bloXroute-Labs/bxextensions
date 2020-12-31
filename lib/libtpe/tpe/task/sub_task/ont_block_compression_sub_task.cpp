@@ -62,12 +62,11 @@ void OntBlockCompressionSubTask::_execute()  {
     for (auto& offsets : *_tx_offsets) {
         size_t from = std::get<0>(offsets);
         size_t offset = std::get<1>(offsets);
-        const utils::crypto::Sha256 sha = std::move(
-                utils::protocols::ontology::get_tx_id(
-                        *_block_buffer,
-                        from,
-                        offset
-                ));
+        const utils::crypto::Sha256 sha = utils::protocols::ontology::get_tx_id(
+            *_block_buffer,
+            from,
+            offset
+        );
 
         double short_id_assign_time = 0.0;
         if (_tx_service->has_short_id(sha)) {
@@ -89,12 +88,11 @@ void OntBlockCompressionSubTask::_execute()  {
             );
         } else {
             uint8_t flag = BTC_SHORT_ID_INDICATOR;
-            output_offset =
-                    utils::common::set_little_endian_value<uint8_t>(
-                        _output_buffer,
-                        flag,
-                        output_offset
-                        );
+            output_offset = utils::common::set_little_endian_value<uint8_t>(
+                _output_buffer,
+                flag,
+                output_offset
+            );
             _short_ids.push_back(_tx_service->get_short_id(sha));
         }
     }

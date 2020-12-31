@@ -111,22 +111,18 @@ void BtcBlockCompressionTask::cleanup() {
 
 void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 	utils::protocols::bitcoin::BtcBlockMessage msg(*_block_buffer);
-	_prev_block_hash = std::make_shared<Sha256_t>(
-			std::move(msg.prev_block_hash())
-	);
-	_block_hash = std::make_shared<Sha256_t>(
-			std::move(msg.block_hash())
-	);
+	_prev_block_hash = std::make_shared<Sha256_t>(msg.prev_block_hash());
+	_block_hash = std::make_shared<Sha256_t>(msg.block_hash());
 	uint64_t tx_count = 0;
 	size_t offset = msg.get_tx_count(tx_count);
 	_txn_count = tx_count;
 	size_t last_idx = _dispatch(tx_count, msg, offset, sub_pool);
 	size_t output_offset = sizeof(uint64_t);
 	output_offset = _output_buffer->copy_from_buffer(
-			*_block_buffer,
-			output_offset,
-			0,
-			offset
+        *_block_buffer,
+        output_offset,
+        0,
+        offset
 	);
 	for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
 		TaskData& data = _sub_tasks.at(idx);
@@ -134,18 +130,18 @@ void BtcBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 		output_offset = _on_sub_task_completed(*data.sub_task);
 	}
 	_set_output_buffer(output_offset);
-	_compressed_block_hash = std::make_shared<Sha256_t>(std::move(
-			utils::crypto::double_sha256(
-					_output_buffer->array(),
-					0,
-					_output_buffer->size()
-			)
-	));
+	_compressed_block_hash = std::make_shared<Sha256_t>(
+        utils::crypto::double_sha256(
+        _output_buffer->array(),
+        0,
+        _output_buffer->size()
+        )
+	);
 }
 
 void BtcBlockCompressionTask::_init_sub_tasks(
-		size_t pool_size,
-		size_t tx_count
+    size_t pool_size,
+    size_t tx_count
 )
 {
 	if (_sub_tasks.size() < pool_size) {

@@ -11,15 +11,15 @@ typedef service::TransactionPlaceholder TransactionPlaceholder_t;
 typedef service::TransactionPlaceholderType TransactionPlaceholderType_t;
 
 BtcCompactBlockCompressionSubTask::BtcCompactBlockCompressionSubTask(
-		const CompactTransactionPlaceholders_t& tx_placeholders,
-		const RecoveredTransactions_t& recovered_transactions,
-		const std::vector<uint8_t>& block_header
+    const CompactTransactionPlaceholders_t& tx_placeholders,
+    const RecoveredTransactions_t& recovered_transactions,
+    const std::vector<uint8_t>& block_header
 ):
-		_tx_placeholders(tx_placeholders),
-		_recovered_transactions(recovered_transactions),
-		_block_header(block_header),
-		_payload_length(0),
-		_checksum(0)
+    _tx_placeholders(tx_placeholders),
+    _recovered_transactions(recovered_transactions),
+    _block_header(block_header),
+    _payload_length(0),
+    _checksum(0)
 {
 }
 
@@ -37,9 +37,7 @@ void BtcCompactBlockCompressionSubTask::_execute() {
 	sha_ctx.update(_block_header);
 	_payload_length = _block_header.size();
 	auto recovered_iter = _recovered_transactions.begin();
-	for (
-			const TransactionPlaceholder_t& placeholder: _tx_placeholders
-	)
+	for (const TransactionPlaceholder_t& placeholder: _tx_placeholders)
 	{
 		PTxBuffer_t contents = nullptr;
 		if (placeholder.type == TransactionPlaceholderType_t::missing_compact_id) {
@@ -52,10 +50,10 @@ void BtcCompactBlockCompressionSubTask::_execute() {
 		_payload_length += contents->size();
 
 	}
-	Sha256_t sha = std::move(sha_ctx.digest());
+	Sha256_t sha = sha_ctx.digest();
 	sha.double_sha256();
 	utils::common::get_little_endian_value<uint32_t>(
-            sha.binary(), _checksum, 0
+	    sha.binary(), _checksum, 0
 	);
 }
 

@@ -24,7 +24,7 @@ Sha256 sha256(
     if (data.size() < from + length) {
         throw std::runtime_error("invalid buffer size provided"); // TODO : replace with proper exception here
     }
-	return std::move(Sha256(data, from, length));
+	return Sha256(data, from, length);
 }
 
 template<class TBuffer>
@@ -37,7 +37,7 @@ Sha256 double_sha256(
 	Sha256 hash = std::move(sha256(data, from, length));
 	hash.double_sha256();
 	hash.reverse();
-	return std::move(hash);
+	return hash;
 }
 
 template<class TBuffer, typename... Args>
@@ -47,8 +47,8 @@ Sha256 several_sources_sha256(
     Args... extra_sources
 )
 {
-    Sha256 hash = std::move(Sha256(data, {source, extra_sources...}));
-    return std::move(hash);
+    Sha256 hash = Sha256(data, {source, extra_sources...});
+    return hash;
 }
 
 size_t sha256_size();

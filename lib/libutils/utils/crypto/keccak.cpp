@@ -139,7 +139,7 @@ Sha256 keccak_sha3(const uint8_t* data, size_t from, size_t length) noexcept {
     Sha256Binary_t sha_binary;
     sha3_256(sha_binary.data(), sha_binary.size(), &data[from], length);
     Sha256 sha(sha_binary);
-    return std::move(sha);
+    return sha;
 }
 
 }  // crypto

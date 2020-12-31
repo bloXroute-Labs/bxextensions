@@ -6,16 +6,16 @@
 namespace task {
 
 OntConsensusBlockDecompressionTask::OntConsensusBlockDecompressionTask(
-        size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
-        size_t minimal_tx_count/* = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
+    size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
+    size_t minimal_tx_count/* = BTC_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ): MainTaskBase(), _minimal_tx_count(minimal_tx_count)
 {
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void OntConsensusBlockDecompressionTask::init(
-        PBlockBuffer_t block_buffer,
-        PTransactionService_t tx_service
+    PBlockBuffer_t block_buffer,
+    PTransactionService_t tx_service
 )
 {
     _unknown_tx_hashes.clear();
@@ -86,7 +86,7 @@ void OntConsensusBlockDecompressionTask::cleanup() {
 void OntConsensusBlockDecompressionTask::_execute(task::SubPool_t &sub_pool) {
     BxOntConsensusMessage_t msg(*_block_buffer);
     msg.parse();
-    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_hash()));
+    _block_hash = std::make_shared<Sha256_t>(msg.block_hash());
     _output_buffer->reserve(msg.get_original_block_size());
     _output_buffer->reset();
     msg.deserialize_short_ids(_short_ids);
@@ -114,11 +114,11 @@ void OntConsensusBlockDecompressionTask::_execute(task::SubPool_t &sub_pool) {
     }
     decoded_payload.append(msg.payload_tail().char_array(), msg.payload_tail().size());
     utils::protocols::ontology::consensus::OntConsensusJsonPayload payload(
-            msg.consensus_data_type(),
-            msg.consensus_data_len(),
-            std::move(utils::encoding::base64_encode(decoded_payload))
+        msg.consensus_data_type(),
+        msg.consensus_data_len(),
+        utils::encoding::base64_encode(decoded_payload)
     );
-    std::string json_payload = std::move(utils::encoding::encode_json(payload));
+    std::string json_payload = utils::encoding::encode_json(payload);
     size_t payload_len = json_payload.size();
     _output_buffer->resize(output_offset + payload_len);
     memcpy(&_output_buffer->char_array()[output_offset], json_payload.c_str(), payload_len);

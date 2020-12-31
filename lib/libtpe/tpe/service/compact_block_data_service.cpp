@@ -46,7 +46,7 @@ CompactBlockDataService::operator =(CompactBlockDataService&& rhs) noexcept {
 }
 
 void CompactBlockDataService::parse() {
-	_sip_key = std::move(_msg->get_block_sip_key());
+	_sip_key = _msg->get_block_sip_key();
 	uint64_t pre_filled_tx_count;
 	size_t compact_offset =
 			_msg->get_compact_txs_count(_compact_tx_count);
@@ -64,14 +64,12 @@ void CompactBlockDataService::parse() {
 		Sha256_t prefilled_sha;
 		size_t witness_offset;
 		TransactionPlaceholder prefilled_placeholder;
-		prefilled_placeholder.contents = std::move(
-				_msg->get_next_pre_filled_tx(
-					offset,
-					diff,
-					prefilled_sha,
-                    witness_offset
-				)
-		);
+		prefilled_placeholder.contents = _msg->get_next_pre_filled_tx(
+            offset,
+            diff,
+            prefilled_sha,
+            witness_offset
+        );
 		auto iter = _short_id_map->find(prefilled_sha);
 		if (iter == _short_id_map->end()) {
 			prefilled_placeholder.type = TransactionPlaceholderType::content;
@@ -148,9 +146,7 @@ uint64_t CompactBlockDataService::_fill_compact_ids(
 	)
 	{
 		TransactionPlaceholder placeholder;
-		placeholder.cmpt = std::move(
-				_msg->get_next_compact_short_id(offset)
-		);
+		placeholder.cmpt = _msg->get_next_compact_short_id(offset);
 		_tx_placeholders.push_back(
 				placeholder
 		);

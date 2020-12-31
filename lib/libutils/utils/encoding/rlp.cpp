@@ -125,11 +125,10 @@ std::vector<uint64_t> Rlp::as_large_int() const {
     }
     std::vector<uint64_t> values;
     uint64_t val;
-    size_t end_offset = 0;
-    if ( _val_offset > 0) {
-        end_offset = get_big_endian_rlp_large_value(_rlp, val, _rlp_starting_offset + _val_offset, _length, values);
-    }
-
+    size_t end_offset;
+    end_offset = get_big_endian_rlp_large_value(
+        _rlp, val, _rlp_starting_offset + _val_offset, _length, values
+    );
     if ( end_offset == 0 or end_offset > _rlp_starting_offset + _val_offset + _length ) {
         throw std::runtime_error("bad RLP!"); // TODO: throw proper exception here.
     }

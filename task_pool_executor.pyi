@@ -268,8 +268,8 @@ class TransactionService:
         transaction_cache_key: Sha256,
         transaction_contents: InputBytes,
         short_id: int,
-        timestamp: int,
-        current_time: int,
+        timestamp: float,
+        current_time: float,
         enable_transaction_validation: bool,
         min_tx_network_fee: int,
         from_relay: bool

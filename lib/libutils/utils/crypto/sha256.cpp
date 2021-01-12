@@ -204,7 +204,7 @@ bool Sha256::operator==(const Sha256& other) const {
 
 common::BufferView Sha256::binary() const
 {
-	return std::move(common::BufferView(_binary.data(), SHA256_BINARY_SIZE));
+	return common::BufferView(_binary.data(), SHA256_BINARY_SIZE);
 }
 
 Sha256Binary_t
@@ -221,7 +221,7 @@ std::string Sha256::repr() const
 
 std::string Sha256::hex_string() const
 {
-	return std::move(common::to_hex_string(_binary));
+	return common::to_hex_string(_binary);
 }
 
 
@@ -286,7 +286,7 @@ Sha256 Sha256Context::digest() {
 	std::vector<uint8_t> sha;
 	sha.resize(SHA256_DIGEST_LENGTH, '\0');
 	SHA256_Final(&sha[0], ptr);
-	return std::move(Sha256(sha));
+	return Sha256(sha);
 }
 
 } // crypto

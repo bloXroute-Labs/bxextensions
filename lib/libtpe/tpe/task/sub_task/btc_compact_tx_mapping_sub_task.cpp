@@ -11,24 +11,24 @@ typedef utils::crypto::Sha256 Sha256_t;
 typedef utils::common::BufferCopy BufferCopy_t;
 
 BtcCompactTxMappingSubTask::BtcCompactTxMappingSubTask():
-		_compact_short_id_map(nullptr),
-		_unknown_indices(nullptr),
-		_tx_service(nullptr),
-		_bucket(nullptr),
-		_transaction_placeholders(nullptr),
-		_counter(nullptr),
-		_key(nullptr)
+    _compact_short_id_map(nullptr),
+    _unknown_indices(nullptr),
+    _tx_service(nullptr),
+    _bucket(nullptr),
+    _transaction_placeholders(nullptr),
+    _counter(nullptr),
+    _key(nullptr)
 {
 }
 
 void BtcCompactTxMappingSubTask::init(
-		CompactShortIdToShortIdMap_t* compact_short_id_map,
-		UnknownTxIndices_t* unknown_indices,
-		const TransactionService_t* tx_service,
-		const Sha256Bucket_t* bucket,
-		CompactTransactionPlaceholders_t* transaction_placeholders,
-		CompactShortIdsCounter_t* counter,
-		const utils::crypto::SipKey_t* key
+    CompactShortIdToShortIdMap_t* compact_short_id_map,
+    UnknownTxIndices_t* unknown_indices,
+    const TransactionService_t* tx_service,
+    const Sha256Bucket_t* bucket,
+    CompactTransactionPlaceholders_t* transaction_placeholders,
+    CompactShortIdsCounter_t* counter,
+    const utils::crypto::SipKey_t* key
 )
 {
 	_compact_short_id_map = compact_short_id_map;
@@ -50,9 +50,7 @@ void BtcCompactTxMappingSubTask::_execute() {
             continue;
 	    }
 		uint32_t short_id = *sha_iter->second.begin();
-		CompactShortId_t compact_short_id = std::move(
-				utils::crypto::to_compact_id(sha, *_key)
-		);
+		CompactShortId_t compact_short_id = utils::crypto::to_compact_id(sha, *_key);
 		auto compact_iter = _compact_short_id_map->find(compact_short_id);
 		if (compact_iter != _compact_short_id_map->end()) {
 			std::pair<uint32_t, size_t>& compact_pair = compact_iter->second;

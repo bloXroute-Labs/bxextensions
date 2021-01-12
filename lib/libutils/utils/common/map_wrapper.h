@@ -32,16 +32,22 @@ struct DefaultValueTracker: public AbstractValueTracker<TValue> {
 
     DefaultValueTracker(const DefaultValueTracker&) = default;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     void on_value_added(const TValue& val) override {
         _total_bytes_allocated += sizeof(TValue);
     }
+#pragma GCC diagnostic pop
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     void on_value_removed(TValue&& val) override {
         size_t byte_size = sizeof(TValue);
         if (_total_bytes_allocated >= byte_size) {
             _total_bytes_allocated -= byte_size;
         }
     }
+#pragma GCC diagnostic pop
 
     size_t total_bytes_allocated() const override {
         return _total_bytes_allocated;

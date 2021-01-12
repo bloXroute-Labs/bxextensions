@@ -109,9 +109,9 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     msg.parse();
     _block_header = BlockBuffer_t(msg.block_header());
     _block_trailer = BlockBuffer_t(msg.block_trailer());
-    _prev_block_hash = std::make_shared<Sha256_t>(std::move(msg.prev_block_hash()));
+    _prev_block_hash = std::make_shared<Sha256_t>(msg.prev_block_hash());
 
-    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_hash()));
+    _block_hash = std::make_shared<Sha256_t>(msg.block_hash());
 
     // assume txs starts from tx_offset where msg_len_prefix and txs_len_prefix are max size (8 bytes)
     size_t output_offset = sizeof(size_t) + sizeof(size_t) + _block_header.size() + sizeof(size_t);
@@ -241,9 +241,7 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     _output_buffer->set_output();
 
     _compressed_block_hash = std::make_shared<Sha256_t>(
-        std::move(
-            utils::crypto::double_sha256(_output_buffer->array(), _starting_offset, output_offset - _starting_offset)
-        )
+        utils::crypto::double_sha256(_output_buffer->array(), _starting_offset, output_offset - _starting_offset)
     );
 }
 #pragma GCC diagnostic pop

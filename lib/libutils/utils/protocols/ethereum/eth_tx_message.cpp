@@ -35,7 +35,7 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     _s = _rlp_list[S_IDX].as_vector();
 
     offset += rlp.val_offset() + rlp.length();
-    _sha = std::move(crypto::keccak_sha3(msg_buf.byte_array(), from, offset - from));
+    _sha = crypto::keccak_sha3(msg_buf.byte_array(), from, offset - from);
     return offset;
 }
 

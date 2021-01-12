@@ -24,7 +24,7 @@ ParsedTransactions_t OntMessageParser::parse_transactions_message(PTxsMessageCon
     ParsedTransactions_t transactions;
     transactions.push_back(std::move(parsed_transaction));
 
-    return std::move(transactions);
+    return transactions;
 }
 
 }

@@ -1,4 +1,3 @@
-#include <memory>
 #include <unordered_map>
 #include <algorithm>
 
@@ -6,8 +5,6 @@
 #include <tpe/task/exception/task_not_completed.h>
 
 #include <utils/common/string_helper.h>
-#include <utils/crypto/encrypted_message.h>
-#include <utils/crypto/encryption_helper.h>
 #include <utils/exception/encryption_error.h>
 #include <utils/exception/decryption_error.h>
 #include <utils/exception/crypto_initialization_error.h>
@@ -38,7 +35,7 @@ static void register_error(py::module m, std::string py_error) {
 	);
 	py::register_exception<TError>(m, py_error.c_str());
 #ifdef BUILD_TYPE
-	if (strcmp(BUILD_TYPE, "DEBUG") or strcmp(BUILD_TYPE, "TESTING")) {
+	if (strcmp(BUILD_TYPE, "DEBUG") || strcmp(BUILD_TYPE, "TESTING")) {
 		std::string throw_name = utils::common::concatenate(
 				"throw_", py_error
 		);

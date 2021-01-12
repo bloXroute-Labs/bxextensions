@@ -43,7 +43,7 @@ crypto::Sha256 get_prev_block_hash(
 {
     crypto::Sha256 sha(buffer, ONT_PREV_BLOCK_OFF);
     sha.reverse();
-    return std::move(sha);
+    return sha;
 }
 
 template <class TBuffer>
@@ -64,7 +64,7 @@ common::BufferView get_merkle_root(
 {
     size_t offset = get_block_size(buffer) - SHA256_BINARY_SIZE;
     common::BufferView buf(buffer, SHA256_BINARY_SIZE, offset);
-    return std::move(buf);
+    return buf;
 }
 
 template <class TBuffer>

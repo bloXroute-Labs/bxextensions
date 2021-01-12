@@ -50,11 +50,11 @@ size_t BtcBlockMessage::get_tx_count(
 }
 
 crypto::Sha256 BtcBlockMessage::block_hash() const {
-	return std::move(generate_block_hash(_buffer));
+	return generate_block_hash(_buffer);
 }
 
 crypto::Sha256 BtcBlockMessage::prev_block_hash() const {
-	return std::move(get_prev_block_hash(_buffer));
+	return get_prev_block_hash(_buffer);
 }
 
 } // bitcoin

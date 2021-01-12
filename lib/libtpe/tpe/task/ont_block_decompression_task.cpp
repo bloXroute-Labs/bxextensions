@@ -9,34 +9,34 @@
 namespace task {
 
 OntBlockDecompressionTask::OntBlockDecompressionTask(
-        size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
-        size_t minimal_tx_count/* = ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
+    size_t capacity/* = ONT_DEFAULT_BLOCK_SIZE*/,
+    size_t minimal_tx_count/* = ONT_DEFAULT_MINIMAL_SUB_TASK_TX_COUNT*/
 ) :
-        _block_hash(nullptr),
-        _tx_service(nullptr),
-        _minimal_tx_count(minimal_tx_count),
-        _success(false),
-        _tx_count(0)
+    _block_hash(nullptr),
+    _tx_service(nullptr),
+    _minimal_tx_count(minimal_tx_count),
+    _success(false),
+    _tx_count(0)
 {
     _block_buffer = std::make_shared<BlockBuffer_t>(BlockBuffer_t::empty());
     _output_buffer = std::make_shared<ByteArray_t>(capacity);
 }
 
 void OntBlockDecompressionTask::init(
-        PBlockBuffer_t block_buffer,
-        PTransactionService_t tx_service
+    PBlockBuffer_t block_buffer,
+    PTransactionService_t tx_service
 )
 {
     _unknown_tx_hashes.clear();
     const uint32_t output_size = std::max(
-            (size_t)BxOntBlockMessage_t::get_original_block_size(
-                    *block_buffer
-            ),
-            _output_buffer->capacity()
+        (size_t)BxOntBlockMessage_t::get_original_block_size(
+            *block_buffer
+        ),
+        _output_buffer->capacity()
     );
     if (_output_buffer.use_count() > 1) {
         _output_buffer =  std::make_shared<ByteArray_t>(
-                output_size
+            output_size
         );
     } else {
         _output_buffer->reserve(output_size);
@@ -91,8 +91,8 @@ size_t OntBlockDecompressionTask::get_task_byte_size() const {
     size_t sub_tasks_size = 0;
     for (const auto& p_task: _sub_tasks) {
         sub_tasks_size +=
-                (sizeof(p_task) + sizeof(OntBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
-                 p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
+            (sizeof(p_task) + sizeof(OntBlockDecompressionSubTask) + sizeof(TXOffsets_t) +
+             p_task->task_data().offsets->size() * (2 * sizeof(size_t)));
     }
     size_t block_buffer_size = 0;
     if (_block_buffer != nullptr) {
@@ -113,24 +113,22 @@ void OntBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
     _success = _tx_service->get_missing_transactions(
         _unknown_tx_hashes, _unknown_tx_sids, _short_ids
     );
-    _block_hash = std::make_shared<Sha256_t>(
-            std::move(msg.block_message().block_hash())
-    );
+    _block_hash = std::make_shared<Sha256_t>(msg.block_message().block_hash());
     if (!_success) {
         return;
     }
     size_t last_idx = _dispatch(msg, offset, sub_pool);
     offset = _output_buffer->copy_from_buffer(
-            *_block_buffer,
-            0,
-            BxOntBlockMessage_t::offset_diff,
-            offset - BxOntBlockMessage_t::offset_diff
+        *_block_buffer,
+        0,
+        BxOntBlockMessage_t::offset_diff,
+        offset - BxOntBlockMessage_t::offset_diff
     );
     for (size_t idx = 0 ; idx <= last_idx ; ++idx) {
         auto& task = _sub_tasks[idx];
         task->wait();
     }
-    auto merkle_root = std::move(msg.merkle_root());
+    auto merkle_root = msg.merkle_root();
     size_t output_offset = _output_buffer->size();
     _extend_output_buffer(output_offset + merkle_root.size());
     _output_buffer->copy_from_buffer(merkle_root, output_offset, 0, merkle_root.size());
@@ -138,19 +136,15 @@ void OntBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
 }
 
 void OntBlockDecompressionTask::_init_sub_tasks(
-        size_t pool_size
+    size_t pool_size
 )
 {
     size_t sub_tasks_size = _sub_tasks.size();
     if (sub_tasks_size < pool_size) {
-        for (
-                size_t i = sub_tasks_size ;
-                i < pool_size ;
-                ++i
-                )
+        for (size_t i = sub_tasks_size ;  i < pool_size ; ++i)
         {
             _sub_tasks.push_back(
-                    std::make_shared<OntBlockDecompressionSubTask>()
+                std::make_shared<OntBlockDecompressionSubTask>()
             );
         }
     }
@@ -161,16 +155,16 @@ void OntBlockDecompressionTask::_init_sub_tasks(
 }
 
 size_t OntBlockDecompressionTask::_dispatch(
-        BxOntBlockMessage_t& msg,
-        size_t offset,
-        SubPool_t& sub_pool
+    BxOntBlockMessage_t& msg,
+    size_t offset,
+    SubPool_t& sub_pool
 )
 {
     size_t pool_size = sub_pool.size(), prev_idx = 0;
     _init_sub_tasks(pool_size);
     size_t bulk_size = std::max(
-            (size_t) (_tx_count / pool_size),
-            std::max(pool_size, _minimal_tx_count)
+        (size_t) (_tx_count / pool_size),
+        std::max(pool_size, _minimal_tx_count)
     );
     size_t idx = 0;
     size_t short_ids_offset = 0;
@@ -190,11 +184,11 @@ size_t OntBlockDecompressionTask::_dispatch(
                 output_offset += _tx_service->get_tx_size(short_id);
             } else {
                 throw std::runtime_error(utils::common::concatenate(
-                        "Message is improperly formatted, short id index (",
-                        short_id_idx,
-                        ") exceeded its array bounds (size: ",
-                        _short_ids.size(),
-                        ")"
+                    "Message is improperly formatted, short id index (",
+                    short_id_idx,
+                    ") exceeded its array bounds (size: ",
+                    _short_ids.size(),
+                    ")"
                 ));  // TODO: throw proper exception here
             }
 
@@ -221,48 +215,48 @@ size_t OntBlockDecompressionTask::_dispatch(
 }
 
 void OntBlockDecompressionTask::_enqueue_task(
-        size_t task_idx,
-        SubPool_t& sub_pool
+    size_t task_idx,
+    SubPool_t& sub_pool
 )
 {
     auto task = _sub_tasks[task_idx];
     task->init(
-            _tx_service,
-            _block_buffer.get(),
-            _output_buffer.get(),
-            &_short_ids
+        _tx_service,
+        _block_buffer.get(),
+        _output_buffer.get(),
+        &_short_ids
     );
     sub_pool.enqueue_task(task);
 }
 
 BxOntBlockMessage_t
 OntBlockDecompressionTask::_parse_block_header(
-        size_t& offset,
-        uint32_t& tx_count
+    size_t& offset,
+    uint32_t& tx_count
 )
 {
     uint64_t short_ids_offset;
     offset = utils::common::get_little_endian_value<uint64_t>(
-            *_block_buffer, short_ids_offset, 0
+        *_block_buffer, short_ids_offset, 0
     );
     BxOntBlockMessage_t msg(
-            *_block_buffer, short_ids_offset
+        *_block_buffer, short_ids_offset
     );
     offset = msg.get_tx_count(tx_count);
     msg.deserialize_short_ids(_short_ids);
-    return std::move(msg);
+    return msg;
 }
 
 void OntBlockDecompressionTask::_extend_output_buffer(
-        size_t output_offset
+    size_t output_offset
 )
 {
     if (output_offset > _output_buffer->capacity()) {
         std::string error = utils::common::concatenate(
-                "not enough space allocated to output buffer. \ncapacity - ",
-                _output_buffer->capacity(),
-                ", required size - ",
-                output_offset
+            "not enough space allocated to output buffer. \ncapacity - ",
+            _output_buffer->capacity(),
+            ", required size - ",
+            output_offset
         );
         throw std::runtime_error(error);
     }

@@ -113,7 +113,7 @@ void EthBlockDecompressionTask::_execute(SubPool_t& sub_pool) {
     msg.deserialize_short_ids(_short_ids);
     _block_header = BlockBuffer_t(msg.block_header());
     _block_trailer = BlockBuffer_t(msg.block_trailer());
-    _block_hash = std::make_shared<Sha256_t>(std::move(msg.block_hash()));
+    _block_hash = std::make_shared<Sha256_t>(msg.block_hash());
     _success = _tx_service->get_missing_transactions(_unknown_tx_hashes, _unknown_tx_sids, _short_ids);
     if ( ! _success) {
         return;

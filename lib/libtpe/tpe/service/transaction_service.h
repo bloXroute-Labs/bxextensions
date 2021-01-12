@@ -346,8 +346,8 @@ public:
         const Sha256_t& transaction_hash,
         PTxContents_t transaction_contents,
         unsigned int short_id,
-        unsigned int timestamp,
-        unsigned int current_time,
+        double timestamp,
+        double current_time,
         bool enable_transaction_validation,
         uint64_t min_tx_network_fee,
         bool from_relay
@@ -384,8 +384,8 @@ private:
         unsigned int short_id,
         const Sha256_t& transaction_hash,
         const PTxContents_t& transaction_contents,
-        unsigned int timestamp,
-        unsigned int current_time,
+        double timestamp,
+        double current_time,
         bool enable_transaction_validation,
         uint64_t min_tx_network_fee,
         bool from_relay

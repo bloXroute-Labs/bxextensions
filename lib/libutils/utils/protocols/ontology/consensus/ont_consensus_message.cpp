@@ -63,9 +63,7 @@ void OntConsensusMessage::parse() {
     uint64_t consensus_payload_len;
     block_msg_offset = bitcoin::get_varint(_block_msg_buffer, consensus_payload_len, block_msg_offset);
     block_msg_offset += (consensus_payload_len + ONT_BLOCK_NEXT_BOOKKEEPER_LEN);
-    _block_hash = std::move(
-            crypto::double_sha256(block_msg_buffer, block_start_offset, block_msg_offset - block_start_offset)
-    );
+    _block_hash = crypto::double_sha256(block_msg_buffer, block_start_offset, block_msg_offset - block_start_offset);
     uint64_t bookkeepers_len;
     block_msg_offset = bitcoin::get_varint(_block_msg_buffer, bookkeepers_len, block_msg_offset);
     uint64_t bookkeeper_len;
@@ -129,7 +127,7 @@ const common::BufferView& OntConsensusMessage::payload_tail() const {
 }
 
 common::BufferView OntConsensusMessage::block_msg_buffer() const {
-    return std::move(common::BufferView(_block_msg_buffer.byte_array(), _block_msg_buffer.size()));
+    return common::BufferView(_block_msg_buffer.byte_array(), _block_msg_buffer.size());
 }
 
 size_t OntConsensusMessage::get_header_offset() const {

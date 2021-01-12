@@ -27,7 +27,7 @@ BufferCopy_t EthBlockCompressionTaskTest::convert_str_to_buffer(std::string bloc
     std::vector<uint8_t> block_msg_vec;
     utils::common::from_hex_string(block_msg_str, block_msg_vec);
     BufferCopy_t block_message(BufferView_t(&block_msg_vec.at(0), block_msg_vec.size()));
-    return std::move(block_message);
+    return block_message;
 }
 
 

@@ -39,11 +39,11 @@ BtcCompactBlockMessage::BtcCompactBlockMessage(
 
 crypto::Sha256 BtcCompactBlockMessage::block_hash() const
 {
-	return std::move(generate_block_hash(_buffer));
+	return generate_block_hash(_buffer);
 }
 
 crypto::Sha256 BtcCompactBlockMessage::prev_block_hash() const {
-	return std::move(get_prev_block_hash(_buffer));
+	return get_prev_block_hash(_buffer);
 }
 
 crypto::SipKey_t BtcCompactBlockMessage::get_block_sip_key() const
@@ -62,7 +62,7 @@ crypto::SipKey_t BtcCompactBlockMessage::get_block_sip_key() const
 	);
 
     crypto::SipKey_t sip_key(*(uint64_t *) &sha.binary()[0], *(uint64_t *) &sha.binary()[8]);
-    return std::move(sip_key);
+    return sip_key;
 }
 
 size_t BtcCompactBlockMessage::get_compact_txs_count(
@@ -107,11 +107,11 @@ PBufferView_t BtcCompactBlockMessage::get_next_pre_filled_tx(
         off,
         witness_offset
     );
-    sha = std::move(protocols::bitcoin::get_tx_id(_buffer, off, witness_offset, offset));
+    sha = protocols::bitcoin::get_tx_id(_buffer, off, witness_offset, offset);
     PBufferView_t tx_content = std::make_shared<BufferView_t>(
     		_buffer, offset - off, off
     );
-    return std::move(tx_content);
+    return tx_content;
 }
 
 BufferView_t
@@ -119,7 +119,7 @@ BtcCompactBlockMessage::get_block_header() const {
 	BufferView_t header(
 			_buffer, BTC_BLOCK_HDR_SIZE, BTC_HDR_COMMON_OFFSET
 	);
-	return std::move(header);
+	return header;
 }
 
 PCompactShortId_t
@@ -129,7 +129,7 @@ BtcCompactBlockMessage::get_next_compact_short_id(size_t& offset) const {
 			offset
 	);
 	offset += CompactShortId_t::size;
-	return std::move(compact_id);
+	return compact_id;
 }
 
 const uint32_t BtcCompactBlockMessage::null_tx_sid = NULL_TX_SID;

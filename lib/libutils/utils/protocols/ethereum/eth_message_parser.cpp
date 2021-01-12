@@ -31,7 +31,7 @@ ParsedTransactions_t EthMessageParser::parse_transactions_message(PTxsMessageCon
         offset = tx_end;
     }
 
-    return std::move(transactions);
+    return transactions;
 }
 
 }

@@ -19,12 +19,12 @@ typedef std::shared_ptr<InputBytes> PInputBytes;
 InputBytes::InputBytes(py::buffer buf) :
 	_buf(std::move(buf))
 {
-	py::buffer_info binfo = std::move(request());
+	py::buffer_info binfo = request();
 	_set_buffer((uint8_t*)binfo.ptr, (size_t)binfo.size);
 }
 
 py::buffer_info InputBytes::request() {
-	return std::move(_buf.request());
+	return _buf.request();
 }
 
 
@@ -42,12 +42,12 @@ void bind_input_bytes(py::module& m) {
 		}
 	);
 	py::class_<InputBytes, BufferView_t, PInputBytes>(
-			m,
-			"InputBytes",
-			py::buffer_protocol()
+        m,
+        "InputBytes",
+        py::buffer_protocol()
 	)
 	.def(py::init<py::buffer>())
 	.def_buffer([](InputBytes& ib) {
-		return std::move(ib.request());
+		return ib.request();
 	});
 }

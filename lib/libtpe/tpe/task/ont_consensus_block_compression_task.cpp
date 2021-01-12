@@ -25,7 +25,7 @@ void OntConsensusBlockCompressionTask::init(
     _block_buffer = std::move(block_buffer);
     if (_output_buffer.use_count() > 1) {
         _output_buffer =  std::make_shared<ByteArray_t>(
-                _block_buffer->size()
+            _block_buffer->size()
         );
     } else {
         _output_buffer->reserve(_block_buffer->size());
@@ -100,12 +100,12 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     output_offset = utils::common::set_little_endian_value(*_output_buffer, _txn_count, output_offset);
     const auto& payload_tail = msg.payload_tail();
     output_offset = utils::common::set_little_endian_value<uint32_t >(
-            *_output_buffer, payload_tail.size(), output_offset
+        *_output_buffer, payload_tail.size(), output_offset
     );
     output_offset = _output_buffer->copy_from_buffer(payload_tail, output_offset, 0, payload_tail.size());
     const auto& owner_and_signature = msg.owner_and_signature();
     output_offset = utils::common::set_little_endian_value<uint32_t >(
-            *_output_buffer, owner_and_signature.size(), output_offset
+        *_output_buffer, owner_and_signature.size(), output_offset
     );
     output_offset = _output_buffer->copy_from_buffer(owner_and_signature, output_offset, 0, owner_and_signature.size());
     output_offset = utils::common::set_little_endian_value<uint32_t>(*_output_buffer, header_offset, output_offset);
@@ -115,14 +115,14 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     output_offset = utils::common::set_little_endian_value<uint32_t>(*_output_buffer, tx_offset, output_offset);
     output_offset = _output_buffer->copy_from_buffer(msg.block_msg_buffer(), output_offset, 0, tx_offset);
     size_t from = tx_offset;
-    auto block_buffer = std::move(msg.block_msg_buffer());
+    auto block_buffer = msg.block_msg_buffer();
     double max_timestamp_for_compression = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
     ).count() - _min_tx_age_seconds;
 
     for (uint32_t idx = 0 ; idx < _txn_count ; ++idx) {
         tx_offset = msg.get_next_tx_offset(from);
-        Sha256_t tx_hash = std::move(utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset));
+        Sha256_t tx_hash = utils::protocols::ontology::get_tx_id(block_buffer, from, tx_offset);
 
         double short_id_assign_time = 0.0;
         if (_tx_service->has_short_id(tx_hash)) {
@@ -139,10 +139,10 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
                 _ignored_short_ids.push_back(_tx_service->get_short_id(tx_hash));
             }
             output_offset = _output_buffer->copy_from_buffer(
-                    block_buffer,
-                    output_offset,
-                    from,
-                    tx_offset - from
+                block_buffer,
+                output_offset,
+                from,
+                tx_offset - from
             );
         } else {
             _short_ids.push_back(_tx_service->get_short_id(tx_hash));
@@ -153,24 +153,23 @@ void OntConsensusBlockCompressionTask::_execute(task::SubPool_t & sub_pool) {
     const uint32_t short_ids_size = _short_ids.size();
     utils::common::set_little_endian_value<uint64_t >(*_output_buffer, output_offset, 0);
     output_offset = utils::common::set_little_endian_value<uint32_t>(
-            *_output_buffer,
-            short_ids_size,
-            output_offset
+        *_output_buffer,
+        short_ids_size,
+        output_offset
     );
     if (short_ids_size > 0) {
-        const size_t short_ids_byte_size  =
-                short_ids_size * sizeof(unsigned int);
+        const size_t short_ids_byte_size = short_ids_size * sizeof(unsigned int);
         _output_buffer->resize(output_offset + short_ids_byte_size);
         memcpy(
-                &_output_buffer->at(output_offset),
-                (unsigned char*) &_short_ids.at(0),
-                short_ids_byte_size
+            &_output_buffer->at(output_offset),
+            (unsigned char*) &_short_ids.at(0),
+            short_ids_byte_size
         );
     }
     utils::crypto::Sha256 temp_compressed_block_hash = utils::crypto::double_sha256(
-            _output_buffer->array(),
-            0,
-            _output_buffer->size()
+        _output_buffer->array(),
+        0,
+        _output_buffer->size()
     );
     temp_compressed_block_hash.reverse();
 

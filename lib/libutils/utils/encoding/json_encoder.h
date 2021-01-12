@@ -17,7 +17,7 @@ template <class TJsonSerializable>
 std::string encode_json(const TJsonSerializable& json_obj) {
     std::string json_str;
     json_obj.to_json().dump(json_str);
-    return std::move(json_str);
+    return json_str;
 }
 
 } // encoding

@@ -426,6 +426,16 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         return ignore_seen_result;
     }
 
+    if (not has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and
+            has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_REUSE_SENDER_NONCE)
+        ) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
+        TxProcessingResult_t ignore_seen_result(
+            tx_status,
+            tx_validation_status);
+        return ignore_seen_result;
+    }
+
     if (
         has_status_flag( tx_status, TX_STATUS_MSG_HAS_CONTENT ) and
         ! has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT)
@@ -565,10 +575,13 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
         }
 
         unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+
         if (enable_transaction_validation) {
             tx_validation_status = _tx_validation.transaction_validation(
                 std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)),
-                min_tx_network_fee
+                min_tx_network_fee,
+                0.0,
+                (SenderNonceToTime_t &) _containers.sender_nonce_to_time
             );
         }
 
@@ -806,7 +819,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     }
     else if ( timestamp != NULL_TX_TIMESTAMP and
               current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S and
-              ! from_relay ) {
+              ! from_relay) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }
     else {
@@ -870,7 +883,12 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
             has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and
             enable_transaction_validation
             ) {
-            tx_validation_status = _tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
+            tx_validation_status = _tx_validation.transaction_validation(
+                transaction_contents,
+                min_tx_network_fee,
+                current_time,
+                _containers.sender_nonce_to_time
+            );
         }
     }
     return std::make_tuple(tx_status, tx_validation_status);
@@ -906,5 +924,23 @@ const AbstractTransactionValidator_t& TransactionService::_create_transaction_va
     }
 
     throw std::runtime_error("Transaction validator is not available for provided protocol");
+}
+
+uint64_t TransactionService::clear_sender_nonce(const double time)
+{
+    uint64_t cleared_items = 0;
+    SenderNonceToTime_t::iterator iter;
+    bool continue_clear = true;
+    while (_containers.sender_nonce_to_time.size() > 0 and continue_clear) {
+        iter = _containers.sender_nonce_to_time.begin();
+        if (iter->second <= time) {
+            _containers.sender_nonce_to_time.erase(iter->first);
+            cleared_items++;
+        }
+        else {
+            continue_clear = false;
+        }
+    }
+    return cleared_items;
 }
 } // service

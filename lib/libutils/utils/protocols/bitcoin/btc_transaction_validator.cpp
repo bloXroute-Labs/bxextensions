@@ -8,7 +8,9 @@ namespace bitcoin {
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 size_t BtcTransactionValidator::transaction_validation(
     const PTxContents_t& txs_message_contents,
-    const uint64_t min_tx_network_fee
+    const uint64_t min_tx_network_fee,
+    const double current_time,
+    SenderNonceToTime_t& sender_nonce_to_time
 ) const {
     return TX_VALIDATION_STATUS_VALID_TX;
 }

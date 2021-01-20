@@ -49,6 +49,7 @@ typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
+typedef utils::common::OrderedMap<std::string, double> SenderNonceToTime_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;
@@ -107,7 +108,8 @@ struct Containers {
         short_ids_seen_in_block(),
         short_id_to_assign_time(),
         tx_hash_to_time_removed(),
-        short_id_to_time_removed()
+        short_id_to_time_removed(),
+        sender_nonce_to_time()
     {
     }
 
@@ -119,6 +121,7 @@ struct Containers {
     ShortIdToTime_t short_id_to_assign_time;
     Sha256ToTime_t tx_hash_to_time_removed;
     ShortIdToTime_t short_id_to_time_removed;
+    SenderNonceToTime_t sender_nonce_to_time;
 };
 
 class TxProcessingResult {
@@ -341,6 +344,7 @@ public:
     );
 
     void clear();
+    uint64_t clear_sender_nonce(const double time);
 
     TxProcessingResult_t process_transaction_msg(
         const Sha256_t& transaction_hash,

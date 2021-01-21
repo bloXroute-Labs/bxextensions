@@ -12,7 +12,8 @@ typedef utils::common::BufferView BufferView_t;
 typedef utils::protocols::ethereum::EthTxMessage EthTxMessage_t;
 typedef utils::protocols::ethereum::EthTransactionValidator EthTransactionValidator_t;
 
-typedef utils::common::OrderedMap<std::string, double> SenderNonceToTime_t;
+typedef std::pair<double, uint64_t> SenderNonceVal_t;
+typedef utils::common::OrderedMap<std::string, SenderNonceVal_t> SenderNonceMap_t;
 class EthTxMessageTest : public ::testing::Test {
 };
 
@@ -132,16 +133,18 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     std::string rlp_str = "f86b018501723ef6f282520894a4e5961b58dbe487639929643dcb1dc3848daf5e870543eaa7ca14008025a065d379c2058be6befc3cf98e10683557c8d8a4c12d32d66602a56af2d2701506a04b39134aca875a7117f302252b4e99d61a93b866cc39add02ef54658479f5b9b";
     std::vector<uint8_t> rlp_vec;
     EthTransactionValidator_t eth_validator;
-    SenderNonceToTime_t sender_nonce_to_time;
+    SenderNonceMap_t sender_nonce_map;
 
     utils::common::from_hex_string(rlp_str, rlp_vec);
     BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
 
     eth_validator.transaction_validation(
-        std::move(std::make_shared<BufferView_t>(std::move(bf))),
+        bf,
         0,
         0.0,
-        sender_nonce_to_time
+        sender_nonce_map,
+        2,
+        1.1
     );
 
     rlp_str = "f9015582da98850fd51da800830288ac94d9e1ce17f2641f24ae83637ab66a2cca9c378b9f8901a055690d9db80000b8e47ff36ab5000000000000000000000000000000000000000000000237027f7cc2ef1ba38f00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000dc411b17d337af85d83ea5a3577d09132aae866000000000000000000000000000000000000000000000000000000005fb26cb70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000006b3595068778dd592e39a122f4f5a5cf09c90fe225a01945291e6d750eb41d07b74838a601aa32334898c8da5b731960108a7db54beca05b48c4c31f5836b3fb35194b8d73bf907d795cd6bed65dc6c57ed1edc35dd3f7";
@@ -149,10 +152,12 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     bf = BufferView_t(&rlp_vec.at(0), rlp_vec.size());
 
     eth_validator.transaction_validation(
-        std::move(std::make_shared<BufferView_t>(std::move(bf))),
+        bf,
         0,
-         0.0,
-         sender_nonce_to_time
+        0.0,
+        sender_nonce_map,
+        2,
+        1.1
     );
 
 }

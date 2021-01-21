@@ -58,6 +58,7 @@ TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
     std::vector<uint8_t> vec;
     utils::common::from_hex_string(tx_str, vec);
     TxContents_t tx = TxContents_t(&vec.at(0), vec.size());
+    tx_service().set_sender_nonce_reuse_setting(2.0, 1.1);
     PTxContents_t p_tx = std::make_shared<TxContents_t>(tx);
     double current_time = std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::system_clock::now().time_since_epoch()
@@ -82,7 +83,7 @@ TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
         0.01,
         true,
         0,
-        false
+        true
     );
     EXPECT_TRUE(has_status_flag(result.get_tx_status(), TX_STATUS_IGNORE_SEEN));
     EXPECT_EQ(result.get_tx_validation_status(), TX_VALIDATION_STATUS_REUSE_SENDER_NONCE);

@@ -67,15 +67,13 @@ size_t EthTransactionValidator::transaction_validation (
                             return TX_VALIDATION_STATUS_REUSE_SENDER_NONCE;
                         }
                     }
-                    else {
-                        sender_nonce_map.emplace(
-                            sender_nonce,
-                            std::pair<double, uint64_t>(
-                                current_time + age,
-                                (uint64_t)(curr_gas_price *factor)
-                                )
-                        );
-                    }
+                    sender_nonce_map.emplace(
+                        sender_nonce,
+                        std::pair<double, uint64_t>(
+                            current_time + age,
+                            (uint64_t)(curr_gas_price *factor)
+                            )
+                    );
                 }
                 return TX_VALIDATION_STATUS_VALID_TX;
             }

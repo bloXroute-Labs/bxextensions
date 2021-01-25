@@ -1,5 +1,6 @@
 #include "utils/common/buffer_view.h"
 #include "utils/exception/index_error.h"
+#include "utils/common/string_helper.h"
 
 namespace utils {
 namespace common {
@@ -115,13 +116,22 @@ BufferView BufferView::empty() {
 }
 
 void* BufferView::ptr() {
-	return (void *)_buffer;
+	return (void *)&_buffer[_from];
 }
 
 void BufferView::_set_buffer(const uint8_t* buffer, size_t size) {
 	_buffer = buffer;
 	_size = size;
 }
+
+std::ostream& operator <<(std::ostream& out, const BufferView& buf) {
+    out << utils::common::to_hex_string(buf.vector(0, buf.size()));
+    return out;
+}
+
+size_t BufferView::get_offset() const {
+    return _from;
+};
 
 } // common
 } // utils

@@ -543,6 +543,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     bool enable_transaction_validation
 )
 {
+    TxsMessageContents_t message_contents = *txs_message_contents;
     ParsedTransactions_t parsed_transactions = _message_parser.parse_transactions_message(txs_message_contents);
 
     size_t total_result_size = 0;
@@ -559,34 +560,33 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
-        TxsMessageContents_t message_contents = *txs_message_contents;
 
         const bool seen_transaction =
                 has_transaction_contents(transaction_hash)
                 or removed_transaction(transaction_hash);
 
+        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
         ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
             message_contents,
             parsed_transaction.length,
-            parsed_transaction.offset);
-
-        if ( !seen_transaction ) {
-            set_transaction_contents(
-                transaction_hash,
-                std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))
-            );
-        }
-
-        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+            parsed_transaction.offset
+        );
 
         if (enable_transaction_validation) {
             tx_validation_status = _tx_validation.transaction_validation(
-                tx_contents_copy,
+                BufferCopy_t(tx_contents_copy),
                 min_tx_network_fee,
                 0.0,
                 (SenderNonceMap_t &) _containers.sender_nonce_map,
                 _allowed_time,
                 _allowed_gas_price_factor
+            );
+        }
+
+        if ( !seen_transaction ) {
+            set_transaction_contents(
+                transaction_hash,
+                std::make_shared<BufferCopy_t>(tx_contents_copy)
             );
         }
 

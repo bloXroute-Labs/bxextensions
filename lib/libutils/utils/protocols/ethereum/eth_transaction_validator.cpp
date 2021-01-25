@@ -74,7 +74,7 @@ size_t EthTransactionValidator::transaction_validation (
                             (uint64_t)(curr_gas_price *factor)
                             )
                     );
-                }
+                 }
                 return TX_VALIDATION_STATUS_VALID_TX;
             }
             else {

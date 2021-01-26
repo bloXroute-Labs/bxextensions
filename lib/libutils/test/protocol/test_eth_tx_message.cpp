@@ -130,7 +130,7 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
 }
 
 TEST_F(EthTxMessageTest, test_tx_validtor) {
-    std::string rlp_str = "f86b018501723ef6f282520894a4e5961b58dbe487639929643dcb1dc3848daf5e870543eaa7ca14008025a065d379c2058be6befc3cf98e10683557c8d8a4c12d32d66602a56af2d2701506a04b39134aca875a7117f302252b4e99d61a93b866cc39add02ef54658479f5b9b";
+    std::string rlp_str = "f86682032a850a02ffee008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0e3186d7f0954318d84d97d4065cbbd5546bc3aee21665869b8230960efca9bf5a034f6563ec353a111fb3ac14797d0b31a3b9f7ba0f9df139d91d8477a0d5e89cb";
     std::vector<uint8_t> rlp_vec;
     EthTransactionValidator_t eth_validator;
     SenderNonceMap_t sender_nonce_map;
@@ -141,7 +141,7 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     eth_validator.transaction_validation(
         bf,
         0,
-        0.0,
+        0.1,
         sender_nonce_map,
         2,
         1.1
@@ -154,7 +154,7 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     eth_validator.transaction_validation(
         bf,
         0,
-        0.0,
+        0.2,
         sender_nonce_map,
         2,
         1.1

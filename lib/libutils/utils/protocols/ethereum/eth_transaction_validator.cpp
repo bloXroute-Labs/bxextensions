@@ -2,14 +2,11 @@
 #include <utils/crypto/signature.h>
 #include "utils/common/string_helper.h"
 
-
 namespace utils {
 namespace protocols {
 namespace ethereum {
 
-bool EthTransactionValidator::_verify_transaction_signature(
-    EthTxMessage tx_msg
-) const
+bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg, std::string& from_address) const
 {
     try {
         utils::crypto::Signature signature;
@@ -17,8 +14,10 @@ bool EthTransactionValidator::_verify_transaction_signature(
         std::vector<uint8_t> unsigned_msg = tx_msg.get_unsigned_msg();
         Sha256_t msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
         std::vector<uint8_t> public_key = signature.recover(msg_hash);
+        Sha256_t address = utils::crypto::keccak_sha3(public_key.data(), 0, public_key.size());
+        from_address = common::to_hex_string(BufferView_t(address.binary(), 20, address.size() - 20));
 
-        return signature.verify(public_key, std::move(unsigned_msg));
+        return signature.verify(public_key, unsigned_msg);
     } catch (...) {
         // TODO catch a better exception
         return false;
@@ -51,14 +50,13 @@ size_t EthTransactionValidator::transaction_validation (
 ) const
 {
     EthTxMessage_t tx_msg;
-
+    std::string sender_nonce;
     if ( _parse_transaction(txs_message_contents, tx_msg) ) {
-        if (_verify_transaction_signature(tx_msg)) {
+        if (_verify_transaction_signature(tx_msg, sender_nonce)) {
             uint64_t curr_gas_price = tx_msg.gas_price();
             if (tx_msg.gas_price() >= min_tx_network_fee) {
+                sender_nonce += ":" + std::to_string(tx_msg.nonce());
                 if (current_time > 0.0) {
-                    std::string sender_nonce = utils::common::to_hex_string(tx_msg.address());
-                    sender_nonce += ":" + std::to_string(tx_msg.nonce());
                     auto iter = sender_nonce_map.find(sender_nonce);
                     if (iter != sender_nonce_map.end()) {
                         double elem_time = iter->second.first;
@@ -74,7 +72,7 @@ size_t EthTransactionValidator::transaction_validation (
                             (uint64_t)(curr_gas_price *factor)
                             )
                     );
-                 }
+                }
                 return TX_VALIDATION_STATUS_VALID_TX;
             }
             else {

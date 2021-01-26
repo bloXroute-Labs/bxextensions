@@ -54,7 +54,7 @@ TEST_F(TransactionServiceTest, test_clear) {
 }
 
 TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
-    std::string tx_str = "f866820321850e6f7cec008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808025a01e7c52081d11b9afefd88c03a030b39ea19214a37a1ac3f075c577b8d24ef0fea0097db5c8310b06517bef8fc9c6d31d5f358d20d240426fac1cba6818ad77b39b";
+    std::string tx_str = "f86682032a850a02ffee008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0e3186d7f0954318d84d97d4065cbbd5546bc3aee21665869b8230960efca9bf5a034f6563ec353a111fb3ac14797d0b31a3b9f7ba0f9df139d91d8477a0d5e89cb";
     std::vector<uint8_t> vec;
     utils::common::from_hex_string(tx_str, vec);
     TxContents_t tx = TxContents_t(&vec.at(0), vec.size());
@@ -64,43 +64,36 @@ TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
     TxProcessingResult_t result = tx_service().process_transaction_msg(
-        Sha256_t("ba411636011e34ce464f39124b90394eef3e6be0ce9efbe6ec3a8bd98a9a9b6f"),
+        Sha256_t("a22d2caf295623c67deb867d2c92be995e257295c3039c6bae281041cc5314a1"),
         p_tx,
         0,
         0.0,
-        0.01,
+        current_time,
         true,
         0,
         true
     );
     EXPECT_EQ(result.get_tx_validation_status(), TX_VALIDATION_STATUS_VALID_TX);
 
+    tx_str = "f86682032a850a3e9ab8008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0149db315c4ef51477674fae84d92a5bcf9a7681442d3bf10b63692e968420feca0357b8a9f8b9640d2c652e28f32efd4ab18c00e37fbdb279086a72d6d8af46118";
+    utils::common::from_hex_string(tx_str, vec);
+    tx = TxContents_t(&vec.at(0), vec.size());
+    p_tx = std::make_shared<TxContents_t>(tx);
+
     result = tx_service().process_transaction_msg(
-        Sha256_t("33411636011e34ce464f39124b90394eef3e6be0ce9efbe6ec3a8bd98a9a9b6f"),
+        Sha256_t("b02dce4a44a4ba7f873d3b8205c5689f89849141ee263adb75b9917e04e2712f,"),
         p_tx,
         0,
         0.0,
-        0.01,
+        current_time,
         true,
         0,
         true
     );
-    EXPECT_TRUE(has_status_flag(result.get_tx_status(), TX_STATUS_IGNORE_SEEN));
     EXPECT_EQ(result.get_tx_validation_status(), TX_VALIDATION_STATUS_REUSE_SENDER_NONCE);
 
-    result = tx_service().process_transaction_msg(
-        Sha256_t("33411636011e34ce464f39124b90394eef3e6be0ce9efbe6ec3a8bd98a9a9b6f"),
-        p_tx,
-        1,
-        0.0,
-        0.01,
-        true,
-        0,
-        false
-    );
-
-    EXPECT_EQ(tx_service().clear_sender_nonce(current_time), 1);
-    EXPECT_EQ(tx_service().clear_sender_nonce(current_time), 0);
+    EXPECT_EQ(tx_service().clear_sender_nonce(current_time + 3), 1);
+    EXPECT_EQ(tx_service().clear_sender_nonce(current_time + 3), 0);
 }
 
 

@@ -884,9 +884,10 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
         }
 
         if (
-            ! has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) and
+            enable_transaction_validation and
             has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and
-            enable_transaction_validation
+            ! has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+            ! has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID)
             ) {
             tx_validation_status = _tx_validation.transaction_validation(
                 *transaction_contents,

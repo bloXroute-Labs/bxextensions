@@ -54,7 +54,7 @@ TEST_F(TransactionServiceTest, test_clear) {
 }
 
 TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
-    std::string tx_str = "f86682032a850a02ffee008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0e3186d7f0954318d84d97d4065cbbd5546bc3aee21665869b8230960efca9bf5a034f6563ec353a111fb3ac14797d0b31a3b9f7ba0f9df139d91d8477a0d5e89cb";
+    std::string tx_str = "f86424851faa3b50008255f0940000000000000000000000000000000000000000808026a079ee3941cedf9972a54af4434c69fa40d728f878d9ff9ff22e1b2c41c680a945a06c45f014266e8e4e5fd892af3ef1711def8eb2c58e5a5bfe344cd8c76b996147";
     std::vector<uint8_t> vec;
     utils::common::from_hex_string(tx_str, vec);
     TxContents_t tx = TxContents_t(&vec.at(0), vec.size());
@@ -64,24 +64,29 @@ TEST_F(TransactionServiceTest, test_clear_sender_nonce) {
         std::chrono::system_clock::now().time_since_epoch()
     ).count();
     TxProcessingResult_t result = tx_service().process_transaction_msg(
-        Sha256_t("a22d2caf295623c67deb867d2c92be995e257295c3039c6bae281041cc5314a1"),
+        Sha256_t("db8f1328c253b627754efe074fefd45ec93910b06510d2fee492e245765e704f"),
         p_tx,
         0,
         0.0,
         current_time,
         true,
         0,
-        true
+        false
     );
     EXPECT_EQ(result.get_tx_validation_status(), TX_VALIDATION_STATUS_VALID_TX);
 
-    tx_str = "f86682032a850a3e9ab8008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0149db315c4ef51477674fae84d92a5bcf9a7681442d3bf10b63692e968420feca0357b8a9f8b9640d2c652e28f32efd4ab18c00e37fbdb279086a72d6d8af46118";
+    tx_str = "f86424851fe5d61a008255f0940000000000000000000000000000000000000000808026a03a460273b722ed3ea69cfc074f0304d5460e2e7014452d5ce0fabb4ff4eb612aa0194b21e020e12faa6af69ea6fb2d3b5617c3e4c32d00ec1060a9deb93656ca8c";
+    vec.clear();
+    tx.empty();
     utils::common::from_hex_string(tx_str, vec);
     tx = TxContents_t(&vec.at(0), vec.size());
     p_tx = std::make_shared<TxContents_t>(tx);
+    current_time = std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::system_clock::now().time_since_epoch()
+    ).count();
 
     result = tx_service().process_transaction_msg(
-        Sha256_t("b02dce4a44a4ba7f873d3b8205c5689f89849141ee263adb75b9917e04e2712f,"),
+        Sha256_t("22f77d235b62a51c59f15ef1956deadb43783b25a237818a84ea8b5660fc31b6,"),
         p_tx,
         0,
         0.0,

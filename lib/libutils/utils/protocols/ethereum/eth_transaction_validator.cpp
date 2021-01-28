@@ -40,7 +40,7 @@ bool EthTransactionValidator::_parse_transaction(
     }
 }
 
-size_t EthTransactionValidator::transaction_validation (
+TxValidationStatus_t EthTransactionValidator::transaction_validation (
     const TxContents_t& txs_message_contents,
     const uint64_t min_tx_network_fee,
     const double current_time,

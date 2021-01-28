@@ -60,8 +60,8 @@ typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
 typedef utils::common::BufferView SearializedShortIds_t;
 typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 typedef utils::protocols::AbstractTransactionValidator AbstractTransactionValidator_t;
-typedef unsigned int TxStatus_t;
-typedef unsigned int TxValidationStatus_t;
+typedef size_t TxStatus_t;
+typedef size_t TxValidationStatus_t;
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
 
@@ -128,8 +128,8 @@ struct Containers {
 class TxProcessingResult {
 public:
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status,
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status,
         TxShortIds_t existing_short_ids,
         AssignShortIDResult_t assign_short_id_result,
         SetTransactionContentsResult_t set_transaction_contents_result,
@@ -145,8 +145,8 @@ public:
     }
 
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status,
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status,
         SetTransactionContentsResult_t set_transaction_contents_result,
         bool contents_set
         ) : _tx_status(tx_status),
@@ -159,8 +159,8 @@ public:
     }
 
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status
         ) : _tx_status(tx_status),
             _tx_validation_status(tx_validation_status),
             _assign_short_id_result(false),
@@ -170,11 +170,11 @@ public:
     {
     }
 
-    unsigned int get_tx_status() {
+    TxStatus_t get_tx_status() {
         return _tx_status;
     }
 
-    unsigned int get_tx_validation_status() {
+    TxValidationStatus_t get_tx_validation_status() {
         return _tx_validation_status;
     }
 
@@ -199,8 +199,8 @@ public:
     }
 
 private:
-    unsigned int _tx_status;
-    unsigned int _tx_validation_status;
+    TxStatus_t _tx_status;
+    TxValidationStatus_t _tx_validation_status;
     TxShortIds_t _existing_short_ids;
     AssignShortIDResult_t _assign_short_id_result;
     SetTransactionContentsResult_t _set_transaction_contents_result;

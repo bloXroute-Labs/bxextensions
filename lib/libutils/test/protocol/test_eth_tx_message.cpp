@@ -130,14 +130,19 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
 }
 
 TEST_F(EthTxMessageTest, test_tx_validtor) {
-    std::string rlp_str = "f86682032a850a02ffee008255f0942e059e37367ba9f66a0f75ad17f3a9eb7ed8d063808026a0e3186d7f0954318d84d97d4065cbbd5546bc3aee21665869b8230960efca9bf5a034f6563ec353a111fb3ac14797d0b31a3b9f7ba0f9df139d91d8477a0d5e89cb";
-    std::vector<uint8_t> rlp_vec;
     EthTransactionValidator_t eth_validator;
     SenderNonceMap_t sender_nonce_map;
+    std::string result;
+
+    std::string rlp_str = "f8641f851faa3b50008255f0940000000000000000000000000000000000000000808026a0820be10a5356d8f020026540fd4c74c5e5ccd8d48f5ef1a71e3564c41f8e593aa0133440688c6c810954225367c9e7bb4d267cf8d15cb0249d4c3660541024e95f";
+    std::vector<uint8_t> rlp_vec;
+    EthTxMessage_t tx_msg;
 
     utils::common::from_hex_string(rlp_str, rlp_vec);
     BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
 
+    eth_validator._parse_transaction(bf, tx_msg);
+    eth_validator._verify_transaction_signature(tx_msg, result);
     eth_validator.transaction_validation(
         bf,
         0,
@@ -146,10 +151,18 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
         2,
         1.1
     );
+    ASSERT_EQ("bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result);
 
-    rlp_str = "f9015582da98850fd51da800830288ac94d9e1ce17f2641f24ae83637ab66a2cca9c378b9f8901a055690d9db80000b8e47ff36ab5000000000000000000000000000000000000000000000237027f7cc2ef1ba38f00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000dc411b17d337af85d83ea5a3577d09132aae866000000000000000000000000000000000000000000000000000000005fb26cb70000000000000000000000000000000000000000000000000000000000000002000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc20000000000000000000000006b3595068778dd592e39a122f4f5a5cf09c90fe225a01945291e6d750eb41d07b74838a601aa32334898c8da5b731960108a7db54beca05b48c4c31f5836b3fb35194b8d73bf907d795cd6bed65dc6c57ed1edc35dd3f7";
-    utils::common::from_hex_string(rlp_str, rlp_vec);
-    bf = BufferView_t(&rlp_vec.at(0), rlp_vec.size());
+    std::string rlp_str2 = "f8641f851fe5d61a008255f0940000000000000000000000000000000000000000808025a044fe3a9d69cf9c0c55ff8af8867c6e4186c94613e26b8bce1526778088546abda05c37f4d0076b04fef5ac3544ee902cfff1fb17120a667b45ab84587e51105088";
+    std::vector<uint8_t> rlp_vec2;
+    EthTxMessage_t tx_msg2;
+
+    utils::common::from_hex_string(rlp_str2, rlp_vec2);
+    BufferView_t bf2(&rlp_vec2.at(0), rlp_vec2.size());
+
+    eth_validator._parse_transaction(bf2, tx_msg2);
+    eth_validator._verify_transaction_signature(tx_msg2, result);
+    ASSERT_EQ("bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result);
 
     eth_validator.transaction_validation(
         bf,

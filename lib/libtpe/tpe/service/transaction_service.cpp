@@ -398,7 +398,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     bool from_relay
 )
 {
-    unsigned int tx_status, tx_validation_status;
+    TxStatus_t tx_status;
+    TxValidationStatus_t tx_validation_status;
     TxShortIds_t existing_short_ids;
     AssignShortIDResult_t assign_short_id_result = 0;
     SetTransactionContentsResult_t set_transaction_contents_result;
@@ -816,8 +817,8 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     bool from_relay
 )
 {
-    unsigned int tx_status = 0;
-    unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+    TxStatus_t tx_status = 0;
+    TxValidationStatus_t tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
 
     if (removed_transaction(transaction_hash)) {
         tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION | TX_STATUS_IGNORE_SEEN;

@@ -11,13 +11,14 @@ typedef utils::common::BufferView TxContents_t;
 
 typedef std::pair<double, uint64_t> SenderNonceVal_t;
 typedef utils::common::OrderedMap<std::string, SenderNonceVal_t> SenderNonceMap_t;
+typedef size_t TxValidationStatus_t;
 
 
 class AbstractTransactionValidator {
 public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-    virtual size_t transaction_validation(
+    virtual TxValidationStatus_t transaction_validation(
         const TxContents_t& tx,
         const uint64_t min_tx_network_fee,
         const double current_time,

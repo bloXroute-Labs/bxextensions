@@ -12,7 +12,7 @@ typedef utils::protocols::AbstractTransactionValidator AbstractTransactionValida
 
 class BtcTransactionValidator: public AbstractTransactionValidator_t {
 public:
-    size_t transaction_validation(
+    TxValidationStatus_t transaction_validation(
         const TxContents_t& txs_message_contents,
         const uint64_t min_tx_network_fee,
         const double current_time,

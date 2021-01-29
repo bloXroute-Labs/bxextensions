@@ -50,7 +50,7 @@ typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
 typedef std::pair<double, uint64_t> SenderNonceVal_t;
-typedef utils::common::OrderedMap<std::string, SenderNonceVal_t> SenderNonceMap_t;
+typedef utils::crypto::Sha256OrderedMap_t<SenderNonceVal_t> SenderNonceMap_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;

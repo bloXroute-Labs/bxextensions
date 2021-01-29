@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utils/common/byte_array.h>
-#include <utils/common/ordered_map.h>
+#include <utils/crypto/sha256.h>
 #include <memory>
 
 namespace utils {
@@ -10,7 +10,7 @@ namespace protocols {
 typedef utils::common::BufferView TxContents_t;
 
 typedef std::pair<double, uint64_t> SenderNonceVal_t;
-typedef utils::common::OrderedMap<std::string, SenderNonceVal_t> SenderNonceMap_t;
+typedef utils::crypto::Sha256OrderedMap_t<SenderNonceVal_t> SenderNonceMap_t;
 typedef size_t TxValidationStatus_t;
 
 

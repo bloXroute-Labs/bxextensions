@@ -6,14 +6,16 @@
 #include <utils/protocols/ethereum/eth_transaction_validator.h>
 #include <utils/common/string_helper.h>
 #include <utils/crypto/signature.h>
+#include "utils/crypto/sha256.h"
 
+typedef utils::crypto::Sha256 Sha256_t;
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView BufferView_t;
 typedef utils::protocols::ethereum::EthTxMessage EthTxMessage_t;
 typedef utils::protocols::ethereum::EthTransactionValidator EthTransactionValidator_t;
 
 typedef std::pair<double, uint64_t> SenderNonceVal_t;
-typedef utils::common::OrderedMap<std::string, SenderNonceVal_t> SenderNonceMap_t;
+typedef utils::crypto::Sha256OrderedMap_t<SenderNonceVal_t> SenderNonceMap_t;
 class EthTxMessageTest : public ::testing::Test {
 };
 
@@ -132,7 +134,7 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
 TEST_F(EthTxMessageTest, test_tx_validtor) {
     EthTransactionValidator_t eth_validator;
     SenderNonceMap_t sender_nonce_map;
-    std::string result;
+    Sha256_t result;
 
     std::string rlp_str = "f8641f851faa3b50008255f0940000000000000000000000000000000000000000808026a0820be10a5356d8f020026540fd4c74c5e5ccd8d48f5ef1a71e3564c41f8e593aa0133440688c6c810954225367c9e7bb4d267cf8d15cb0249d4c3660541024e95f";
     std::vector<uint8_t> rlp_vec;
@@ -151,7 +153,7 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
         2,
         1.1
     );
-    ASSERT_EQ("bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result);
+    ASSERT_EQ("000000001f00000000000000bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result.hex_string());
 
     std::string rlp_str2 = "f8641f851fe5d61a008255f0940000000000000000000000000000000000000000808025a044fe3a9d69cf9c0c55ff8af8867c6e4186c94613e26b8bce1526778088546abda05c37f4d0076b04fef5ac3544ee902cfff1fb17120a667b45ab84587e51105088";
     std::vector<uint8_t> rlp_vec2;
@@ -162,7 +164,7 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
 
     eth_validator._parse_transaction(bf2, tx_msg2);
     eth_validator._verify_transaction_signature(tx_msg2, result);
-    ASSERT_EQ("bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result);
+    ASSERT_EQ("000000001f00000000000000bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result.hex_string());
 
     eth_validator.transaction_validation(
         bf,

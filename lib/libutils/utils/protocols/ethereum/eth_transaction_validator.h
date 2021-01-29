@@ -15,7 +15,7 @@ typedef utils::protocols::ethereum::EthTxMessage EthTxMessage_t;
 class EthTransactionValidator: public AbstractTransactionValidator_t {
 public:
     bool _parse_transaction(const TxContents_t& txs_message_contents, EthTxMessage_t& tx_msg) const;
-    bool _verify_transaction_signature(EthTxMessage tx_msg, std::string& from_address) const;
+    bool _verify_transaction_signature(EthTxMessage tx_msg, Sha256_t& sender_nonce_key) const;
     TxValidationStatus_t transaction_validation(
         const TxContents_t& txs_message_contents,
         const uint64_t min_tx_network_fee,

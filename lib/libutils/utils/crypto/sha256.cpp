@@ -141,6 +141,13 @@ Sha256::Sha256(Sha256&& other) noexcept: _binary() {
 	_hash = other._hash;
 }
 
+Sha256::Sha256(const Sha256& other, size_t nonce): _binary() {
+	_binary.fill(0);
+	memcpy(_binary.data() + SHA256_BINARY_SIZE - 20 - sizeof(size_t), (void *)&nonce, sizeof(size_t));
+	memcpy(_binary.data() + SHA256_BINARY_SIZE - 20, other._binary.data() + SHA256_BINARY_SIZE - 20, 20);
+	_hash = get_hash(_binary);
+}
+
 Sha256::Sha256(const Sha256Binary_t& sha): _binary(sha) {
     _hash = get_hash(_binary);
 }

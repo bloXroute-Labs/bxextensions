@@ -6,7 +6,7 @@ namespace utils {
 namespace protocols {
 namespace ethereum {
 
-bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg, std::string& from_address) const
+bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg, Sha256_t& sender_nonce_key) const
 {
     try {
         utils::crypto::Signature signature;
@@ -15,7 +15,7 @@ bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg,
         Sha256_t msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
         std::vector<uint8_t> public_key = signature.recover(msg_hash);
         Sha256_t address = utils::crypto::keccak_sha3(public_key.data(), 0, public_key.size());
-        from_address = common::to_hex_string(BufferView_t(address.binary(), 20, address.size() - 20));
+        sender_nonce_key = Sha256_t(address, tx_msg.nonce());
 
         return signature.verify(public_key, unsigned_msg);
     } catch (...) {
@@ -50,12 +50,11 @@ TxValidationStatus_t EthTransactionValidator::transaction_validation (
 ) const
 {
     EthTxMessage_t tx_msg;
-    std::string sender_nonce;
+    Sha256_t sender_nonce;
     if ( _parse_transaction(txs_message_contents, tx_msg) ) {
         if (_verify_transaction_signature(tx_msg, sender_nonce)) {
             uint64_t curr_gas_price = tx_msg.gas_price();
             if (tx_msg.gas_price() >= min_tx_network_fee) {
-                sender_nonce += ":" + std::to_string(tx_msg.nonce());
                 if (current_time > 0.0) {
                     auto iter = sender_nonce_map.find(sender_nonce);
                     if (iter != sender_nonce_map.end()) {

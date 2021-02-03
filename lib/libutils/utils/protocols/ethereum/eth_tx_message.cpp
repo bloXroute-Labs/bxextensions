@@ -75,12 +75,7 @@ std::vector<uint8_t> EthTxMessage::get_unsigned_msg() {
             unsigned_msg, unsigned_msg_len + 3, 0
         );
         unsigned_msg.resize(rlp_len + unsigned_msg_len + 3);
-        if ( _v % 2 == 0 ) {
-            unsigned_msg[rlp_len + unsigned_msg_len] = V_RANGE_END;
-        } else {
-            unsigned_msg[rlp_len + unsigned_msg_len] = V_RANGE_START;
-        }
-
+        unsigned_msg[rlp_len + unsigned_msg_len] = _get_chainid();
         unsigned_msg[rlp_len + unsigned_msg_len + 1] = 0x80; // = r
         unsigned_msg[rlp_len + unsigned_msg_len + 2] = 0x80; // = s
     } else {
@@ -170,6 +165,13 @@ const Sha256_t& EthTxMessage::hash() const {
 }
 
 
+uint8_t EthTxMessage::_get_chainid() const {
+    uint8_t v = _v;
+    if ((v % 2) == 0) {
+        v -= 1;
+    }
+    return uint8_t((v - EIP155_CHAIN_ID_OFFSET)/2);
+}
 
 } // ethereum
 } // protocols

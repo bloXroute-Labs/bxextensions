@@ -34,6 +34,7 @@ class EthTxMessage {
 protected:
     bool _deserialize_int(Rlp_t&);
     bool _deserialize_string(size_t, size_t);
+    uint8_t _get_chainid() const;
 public:
     size_t decode(const BufferView_t& msg_buf, size_t offset);
     bool deserialize();

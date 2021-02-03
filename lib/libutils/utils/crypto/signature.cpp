@@ -32,10 +32,10 @@ void Signature::encode_signature(
     _signature.resize(SIGNATURE_LEN);
     std::fill(_signature.begin(), _signature.begin() + SIGNATURE_LEN, 0);
     _signature.insert(
-        _signature.begin() + MAX_R_SIZE - r.size(), r.begin(), r.begin() + r.size()
+        _signature.begin() + MAX_R_SIZE - r.size(), r.begin(), r.end()
     );
     _signature.insert(
-        _signature.begin() + MAX_R_SIZE + MAX_T_SIZE - s.size(), s.begin(), s.begin() + s.size()
+        _signature.begin() + MAX_R_SIZE + MAX_T_SIZE - s.size(), s.begin(), s.end()
     );
     _signature[64] = v;
     _signature.resize(SIGNATURE_LEN);

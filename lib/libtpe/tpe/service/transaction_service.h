@@ -49,6 +49,8 @@ typedef std::vector<PSha256_t> UnknownTxHashes_t;
 typedef std::pair<size_t, ShortIDs_t> TrackSeenResult_t;
 typedef utils::crypto::Sha256OrderedMap_t<ShortIDs_t> ShortIDsSeenInBlock_t;
 typedef utils::common::OrderedMap<unsigned int, double> ShortIdToTime_t;
+typedef std::pair<double, uint64_t> SenderNonceVal_t;
+typedef utils::crypto::Sha256OrderedMap_t<SenderNonceVal_t> SenderNonceMap_t;
 typedef utils::common::AbstractValueTracker<PTxContents_t> AbstractValueTracker_t;
 typedef utils::crypto::Sha256OrderedMap_t<double> Sha256ToTime_t;
 typedef bool AssignShortIDResult_t;
@@ -58,8 +60,8 @@ typedef std::shared_ptr<TxsMessageContents_t> PTxsMessageContents_t;
 typedef utils::common::BufferView SearializedShortIds_t;
 typedef utils::protocols::AbstractMessageParser AbstractMessageParser_t;
 typedef utils::protocols::AbstractTransactionValidator AbstractTransactionValidator_t;
-typedef unsigned int TxStatus_t;
-typedef unsigned int TxValidationStatus_t;
+typedef size_t TxStatus_t;
+typedef size_t TxValidationStatus_t;
 
 struct PTxContentsTracker: public AbstractValueTracker_t {
 
@@ -107,7 +109,8 @@ struct Containers {
         short_ids_seen_in_block(),
         short_id_to_assign_time(),
         tx_hash_to_time_removed(),
-        short_id_to_time_removed()
+        short_id_to_time_removed(),
+        sender_nonce_map()
     {
     }
 
@@ -119,13 +122,14 @@ struct Containers {
     ShortIdToTime_t short_id_to_assign_time;
     Sha256ToTime_t tx_hash_to_time_removed;
     ShortIdToTime_t short_id_to_time_removed;
+    SenderNonceMap_t sender_nonce_map;
 };
 
 class TxProcessingResult {
 public:
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status,
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status,
         TxShortIds_t existing_short_ids,
         AssignShortIDResult_t assign_short_id_result,
         SetTransactionContentsResult_t set_transaction_contents_result,
@@ -141,8 +145,8 @@ public:
     }
 
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status,
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status,
         SetTransactionContentsResult_t set_transaction_contents_result,
         bool contents_set
         ) : _tx_status(tx_status),
@@ -155,8 +159,8 @@ public:
     }
 
     TxProcessingResult(
-        unsigned int tx_status,
-        unsigned int tx_validation_status
+        TxStatus_t tx_status,
+        TxValidationStatus_t tx_validation_status
         ) : _tx_status(tx_status),
             _tx_validation_status(tx_validation_status),
             _assign_short_id_result(false),
@@ -166,11 +170,11 @@ public:
     {
     }
 
-    unsigned int get_tx_status() {
+    TxStatus_t get_tx_status() {
         return _tx_status;
     }
 
-    unsigned int get_tx_validation_status() {
+    TxValidationStatus_t get_tx_validation_status() {
         return _tx_validation_status;
     }
 
@@ -195,8 +199,8 @@ public:
     }
 
 private:
-    unsigned int _tx_status;
-    unsigned int _tx_validation_status;
+    TxStatus_t _tx_status;
+    TxValidationStatus_t _tx_validation_status;
     TxShortIds_t _existing_short_ids;
     AssignShortIDResult_t _assign_short_id_result;
     SetTransactionContentsResult_t _set_transaction_contents_result;
@@ -270,7 +274,6 @@ typedef TxFromBdnProcessingResult TxFromBdnProcessingResult_t;
 typedef std::shared_ptr<TxFromBdnProcessingResult> PTxFromBdnProcessingResult_t;
 
 typedef utils::common::BufferView ParsedTxContents_t;
-typedef std::shared_ptr<ParsedTxContents_t> PParsedTxContents_t;
 
 typedef utils::common::ByteArray ByteArray_t;
 typedef std::shared_ptr<ByteArray_t> PByteArray_t;
@@ -283,7 +286,9 @@ public:
         size_t pool_size,
         std::string protocol,
         size_t tx_bucket_capacity = BTC_DEFAULT_TX_BUCKET_SIZE,
-        size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT
+        size_t final_tx_confirmations_count = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT,
+        double allowed_time = ALLOWED_TIME_REUSE_SENDER_NONCE,
+        double allowed_gas_price_factor = ALLOWED_GAS_PRICE_CHANGE_FACTOR_REUSE_SENDER_NONCE
     );
 
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
@@ -341,6 +346,8 @@ public:
     );
 
     void clear();
+    uint64_t clear_sender_nonce(const double time);
+	void set_sender_nonce_reuse_setting(double allowed_time, double allowed_gas_price_factor);
 
     TxProcessingResult_t process_transaction_msg(
         const Sha256_t& transaction_hash,
@@ -379,6 +386,8 @@ private:
     std::string _protocol;
     const AbstractMessageParser_t &_message_parser;
     const AbstractTransactionValidator_t &_tx_validation;
+    double _allowed_time;
+    double _allowed_gas_price_factor;
 
     std::tuple<TxStatus_t , TxValidationStatus_t> _msg_tx_build_tx_status(
         unsigned int short_id,

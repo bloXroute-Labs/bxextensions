@@ -55,6 +55,7 @@ public:
 	explicit Sha256(const std::vector<uint8_t>& sha);
 	Sha256(const Sha256& other);
 	Sha256(Sha256&& other) noexcept;
+    Sha256(const Sha256& other, size_t nonce);
 
 	Sha256& operator =(const Sha256& other);
 	Sha256& operator =(Sha256&& other) noexcept;

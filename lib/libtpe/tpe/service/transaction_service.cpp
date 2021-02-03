@@ -35,17 +35,20 @@ typedef utils::protocols::ontology::OntTransactionValidator OntTransactionValida
 namespace service {
 
 TransactionService::TransactionService(
-        size_t pool_size,
-        std::string protocol,
-        size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
-        size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/
+    size_t pool_size,
+    std::string protocol,
+    size_t tx_bucket_capacity/* = BTC_DEFAULT_TX_BUCKET_SIZE*/,
+    size_t final_tx_confirmations_count/* = DEFAULT_FINAL_TX_CONFIRMATIONS_COUNT*/,
+    double allowed_time/* = ALLOWED_TIME_REUSE_SENDER_NONCE*/,
+    double allowed_gas_price_factor/* = ALLOWED_GAS_PRICE_CHANGE_FACTOR_REUSE_SENDER_NONCE*/
 ):
-		_final_tx_confirmations_count(final_tx_confirmations_count),
-        _containers(pool_size, tx_bucket_capacity),
-        _protocol(std::move(protocol)),
-        _message_parser(_create_message_parser()),
-        _tx_validation(_create_transaction_validator())
+    _final_tx_confirmations_count(final_tx_confirmations_count),
+    _containers(pool_size, tx_bucket_capacity),
+    _protocol(std::move(protocol)),
+    _message_parser(_create_message_parser()),
+    _tx_validation(_create_transaction_validator())
 {
+    set_sender_nonce_reuse_setting(allowed_time, allowed_gas_price_factor);
 }
 
 Sha256ToShortIDsMap_t& TransactionService::get_tx_hash_to_short_ids() {
@@ -395,7 +398,8 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
     bool from_relay
 )
 {
-    unsigned int tx_status, tx_validation_status;
+    TxStatus_t tx_status;
+    TxValidationStatus_t tx_validation_status;
     TxShortIds_t existing_short_ids;
     AssignShortIDResult_t assign_short_id_result = 0;
     SetTransactionContentsResult_t set_transaction_contents_result;
@@ -420,6 +424,16 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
             (TX_VALIDATION_STATUS_INVALID_FORMAT | TX_VALIDATION_STATUS_INVALID_SIGNATURE)
             )
         ) {
+        TxProcessingResult_t ignore_seen_result(
+            tx_status,
+            tx_validation_status);
+        return ignore_seen_result;
+    }
+
+    if (not has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and
+            has_status_flag(tx_validation_status, TX_VALIDATION_STATUS_REUSE_SENDER_NONCE)
+        ) {
+        tx_status |= TX_STATUS_IGNORE_SEEN;
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
@@ -530,6 +544,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     bool enable_transaction_validation
 )
 {
+    TxsMessageContents_t message_contents = *txs_message_contents;
     ParsedTransactions_t parsed_transactions = _message_parser.parse_transactions_message(txs_message_contents);
 
     size_t total_result_size = 0;
@@ -546,29 +561,33 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     offset = utils::common::set_little_endian_value(*result_buffer, uint32_t(parsed_transactions.size()), offset);
     for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
         const Sha256_t &transaction_hash = parsed_transaction.transaction_hash;
-        TxsMessageContents_t message_contents = *txs_message_contents;
 
         const bool seen_transaction =
                 has_transaction_contents(transaction_hash)
                 or removed_transaction(transaction_hash);
 
+        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
         ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
             message_contents,
             parsed_transaction.length,
-            parsed_transaction.offset);
+            parsed_transaction.offset
+        );
+
+        if (enable_transaction_validation) {
+            tx_validation_status = _tx_validation.transaction_validation(
+                BufferCopy_t(tx_contents_copy),
+                min_tx_network_fee,
+                0.0,
+                (SenderNonceMap_t &) _containers.sender_nonce_map,
+                _allowed_time,
+                _allowed_gas_price_factor
+            );
+        }
 
         if ( !seen_transaction ) {
             set_transaction_contents(
                 transaction_hash,
-                std::make_shared<BufferCopy_t>(std::move(tx_contents_copy))
-            );
-        }
-
-        unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
-        if (enable_transaction_validation) {
-            tx_validation_status = _tx_validation.transaction_validation(
-                std::make_shared<BufferCopy_t>(std::move(tx_contents_copy)),
-                min_tx_network_fee
+                std::make_shared<BufferCopy_t>(tx_contents_copy)
             );
         }
 
@@ -798,15 +817,15 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
     bool from_relay
 )
 {
-    unsigned int tx_status = 0;
-    unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
+    TxStatus_t tx_status = 0;
+    TxValidationStatus_t tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
 
     if (removed_transaction(transaction_hash)) {
         tx_status |= TX_STATUS_SEEN_REMOVED_TRANSACTION | TX_STATUS_IGNORE_SEEN;
     }
     else if ( timestamp != NULL_TX_TIMESTAMP and
               current_time - timestamp > MAX_TRANSACTION_ELAPSED_TIME_S and
-              ! from_relay ) {
+              ! from_relay) {
         tx_status |= TX_STATUS_TIMED_OUT;
     }
     else {
@@ -866,11 +885,19 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
         }
 
         if (
-            ! has_status_flag(tx_status, TX_STATUS_IGNORE_SEEN) and
+            enable_transaction_validation and
             has_status_flag(tx_status, TX_STATUS_MSG_HAS_CONTENT) and
-            enable_transaction_validation
+            ! has_status_flag(tx_status, TX_STATUS_SEEN_CONTENT) and
+            ! has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID)
             ) {
-            tx_validation_status = _tx_validation.transaction_validation(transaction_contents, min_tx_network_fee);
+            tx_validation_status = _tx_validation.transaction_validation(
+                *transaction_contents,
+                min_tx_network_fee,
+                current_time,
+                _containers.sender_nonce_map,
+                _allowed_time,
+                _allowed_gas_price_factor
+            );
         }
     }
     return std::make_tuple(tx_status, tx_validation_status);
@@ -906,5 +933,31 @@ const AbstractTransactionValidator_t& TransactionService::_create_transaction_va
     }
 
     throw std::runtime_error("Transaction validator is not available for provided protocol");
+}
+
+void TransactionService::set_sender_nonce_reuse_setting(double allowed_time, double allowed_gas_price_factor)
+{
+    _allowed_time = allowed_time;
+    _allowed_gas_price_factor = allowed_gas_price_factor;
+}
+
+
+uint64_t TransactionService::clear_sender_nonce(const double time)
+{
+    uint64_t cleared_items = 0;
+    SenderNonceMap_t::iterator iter;
+    bool continue_clear = true;
+    while (_containers.sender_nonce_map.size() > 0 and continue_clear) {
+        iter = _containers.sender_nonce_map.begin();
+
+        if (iter->second.first <= time) {
+            _containers.sender_nonce_map.erase(iter->first);
+            cleared_items++;
+        }
+        else {
+            continue_clear = false;
+        }
+    }
+    return cleared_items;
 }
 } // service

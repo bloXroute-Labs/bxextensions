@@ -80,6 +80,8 @@ public:
 	size_t size() const;
 
 	void* ptr();
+	friend std::ostream& operator <<(std::ostream& out, const BufferView& buf);
+	size_t get_offset() const;
 
 protected:
 	void _set_buffer(const uint8_t* buffer, size_t size);

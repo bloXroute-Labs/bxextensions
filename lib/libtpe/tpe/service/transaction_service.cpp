@@ -122,7 +122,7 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     }
     buffer->resize(current_pos);
     buffer->set_output();
-    return buffer;
+    return std::move(buffer);
 }
 
 TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {
@@ -602,7 +602,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     parsed_transactions.clear();
 
     result_buffer->set_output();
-    return result_buffer;
+    return std::move(result_buffer);
 }
 
 PByteArray_t TransactionService::get_transactions_by_short_ids(const SearializedShortIds_t& msg) {
@@ -674,7 +674,7 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
-    return result_buffer;
+    return std::move(result_buffer);
 }
 
 PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
@@ -735,7 +735,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
 
     buffer->resize(output_buff_offset);
     buffer->set_output();
-    return buffer;
+    return std::move(buffer);
 }
 
 

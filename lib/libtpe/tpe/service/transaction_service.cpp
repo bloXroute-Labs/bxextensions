@@ -122,7 +122,7 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     }
     buffer->resize(current_pos);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {
@@ -427,7 +427,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
-        return ignore_seen_result;
+        return std::move(ignore_seen_result);
     }
 
     if (not has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and
@@ -437,7 +437,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
-        return ignore_seen_result;
+        return std::move(ignore_seen_result);
     }
 
     if (
@@ -454,7 +454,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
             tx_validation_status,
             set_transaction_contents_result,
             contents_set);
-        return low_fee_result;
+        return std::move(low_fee_result);
     }
 
     if (has_status_flag(tx_status, TX_STATUS_SEEN_HASH)) {
@@ -475,7 +475,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         set_transaction_contents_result,
         contents_set,
         short_id_assigned);
-    return result;
+    return std::move(result);
 }
 
 TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
@@ -602,7 +602,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     parsed_transactions.clear();
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::get_transactions_by_short_ids(const SearializedShortIds_t& msg) {
@@ -674,7 +674,7 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
@@ -735,7 +735,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
 
     buffer->resize(output_buff_offset);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 

@@ -36,6 +36,7 @@ typedef utils::common::BufferCopy BufferCopy_t;
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
+typedef std::shared_ptr<BufferCopy_t> PTxContentsCopy_t;
 typedef utils::common::BufferView TxsMsg_t;
 typedef std::shared_ptr<TxsMsg_t> PTxsMsg_t;
 typedef utils::common::ByteArray TxSyncTxs_t;

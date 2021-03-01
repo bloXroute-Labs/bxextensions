@@ -25,15 +25,17 @@ bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg,
 }
 
 bool EthTransactionValidator::_parse_transaction(
-    const TxContents_t& txs_message_contents, EthTxMessage_t& tx_msg
+    const PTxContents_t& txs_message_contents, EthTxMessage_t& tx_msg
 ) const
 {
     try {
-        tx_msg.decode(txs_message_contents, 0);
-        if ( ! tx_msg.deserialize() ) {
-            return false;
+        if (tx_msg.decode(*txs_message_contents, 0)) {
+            if (!tx_msg.deserialize()) {
+                return false;
+            }
+            return true;
         }
-        return true;
+        return false;
     } catch (...) {
         // TODO catch a better exception
         return false;
@@ -41,7 +43,7 @@ bool EthTransactionValidator::_parse_transaction(
 }
 
 TxValidationStatus_t EthTransactionValidator::transaction_validation (
-    const TxContents_t& txs_message_contents,
+    const PTxContents_t txs_message_contents,
     const uint64_t min_tx_network_fee,
     const double current_time,
     SenderNonceMap_t& sender_nonce_map,
@@ -64,6 +66,7 @@ TxValidationStatus_t EthTransactionValidator::transaction_validation (
                             return TX_VALIDATION_STATUS_REUSE_SENDER_NONCE;
                         }
                     }
+
                     sender_nonce_map.emplace(
                         sender_nonce,
                         std::pair<double, uint64_t>(

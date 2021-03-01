@@ -122,7 +122,7 @@ PTxSyncTxs_t TransactionService::get_tx_sync_buffer(size_t all_txs_content_size,
     }
     buffer->resize(current_pos);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 TxNotSeenInBlocks_t& TransactionService::tx_not_seen_in_blocks() {
@@ -427,7 +427,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
-        return ignore_seen_result;
+        return std::move(ignore_seen_result);
     }
 
     if (not has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID) and
@@ -437,7 +437,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         TxProcessingResult_t ignore_seen_result(
             tx_status,
             tx_validation_status);
-        return ignore_seen_result;
+        return std::move(ignore_seen_result);
     }
 
     if (
@@ -454,13 +454,12 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
             tx_validation_status,
             set_transaction_contents_result,
             contents_set);
-        return low_fee_result;
+        return std::move(low_fee_result);
     }
 
     if (has_status_flag(tx_status, TX_STATUS_SEEN_HASH)) {
         existing_short_ids = _containers.tx_hash_to_short_ids[transaction_hash];
     }
-
 
     if (has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID)) {
         assign_short_id_result = assign_short_id(transaction_hash, short_id);
@@ -475,7 +474,7 @@ TxProcessingResult_t TransactionService::process_transaction_msg(
         set_transaction_contents_result,
         contents_set,
         short_id_assigned);
-    return result;
+    return std::move(result);
 }
 
 TxFromBdnProcessingResult_t TransactionService::process_gateway_transaction_from_bdn(
@@ -544,8 +543,8 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     bool enable_transaction_validation
 )
 {
-    TxsMessageContents_t message_contents = *txs_message_contents;
     ParsedTransactions_t parsed_transactions = _message_parser.parse_transactions_message(txs_message_contents);
+    TxsMessageContents_t message_contents = *txs_message_contents;
 
     size_t total_result_size = 0;
 
@@ -567,27 +566,28 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
                 or removed_transaction(transaction_hash);
 
         unsigned int tx_validation_status = TX_VALIDATION_STATUS_VALID_TX;
-        ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
-            message_contents,
-            parsed_transaction.length,
-            parsed_transaction.offset
-        );
-
-        if (enable_transaction_validation) {
-            tx_validation_status = _tx_validation.transaction_validation(
-                BufferCopy_t(tx_contents_copy),
-                min_tx_network_fee,
-                0.0,
-                (SenderNonceMap_t &) _containers.sender_nonce_map,
-                _allowed_time,
-                _allowed_gas_price_factor
-            );
-        }
 
         if ( !seen_transaction ) {
+            ParsedTxContents_t tx_contents_copy = ParsedTxContents_t(
+                    message_contents,
+                    parsed_transaction.length,
+                    parsed_transaction.offset);
+            PTxContents_t tx_contents_copy_ptr = std::make_shared<BufferCopy_t>(std::move(tx_contents_copy));
+
+            if (enable_transaction_validation) {
+                tx_validation_status = _tx_validation.transaction_validation(
+                    tx_contents_copy_ptr,
+                    min_tx_network_fee,
+                    0.0,
+                    (SenderNonceMap_t &) _containers.sender_nonce_map,
+                    _allowed_time,
+                    _allowed_gas_price_factor
+                );
+            }
+
             set_transaction_contents(
                 transaction_hash,
-                std::make_shared<BufferCopy_t>(tx_contents_copy)
+                std::move(tx_contents_copy_ptr)
             );
         }
 
@@ -602,7 +602,7 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     parsed_transactions.clear();
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::get_transactions_by_short_ids(const SearializedShortIds_t& msg) {
@@ -674,7 +674,7 @@ PByteArray_t TransactionService::get_transactions_by_short_ids(const Searialized
     result_buffer->copy_from_array(missing_buffer.array(), found_offset, 0, missing_buffer.size());
 
     result_buffer->set_output();
-    return std::move(result_buffer);
+    return result_buffer;
 }
 
 PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
@@ -735,7 +735,7 @@ PByteArray_t TransactionService::process_txs_msg(const TxsMsg_t& msg) {
 
     buffer->resize(output_buff_offset);
     buffer->set_output();
-    return std::move(buffer);
+    return buffer;
 }
 
 
@@ -891,7 +891,7 @@ std::tuple<TxStatus_t , TxValidationStatus_t> TransactionService::_msg_tx_build_
             ! has_status_flag(tx_status, TX_STATUS_MSG_HAS_SHORT_ID)
             ) {
             tx_validation_status = _tx_validation.transaction_validation(
-                *transaction_contents,
+                transaction_contents,
                 min_tx_network_fee,
                 current_time,
                 _containers.sender_nonce_map,

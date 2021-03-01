@@ -11,6 +11,8 @@
 typedef utils::crypto::Sha256 Sha256_t;
 typedef utils::common::ByteArray ByteArray_t;
 typedef utils::common::BufferView BufferView_t;
+typedef utils::common::BufferView TxContents_t;
+typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef utils::protocols::ethereum::EthTxMessage EthTxMessage_t;
 typedef utils::protocols::ethereum::EthTransactionValidator EthTransactionValidator_t;
 
@@ -143,10 +145,10 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     utils::common::from_hex_string(rlp_str, rlp_vec);
     BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
 
-    eth_validator._parse_transaction(bf, tx_msg);
+    eth_validator._parse_transaction(std::make_shared<TxContents_t>(bf), tx_msg);
     eth_validator._verify_transaction_signature(tx_msg, result);
     eth_validator.transaction_validation(
-        bf,
+        std::make_shared<TxContents_t>(bf),
         0,
         0.1,
         sender_nonce_map,
@@ -162,12 +164,12 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
     utils::common::from_hex_string(rlp_str2, rlp_vec2);
     BufferView_t bf2(&rlp_vec2.at(0), rlp_vec2.size());
 
-    eth_validator._parse_transaction(bf2, tx_msg2);
+    eth_validator._parse_transaction(std::make_shared<TxContents_t>(bf2), tx_msg2);
     eth_validator._verify_transaction_signature(tx_msg2, result);
     ASSERT_EQ("000000001f00000000000000bbdef5f330f08afd93a7696f4ea79af4a41d0f80", result.hex_string());
 
     eth_validator.transaction_validation(
-        bf,
+        std::make_shared<TxContents_t>(bf2),
         0,
         0.2,
         sender_nonce_map,

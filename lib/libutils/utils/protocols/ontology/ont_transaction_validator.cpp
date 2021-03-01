@@ -7,7 +7,7 @@ namespace ontology {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 TxValidationStatus_t OntTransactionValidator::transaction_validation(
-    const TxContents_t& txs_message_contents,
+    const PTxContents_t txs_message_contents,
     const uint64_t min_tx_network_fee,
     const double current_time,
     SenderNonceMap_t& sender_nonce_map,

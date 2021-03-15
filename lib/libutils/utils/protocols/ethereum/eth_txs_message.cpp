@@ -9,14 +9,16 @@ namespace ethereum {
 size_t EthTxsMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     uint64_t length;
     offset = encoding::consume_length_prefix(msg_buf, length, offset);
+    size_t _offset = 0;
     size_t end = offset + length;
     while (offset < end) {
         EthTxMessage tx;
-        offset = tx.decode(msg_buf, offset);
-        if (offset == 0) {
+        _offset = tx.decode(msg_buf, offset);
+        if (_offset == offset) {
             throw std::runtime_error("bad transaction RLP!"); // TODO: throw proper exception here.
         }
         _transactions.push_back(std::move(tx));
+        offset = _offset;
     }
     return end;
 }

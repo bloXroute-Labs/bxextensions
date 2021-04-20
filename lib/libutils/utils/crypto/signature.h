@@ -17,7 +17,11 @@ namespace crypto {
 class Signature {
 public:
     void encode_signature(
-        uint64_t v, const std::vector<uint8_t>& r, const std::vector<uint8_t>& s
+        const uint64_t v,
+        const std::vector<uint8_t>& r,
+        const std::vector<uint8_t>& s,
+        const char payload_type,
+        const uint8_t y_parity
     );
     bool verify(const std::vector<uint8_t>&, std::vector<uint8_t>);
     std::vector<uint8_t> recover(Sha256);

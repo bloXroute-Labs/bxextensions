@@ -1,4 +1,3 @@
-#include <utility>
 #include <assert.h>
 
 extern "C" {
@@ -6,29 +5,37 @@ extern "C" {
 }
 
 #include "utils/crypto/signature.h"
-#include <openssl/sha.h>
 
 namespace utils {
 namespace crypto {
 
 void Signature::encode_signature(
-    uint64_t v, const std::vector<uint8_t>& r, const std::vector<uint8_t>& s
+    const uint64_t v,
+    const std::vector<uint8_t>& r,
+    const std::vector<uint8_t>& s,
+    const char payload_type,
+    const uint8_t y_parity
 )
 {
-    _signature.clear();
-    if ( v > EIP155_CHAIN_ID_OFFSET ) {
-        if ( v % 2 == 0 ) {
-            v = V_RANGE_END;
+    uint8_t parity;
+    if (payload_type == ETH_TX_TYPE_0) {
+        if (v > EIP155_CHAIN_ID_OFFSET) {
+            if (v % 2 == 0) {
+                parity = V_RANGE_END;
+            } else {
+                parity = V_RANGE_START;
+            }
         } else {
-            v = V_RANGE_START;
+            parity = uint8_t(v - 27);
         }
-    } else {
-        v = v - 27;
+
+        if (parity != V_RANGE_START and parity != V_RANGE_END) {
+            throw std::runtime_error("v is expected to be int or long in range (27, 28)"); // TODO
+        }
+    } else if (payload_type == ETH_TX_TYPE_1) {
+        parity = y_parity;
     }
 
-    if ( v != V_RANGE_START and v != V_RANGE_END ) {
-        throw std::runtime_error("v is expected to be int or long in range (27, 28)"); // TODO
-    }
     _signature.resize(SIGNATURE_LEN);
     std::fill(_signature.begin(), _signature.begin() + SIGNATURE_LEN, 0);
     _signature.insert(
@@ -37,7 +44,7 @@ void Signature::encode_signature(
     _signature.insert(
         _signature.begin() + MAX_R_SIZE + MAX_T_SIZE - s.size(), s.begin(), s.end()
     );
-    _signature[64] = v;
+    _signature[64] = parity;
     _signature.resize(SIGNATURE_LEN);
 }
 

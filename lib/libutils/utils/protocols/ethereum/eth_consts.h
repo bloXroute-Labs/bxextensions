@@ -17,6 +17,7 @@
 #define SIGNATURE_LEN 65
 #define MAX_R_SIZE 32
 #define MAX_T_SIZE 32
-
+#define ETH_TX_TYPE_0 0x00
+#define ETH_TX_TYPE_1 0x01
 
 #endif //UTILS_PROTOCOLS_ETHEREUM_ETH_CONSTS_H

@@ -61,7 +61,7 @@ RlpList Rlp::get_rlp_list() {
     size_t offset;
     size_t end_offset;
 
-    if ( _val_offset == 0 and _length == 0 ) {
+    if ( _length == 0 ) {
         offset = consume_length_prefix(_rlp, _length, _rlp_starting_offset);
         _val_offset = offset - _rlp_starting_offset;
     } else {

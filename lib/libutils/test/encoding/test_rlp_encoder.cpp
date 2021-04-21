@@ -50,10 +50,11 @@ TEST_F(RlpEncoderTest, test_encode_int_long_long) {
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_0) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0x81, 0x00};
     array().from_array(vec);
     EXPECT_THROW(
-            utils::encoding::consume_length_prefix(array(), length, 0),
+            utils::encoding::consume_length_prefix(array(), length, rlp_type, 0),
             utils::exception::ParserError
     );
 
@@ -61,45 +62,50 @@ TEST_F(RlpEncoderTest, test_consume_length_prefix_0) {
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_1) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0xc2, 0x80, 0x80};
     array().from_array(vec);
-    size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
+    size_t offset = utils::encoding::consume_length_prefix(array(), length, rlp_type, 0);
     ASSERT_EQ(length, 2);
     ASSERT_EQ(offset, 1);
 }
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_2) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0xb8, 0x38};
     array().from_array(vec);
-    size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
+    size_t offset = utils::encoding::consume_length_prefix(array(), length, rlp_type, 0);
     ASSERT_EQ(length, 56);
     ASSERT_EQ(offset, 2);
 }
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_3) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0xb8, 0x80};
     array().from_array(vec);
-    size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
+    size_t offset = utils::encoding::consume_length_prefix(array(), length, rlp_type, 0);
     ASSERT_EQ(length, 128);
     ASSERT_EQ(offset, 2);
 }
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_4) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0xb9, 0x04, 0x00};
     array().from_array(vec);
-    size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
+    size_t offset = utils::encoding::consume_length_prefix(array(), length, rlp_type, 0);
     ASSERT_EQ(length, 1024);
     ASSERT_EQ(offset, 3);
 }
 
 TEST_F(RlpEncoderTest, test_consume_length_prefix_5) {
     uint64_t length = 0;
+    uint8_t rlp_type;
     const std::vector<uint8_t> vec = {0xb9, 0x04, 0x00};
     array().from_array(vec);
-    size_t offset = utils::encoding::consume_length_prefix(array(), length, 0);
+    size_t offset = utils::encoding::consume_length_prefix(array(), length, rlp_type, 0);
     ASSERT_EQ(length, 1024);
     ASSERT_EQ(offset, 3);
 }

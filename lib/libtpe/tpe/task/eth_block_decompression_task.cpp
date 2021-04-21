@@ -156,6 +156,7 @@ size_t EthBlockDecompressionTask::_dispatch(
     while (offset < txn_end_offset) {
         size_t tx_content_offset;
         uint64_t tx_content_len = 0;
+        uint8_t rlp_type;
         auto& tdata = _sub_tasks[idx]->task_data();
         idx = std::min((size_t) (_txn_count / bulk_size), pool_size - 1);
 
@@ -179,7 +180,7 @@ size_t EthBlockDecompressionTask::_dispatch(
         } else {
             ++tx_content_offset;
             tx_content_offset = utils::encoding::consume_length_prefix(
-                *_block_buffer, tx_content_len, tx_content_offset
+                *_block_buffer, tx_content_len, rlp_type, tx_content_offset
             );
             output_offset += tx_content_len;
         }

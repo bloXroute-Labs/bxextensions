@@ -292,6 +292,8 @@ public:
         double allowed_gas_price_factor = ALLOWED_GAS_PRICE_CHANGE_FACTOR_REUSE_SENDER_NONCE
     );
 
+    TransactionService(const TransactionService& other);
+
 	Sha256ToShortIDsMap_t& get_tx_hash_to_short_ids();
 	ShortIDToSha256Map_t& get_short_id_to_tx_hash();
 	PTxSyncTxs_t get_tx_sync_buffer(size_t all_txs_content_size, bool sync_tx_content);

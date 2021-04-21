@@ -15,7 +15,7 @@ typedef utils::common::ByteArray ByteArray_t;
 size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     const size_t from = offset;
     Rlp_t rlp;
-    if (msg_buf.at(from) >= 0xc0 and msg_buf.at(from) <= 0xfe) {
+    if (msg_buf.at(from) >= START_RANGE_ETH_LEGACY_TX and msg_buf.at(from) <= END_RANGE_ETH_LEGACY_TX) {
         // legacy ETH transaction - https://eips.ethereum.org/EIPS/eip-2718
         _payload_type = ETH_TX_TYPE_0;
     }

@@ -46,6 +46,7 @@ private:
     size_t _val_offset;
     size_t _rlp_starting_offset;
     uint64_t _length;
+    uint8_t _rlp_type;
 };
 
 } // encoding

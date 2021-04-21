@@ -46,9 +46,22 @@ TransactionService::TransactionService(
     _containers(pool_size, tx_bucket_capacity),
     _protocol(std::move(protocol)),
     _message_parser(_create_message_parser()),
-    _tx_validation(_create_transaction_validator())
+    _tx_validation(_create_transaction_validator()),
+    _allowed_time(allowed_time),
+    _allowed_gas_price_factor(allowed_gas_price_factor)
 {
     set_sender_nonce_reuse_setting(allowed_time, allowed_gas_price_factor);
+}
+
+TransactionService::TransactionService(const TransactionService& other):
+    _final_tx_confirmations_count(other._final_tx_confirmations_count),
+    _containers(100, 100),
+    _protocol(other._protocol),
+    _message_parser(other._message_parser),
+    _tx_validation(other._tx_validation),
+    _allowed_time(other._allowed_time),
+    _allowed_gas_price_factor(other._allowed_gas_price_factor)
+{
 }
 
 Sha256ToShortIDsMap_t& TransactionService::get_tx_hash_to_short_ids() {
@@ -546,13 +559,8 @@ PByteArray_t TransactionService::process_gateway_transaction_from_node(
     ParsedTransactions_t parsed_transactions = _message_parser.parse_transactions_message(txs_message_contents);
     TxsMessageContents_t message_contents = *txs_message_contents;
 
-    size_t total_result_size = 0;
-
-    for (const ParsedTransaction_t &parsed_transaction: parsed_transactions) {
-        total_result_size += parsed_transaction.length;
-    }
-    total_result_size += TX_COUNT_LEN +
-                         parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN + sizeof(uint32_t));
+    size_t total_result_size = TX_COUNT_LEN +
+        parsed_transactions.size() * (SHA256_LEN + SEEN_FLAG_LEN + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t));
 
     PByteArray_t result_buffer = std::make_shared<ByteArray_t>(total_result_size);
 

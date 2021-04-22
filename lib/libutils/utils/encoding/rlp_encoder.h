@@ -112,13 +112,14 @@ size_t consume_length_prefix(const TBuffer& rlp_buf, uint64_t& length, uint8_t& 
     uint8_t b0 = rlp_buf[offset];
     if (b0 < 128) {
         length = 1;
+        rlp_type = RLP_BYTE;
     } else if (b0 < 128 + 56) {
         if ((b0 - 128 == 1) && (rlp_buf[offset + 1] < 128)) {
             throw utils::exception::ParserError();
         }
         length = b0 - 128;
         ++offset;
-        rlp_type = RLP_BYTE;
+        rlp_type = RLP_STRING;
     } else if (b0 < 192) {
         size_t ll = b0 - 128 - 56 + 1;
         if (rlp_buf[offset + 1] == 0x00) {
@@ -132,7 +133,7 @@ size_t consume_length_prefix(const TBuffer& rlp_buf, uint64_t& length, uint8_t& 
     } else if (b0 < 192 + 56) {
         length = b0 - 192;
         ++offset;
-        rlp_type = RLP_STRING;
+        rlp_type = RLP_LIST;
     } else {
         size_t ll = b0 - 192 - 56 + 1;
         if (rlp_buf[offset + 1] == 0x00) {

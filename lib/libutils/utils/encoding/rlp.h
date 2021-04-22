@@ -1,6 +1,7 @@
 #include <vector>
 #include <utils/common/buffer_view.h>
 #include <utils/common/tx_status_consts.h>
+#include <utils/protocols/ethereum/eth_consts.h>
 
 #ifndef UTILS_ENCODING_RLP_H_
 #define UTILS_ENCODING_RLP_H_
@@ -16,9 +17,11 @@ class Rlp {
 public:
     Rlp();
     Rlp(const BufferView_t& rlp);
-    Rlp(const BufferView_t& rlp, uint64_t length, size_t val_offset = 0, size_t rlp_starting_offset = 0);
+    Rlp(const BufferView_t& rlp, size_t rlp_starting_offset = 0);
+    Rlp(const BufferView_t& rlp, uint64_t length, size_t val_offset, size_t rlp_starting_offset, uint8_t rlp_type);
     Rlp(BufferView_t&& rlp);
-    Rlp(BufferView_t&& rlp, uint64_t length, size_t val_offset = 0, size_t rlp_starting_offset = 0);
+    Rlp(BufferView_t&& rlp, size_t rlp_starting_offset = 0);
+    Rlp(BufferView_t&& rlp, uint64_t length, size_t val_offset, size_t rlp_starting_offset, uint8_t rlp_type);
     Rlp(Rlp&& rhs);
     Rlp(const Rlp& rhs);
 
@@ -39,6 +42,7 @@ public:
     uint64_t length() const;
     size_t val_offset() const;
     size_t rlp_starting_offset() const;
+    uint8_t rlp_type() const;
 
 private:
 

@@ -14,27 +14,35 @@ typedef utils::common::ByteArray ByteArray_t;
 
 size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     const size_t from = offset;
-    Rlp_t rlp;
-    if (msg_buf.at(from) >= START_RANGE_ETH_LEGACY_TX and msg_buf.at(from) <= END_RANGE_ETH_LEGACY_TX) {
-        // legacy ETH transaction - https://eips.ethereum.org/EIPS/eip-2718
+    Rlp_t rlp(msg_buf, offset);
+
+    size_t starting_offset_for_hash = offset;
+    size_t payload_len_for_hash = rlp.length();
+    if (rlp.rlp_type() == RLP_LIST) {
         _payload_type = ETH_TX_TYPE_0;
     }
-    else if (msg_buf.at(from) == ETH_TX_TYPE_0) {
-        // New Type transaction, need to skip the first byte
-        _payload_type = ETH_TX_TYPE_0;
-        offset++;
-    }
-    else if (msg_buf.at(from) == ETH_TX_TYPE_1) {
-        // New Type transaction, need to skip the first byte
-        // https://eips.ethereum.org/EIPS/eip-2930
-        _payload_type = ETH_TX_TYPE_1;
-        offset++;
+    else if (rlp.rlp_type() == RLP_STRING ){
+        starting_offset_for_hash = rlp.val_offset();
+        if (rlp.length() < 1) {
+            throw std::runtime_error("ETH Transaction is not valid");
+        }
+        uint8_t tx_type = rlp.payload().at(starting_offset_for_hash);
+        if (tx_type == ETH_TX_TYPE_0) {
+            // for legacy transactions that appear as rlp_string, need to skip the extra byte and not include it in the hash calcuation
+            _payload_type = ETH_TX_TYPE_0;
+            starting_offset_for_hash++;
+        } else if (tx_type == ETH_TX_TYPE_1) {
+            // for access list transactions that appear as rlp_string, need to skip the extra byte and include it in the hash calcuation
+            _payload_type = ETH_TX_TYPE_1;
+            payload_len_for_hash++;
+        } else {
+            throw std::runtime_error("ETH Transaction Type is not valid");
+        }
+        rlp = Rlp_t(msg_buf, rlp.val_offset() + 1);
     }
     else {
         throw std::runtime_error("ETH Transaction is not valid");
     }
-
-    rlp = Rlp_t(msg_buf, 0, 0, offset);
 
     _rlp_list = rlp.get_rlp_list();
     if (_payload_type == ETH_TX_TYPE_0) {
@@ -79,11 +87,9 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
 
         // Old ETH items not in used in this transaction type
         _v = 0;
-
     }
-    offset += rlp.val_offset() + rlp.length();
-    _sha = crypto::keccak_sha3(msg_buf.byte_array(), from, offset - from);
-    return offset;
+    _sha = crypto::keccak_sha3(msg_buf.byte_array(), starting_offset_for_hash, payload_len_for_hash);
+    return rlp.val_offset() + rlp.length();
 }
 
 bool EthTxMessage::deserialize() {

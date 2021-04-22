@@ -21,17 +21,17 @@ ParsedTransactions_t EthMessageParser::parse_transactions_message(PTxsMessageCon
     uint64_t tx_length;
 
     while (offset < end) {
+        Sha256_t hash;
         tx_offset = encoding::consume_length_prefix(*msg_buf, tx_length, rlp_type, offset);
-        if (rlp_type == RLP_STRING) {
+        tx_end = tx_offset + tx_length;
+        if (rlp_type == RLP_LIST) {
+            hash = crypto::keccak_sha3(msg_buf->byte_array(), offset, tx_end - offset);
+        } else {
             // this is new type of ETH transaction post EIP 2718 (EIP-2930 for example), the tx is a string that include
             // single byte || rlp list()
-            // need to skip the rlp encoding (tx_offset - offset)
-            offset = tx_offset;
+            // hash should be calculate on the string content without the rlp encoding
+            hash = crypto::keccak_sha3(msg_buf->byte_array(), tx_offset, tx_end - tx_offset);
         }
-        tx_end = tx_offset + tx_length;
-
-        Sha256_t hash = crypto::keccak_sha3(msg_buf->byte_array(), offset, tx_end - offset);
-
         ParsedTransaction_t parsed_transaction = ParsedTransaction_t(std::move(hash), tx_end - offset, offset);
         transactions.push_back(std::move(parsed_transaction));
 

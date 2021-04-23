@@ -21,7 +21,7 @@ typedef utils::crypto::Sha256OrderedMap_t<SenderNonceVal_t> SenderNonceMap_t;
 class EthTxMessageTest : public ::testing::Test {
 };
 
-TEST_F(EthTxMessageTest, test_tx_decoding) {
+TEST_F(EthTxMessageTest, test_tx_decoding_legacy) {
     std::string rlp_str = "f86b21850bdfd63e0082520894f8044ff824c2dce174b4ee9f958c2a738483189e87093cafac6a80008026a02dbf2ca92baeab4a03cdfae33cbf240065e24e7cc9f7e2a99c3edf6e0c4fc016a029114b3d3b96587d61d5000665537ad12ce43ea18cf87f3e0e3ad1cd003f2715";
     std::vector<uint8_t > rlp_vec;
     utils::common::from_hex_string(rlp_str, rlp_vec);
@@ -32,7 +32,7 @@ TEST_F(EthTxMessageTest, test_tx_decoding) {
     std::string data_str;
     EXPECT_EQ(33, msg.nonce());
     EXPECT_EQ(51000000000, msg.gas_price());
-    EXPECT_EQ(21000, msg.start_gas());
+    EXPECT_EQ(21000, msg.gas_limit());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1,2600000000000000);
     std::vector<uint64_t> values = msg.value();
@@ -43,7 +43,7 @@ TEST_F(EthTxMessageTest, test_tx_decoding) {
     EXPECT_EQ(38, msg.v());
 
     utils::crypto::Signature sig;
-    sig.encode_signature(msg.v(), msg.r(), msg.s());
+    sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
     EXPECT_EQ(65, sig_vec.size());
     EXPECT_EQ('-', sig_vec.at(0));
@@ -52,12 +52,10 @@ TEST_F(EthTxMessageTest, test_tx_decoding) {
     EXPECT_EQ(44, sig_unsigned_vec.size());
     EXPECT_EQ(0xeb, sig_unsigned_vec.at(0));
     EXPECT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
-    std::vector<uint8_t> unsigned_msg = msg.get_unsigned_msg();
-    utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
+    utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(sig_unsigned_vec.data(), 0, sig_unsigned_vec.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
-    ASSERT_TRUE(sig.verify(public_key, unsigned_msg));
+    ASSERT_TRUE(sig.verify(public_key, sig_unsigned_vec));
 }
-
 
 TEST_F(EthTxMessageTest, test_tx_decoding_empty_data) {
     std::string rlp_str = "f8522c830493e0830186a080830f4240801ba05a370e8b7b7c9cb7353de15f20a3a27e98d55cc2459e9e40f0123d2e36a423dca02245d14fc92b226cd558a90df6bf2de81a2314c53d9d7265f2c1687892216291";
@@ -70,7 +68,7 @@ TEST_F(EthTxMessageTest, test_tx_decoding_empty_data) {
     std::string data_str;
     EXPECT_EQ(44, msg.nonce());
     EXPECT_EQ(300000, msg.gas_price());
-    EXPECT_EQ(100000, msg.start_gas());
+    EXPECT_EQ(100000, msg.gas_limit());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1, 1000000);
     std::vector<uint64_t> values = msg.value();
@@ -81,7 +79,7 @@ TEST_F(EthTxMessageTest, test_tx_decoding_empty_data) {
     EXPECT_EQ(27, msg.v());
 
     utils::crypto::Signature sig;
-    sig.encode_signature(msg.v(), msg.r(), msg.s());
+    sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
     EXPECT_EQ(65, sig_vec.size());
     EXPECT_EQ('Z', sig_vec.at(0));
@@ -107,7 +105,7 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
     std::string data_str;
     EXPECT_EQ(0, msg.nonce());
     EXPECT_EQ(5625000000, msg.gas_price());
-    EXPECT_EQ(53000, msg.start_gas());
+    EXPECT_EQ(53000, msg.gas_limit());
     EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1, 0);
     std::vector<uint64_t> values = msg.value();
@@ -118,7 +116,7 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
     EXPECT_EQ(37, msg.v());
 
     utils::crypto::Signature sig;
-    sig.encode_signature(msg.v(), msg.r(), msg.s());
+    sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
     EXPECT_EQ(65, sig_vec.size());
     EXPECT_EQ(';', sig_vec.at(0));
@@ -176,5 +174,82 @@ TEST_F(EthTxMessageTest, test_tx_validtor) {
         2,
         1.1
     );
+}
 
+TEST_F(EthTxMessageTest, test_tx_decoding_type_1) {
+    std::string rlp_str = "b9022401f9022101829237853486ced000830285ee94653911da49db4cdb0b7c3e4d929cfb56024cd4e680b8a48201aa3f000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000083a297567e20f8000000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef000000000000000000000000000000000000000000000358c5ee87d374000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff90111f859940d8775f648430679a709e98d2b0cb6250d2887eff842a01d76467e21923adb4ee07bcae017030c6208bbccde21ff0a61518956ad9b152aa0ec5bfdd140da829800c64d740e802727fca06fadec8b5d82a7b406c811851b55f85994653911da49db4cdb0b7c3e4d929cfb56024cd4e6f842a02a9a57a342e03a2b55a8bef24e9c777df22a7442475b1641875a66dba65855f0a0d0bcf4df132c65dad73803c5e5e1c826f151a3342680034a8a4c8e5f8eb0c13ff85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a01fc85b67921559ce4fef22a331ff00c886678cf8b163d395e45fe0543f8750bda047a365b3ae9dbfa1c60a2cd30347765e914a89b7dac828db3ac3bd3e775b1a9980a0a340fc367050387a1b295514210a48de3836ee7923d9739bf0104e6d79c37997a06e63c7801da3c72f1a53f9b809ae04a45637da673c2a9c47065a1b1cdeafef7d";
+    std::vector<uint8_t > rlp_vec;
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+
+    EthTxMessage_t msg;
+    msg.decode(BufferView_t(&rlp_vec.at(0), rlp_vec.size()), 0);
+    ASSERT_TRUE(msg.deserialize());
+    ASSERT_EQ("9310dc4f07748222d37f43c7296826cf4bf6693fa207968bd7500659ee2cc04d", msg.hash().hex_string() );
+    ASSERT_EQ(37431, msg.nonce());
+    ASSERT_EQ(225600000000, msg.gas_price());
+    ASSERT_EQ(165358, msg.gas_limit());
+    ASSERT_EQ("653911da49db4cdb0b7c3e4d929cfb56024cd4e6", utils::common::to_hex_string(msg.address()));
+    std::vector<uint64_t> expected_values(1,0000000000000000);
+    std::vector<uint64_t> values = msg.value();
+    for (size_t i = 0; i < values.size(); i++) {
+        ASSERT_EQ(expected_values[i], values[i]);
+    }
+    ASSERT_EQ(0, msg.v());
+    ASSERT_EQ(0, msg.y_parity());
+}
+
+TEST_F(EthTxMessageTest, test_tx_signature_validation_type_1) {
+    std::string rlp_str = "b9022401f9022101829237853486ced000830285ee94653911da49db4cdb0b7c3e4d929cfb56024cd4e680b8a48201aa3f000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000083a297567e20f8000000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef000000000000000000000000000000000000000000000358c5ee87d374000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff90111f859940d8775f648430679a709e98d2b0cb6250d2887eff842a01d76467e21923adb4ee07bcae017030c6208bbccde21ff0a61518956ad9b152aa0ec5bfdd140da829800c64d740e802727fca06fadec8b5d82a7b406c811851b55f85994653911da49db4cdb0b7c3e4d929cfb56024cd4e6f842a02a9a57a342e03a2b55a8bef24e9c777df22a7442475b1641875a66dba65855f0a0d0bcf4df132c65dad73803c5e5e1c826f151a3342680034a8a4c8e5f8eb0c13ff85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a01fc85b67921559ce4fef22a331ff00c886678cf8b163d395e45fe0543f8750bda047a365b3ae9dbfa1c60a2cd30347765e914a89b7dac828db3ac3bd3e775b1a9980a0a340fc367050387a1b295514210a48de3836ee7923d9739bf0104e6d79c37997a06e63c7801da3c72f1a53f9b809ae04a45637da673c2a9c47065a1b1cdeafef7d";
+    std::vector<uint8_t > rlp_vec;
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    EthTxMessage_t msg;
+    msg.decode(BufferView_t(&rlp_vec.at(0), rlp_vec.size()), 0);
+    ASSERT_TRUE(msg.deserialize());
+
+    utils::crypto::Signature sig;
+    sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
+    std::vector<uint8_t> sig_vec = sig.signature();
+    EXPECT_EQ(65, sig_vec.size());
+    EXPECT_EQ(163, sig_vec.at(0));
+    EXPECT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
+    std::vector<uint8_t> sig_unsigned_vec = msg.get_unsigned_msg();
+    EXPECT_EQ(482, sig_unsigned_vec.size());
+    EXPECT_EQ(0x01, sig_unsigned_vec.at(0));
+    EXPECT_EQ(0x99, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
+    utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(sig_unsigned_vec.data(), 0, sig_unsigned_vec.size());
+    std::vector<uint8_t> public_key = sig.recover(msg_hash);
+    ASSERT_TRUE(sig.verify(public_key, sig_unsigned_vec));
+}
+
+TEST_F(EthTxMessageTest, test_tx_validtor_type_1) {
+    EthTransactionValidator_t eth_validator;
+    SenderNonceMap_t sender_nonce_map;
+    Sha256_t result;
+
+    std::string rlp_str = "b9022401f9022101829237853486ced000830285ee94653911da49db4cdb0b7c3e4d929cfb56024cd4e680b8a48201aa3f000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000000000000000000000000000000000000000000000083a297567e20f8000000000000000000000000000d8775f648430679a709e98d2b0cb6250d2887ef000000000000000000000000000000000000000000000358c5ee87d374000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff90111f859940d8775f648430679a709e98d2b0cb6250d2887eff842a01d76467e21923adb4ee07bcae017030c6208bbccde21ff0a61518956ad9b152aa0ec5bfdd140da829800c64d740e802727fca06fadec8b5d82a7b406c811851b55f85994653911da49db4cdb0b7c3e4d929cfb56024cd4e6f842a02a9a57a342e03a2b55a8bef24e9c777df22a7442475b1641875a66dba65855f0a0d0bcf4df132c65dad73803c5e5e1c826f151a3342680034a8a4c8e5f8eb0c13ff85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a01fc85b67921559ce4fef22a331ff00c886678cf8b163d395e45fe0543f8750bda047a365b3ae9dbfa1c60a2cd30347765e914a89b7dac828db3ac3bd3e775b1a9980a0a340fc367050387a1b295514210a48de3836ee7923d9739bf0104e6d79c37997a06e63c7801da3c72f1a53f9b809ae04a45637da673c2a9c47065a1b1cdeafef7d";
+    std::vector<uint8_t> rlp_vec;
+    EthTxMessage_t tx_msg;
+
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
+
+    eth_validator._parse_transaction(std::make_shared<TxContents_t>(bf), tx_msg);
+    eth_validator._verify_transaction_signature(tx_msg, result);
+    ASSERT_EQ("0000000037920000000000000087c5900b9bbc051b5f6299f5bce92383273b28", result.hex_string());
+}
+
+TEST_F(EthTxMessageTest, test_tx_validtor_type_1_random_tx) {
+    EthTransactionValidator_t eth_validator;
+    SenderNonceMap_t sender_nonce_map;
+    Sha256_t result;
+
+    std::string rlp_str = "b9022501f9022101827fa38538702a780083029c3294bed340a301b4f07fa7b61ab9e0767faa172f530d80b8a48201aa3f000000000000000000000000c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2000000000000000000000000000000000000000000000000b100e0916e8290000000000000000000000000001f9840a85d5af5bf1d1762f925bdaddc4201f984000000000000000000000000000000000000000000000030383535d293160000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff90111f859941f9840a85d5af5bf1d1762f925bdaddc4201f984f842a077c21c217c9720c8511a68d2827358c857fde45df5e9ca5e32c8c36391a55fdca0852d14247ed022af8681a666e93f715eef53196b26b1c55f800ff8c53a7af1dbf85994bed340a301b4f07fa7b61ab9e0767faa172f530df842a029b1a034bb2081c2fc39d175406b4ff0e9b9b4a6008604cc27c4a43c257539d8a0d0bcf4df132c65dad73803c5e5e1c826f151a3342680034a8a4c8e5f8eb0c13ff85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a0a4b587f9a312bb1e2933f16f83d660ce4065c5ca4acb09859f2fcf70136831eaa0c209eb352a72bc830d8ff6e3bb34742d861e27a1111c497a0a45515cdbaecc5101a0373fa514073f5580fe27ac635693741b931a7d14e8cf0e0f176a5765a3e0f49aa05de7d07fe0cd2a6e848af4d8d03bd9b8cfbc5736407a0c69e565fe716d0afd16";
+    std::vector<uint8_t> rlp_vec;
+    EthTxMessage_t tx_msg;
+
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    BufferView_t bf(&rlp_vec.at(0), rlp_vec.size());
+
+    eth_validator._parse_transaction(std::make_shared<TxContents_t>(bf), tx_msg);
+    ASSERT_TRUE(eth_validator._verify_transaction_signature(tx_msg, result));
 }

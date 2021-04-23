@@ -28,6 +28,7 @@ if [ "${ACTION}" == "build" ] || [ "${ACTION}" == "deploy" ]; then
       DOCKER_FILE="Dockerfile-${os}"
       mkdir -p build/${os}
       mkdir -p release_tag/${TAG}/${os}
+      cp release/MANIFEST.MF release_tag/${TAG}/${os}/
       echo "Building container from $DOCKER_FILE"
       bash_cmd="docker stop bxextensions_${os}; \\
             docker rm -f bxextensions_${os}; \\

@@ -131,11 +131,12 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
     ).count();
     double max_timestamp_for_compression = current_time - _min_tx_age_seconds;
 
+    uint8_t rlp_type;
+    uint64_t tx_item_len;
     while (tx_from < txn_end_offset) {
-        tx_offset = msg.get_next_tx_offset(tx_from);
+        tx_offset = msg.get_next_tx_offset(tx_from, rlp_type);
 
-        uint64_t tx_item_len;
-        size_t tx_item_offset = utils::encoding::consume_length_prefix(*_block_buffer, tx_item_len, tx_from);
+        size_t tx_item_offset = utils::encoding::consume_length_prefix(*_block_buffer, tx_item_len, rlp_type, tx_from);
 
         utils::crypto::Sha256 tx_hash = utils::crypto::Sha256(
             utils::crypto::keccak_sha3(

@@ -10,7 +10,8 @@ bool EthTransactionValidator::_verify_transaction_signature(EthTxMessage tx_msg,
 {
     try {
         utils::crypto::Signature signature;
-        signature.encode_signature(tx_msg.v(), tx_msg.r(), tx_msg.s());
+        char payload_type = tx_msg.payload_type();
+        signature.encode_signature(tx_msg.v(), tx_msg.r(), tx_msg.s(), payload_type, tx_msg.y_parity());
         std::vector<uint8_t> unsigned_msg = tx_msg.get_unsigned_msg();
         Sha256_t msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
         std::vector<uint8_t> public_key = signature.recover(msg_hash);

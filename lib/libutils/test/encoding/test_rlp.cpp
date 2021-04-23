@@ -22,12 +22,13 @@ TEST_F(RlpTest, test_decode) {
     memcpy(array().char_array(), encoded_rlp.c_str(), encoded_rlp.size());
     BufferView_t rlp_buf(array().byte_array(), array().size());
 
-    utils::encoding::Rlp rlp(rlp_buf, 28,1 , 20);
+    utils::encoding::Rlp rlp(rlp_buf,  20);
+    ASSERT_EQ(RLP_LIST, rlp.rlp_type());
     auto rlp_list = rlp.get_rlp_list();
     auto list_iter = list_val.begin();
     ASSERT_EQ(list_val.size(), rlp_list.size());
     for (auto &rlp_item: rlp_list) {
-        EXPECT_EQ(*list_iter, std::string(rlp_item.as_rlp_string().char_array(), rlp_item.length()));
+        ASSERT_EQ(*list_iter, std::string(rlp_item.as_rlp_string().char_array(), rlp_item.length()));
         ++list_iter;
     }
 }

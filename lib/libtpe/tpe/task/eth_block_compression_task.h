@@ -45,7 +45,7 @@ public:
 
     void cleanup() override;
 
-protected:
+//protected:
     void _execute(SubPool_t& sub_pool) override;
 
 private:

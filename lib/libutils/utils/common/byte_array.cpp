@@ -104,7 +104,7 @@ const unsigned char* ByteArray::byte_array() const {
 	return &at(0);
 }
 
-    std::vector<uint8_t>* ByteArray::transfer_ownership() {
+std::vector<uint8_t>* ByteArray::transfer_ownership() {
 	_has_ownership = false;
 	return _array;
 }

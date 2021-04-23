@@ -41,7 +41,8 @@ size_t BxEthBlockMessage::get_next_tx_offset(
 )
 {
     uint64_t len;
-    from = encoding::consume_length_prefix(_buffer, len, offset);
+    uint8_t rlp_type;
+    from = encoding::consume_length_prefix(_buffer, len, rlp_type, offset);
     is_short = _buffer[from] == ETH_SHORT_ID_INDICATOR;
     return from + len;
 }
@@ -69,10 +70,11 @@ size_t BxEthBlockMessage::txn_offset() const {
 void BxEthBlockMessage::parse()
 {
     uint64_t block_item_len, block_header_len, block_txs_len;
+    uint8_t rlp_type;
     size_t short_ids_offset = common::get_little_endian_value<uint64_t >(_buffer, _short_ids_offset, 0);
-    size_t block_item_offset = encoding::consume_length_prefix(_buffer, block_item_len, short_ids_offset);
+    size_t block_item_offset = encoding::consume_length_prefix(_buffer, block_item_len, rlp_type, short_ids_offset);
 
-    size_t block_header_offset = encoding::consume_length_prefix(_buffer, block_header_len, block_item_offset);
+    size_t block_header_offset = encoding::consume_length_prefix(_buffer, block_header_len, rlp_type, block_item_offset);
     _block_header = common::BufferView(
         _buffer, block_header_offset + block_header_len - block_item_offset, block_item_offset
     );
@@ -80,7 +82,7 @@ void BxEthBlockMessage::parse()
         utils::crypto::keccak_sha3((uint8_t*)_block_header.char_array(), 0, _block_header.size())
     );
 
-    _txn_offset = encoding::consume_length_prefix(_buffer, block_txs_len, block_header_offset + block_header_len);
+    _txn_offset = encoding::consume_length_prefix(_buffer, block_txs_len, rlp_type, block_header_offset + block_header_len);
 
     _txn_end_offset = _txn_offset + block_txs_len;
 

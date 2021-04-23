@@ -8,7 +8,9 @@ namespace ethereum {
 
 size_t EthTxsMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     uint64_t length;
-    offset = encoding::consume_length_prefix(msg_buf, length, offset);
+    uint8_t rlp_type;
+
+    offset = encoding::consume_length_prefix(msg_buf, length, rlp_type, offset);
     size_t _offset = 0;
     size_t end = offset + length;
     while (offset < end) {

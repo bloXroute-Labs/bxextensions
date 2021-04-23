@@ -1,4 +1,5 @@
 #include <array>
+#include "utils/protocols/ethereum/eth_consts.h"
 #include "utils/protocols/ethereum/eth_block_message.h"
 #include <utils/encoding/rlp_encoder.h>
 #include <utils/crypto/keccak.h>
@@ -33,9 +34,13 @@ EthBlockMessage& EthBlockMessage::operator =(EthBlockMessage&& rhs) noexcept {
     return *this;
 }
 
-size_t EthBlockMessage::get_next_tx_offset(size_t offset) {
+size_t EthBlockMessage::get_next_tx_offset(size_t offset, uint8_t& rlp_type) {
     uint64_t len;
-    size_t from = encoding::consume_length_prefix(_buffer, len, offset);
+    size_t from = encoding::consume_length_prefix(_buffer, len, rlp_type, offset);
+    //    if (_buffer.at(offset) < START_RANGE_ETH_LEGACY_TX) {
+//        offset++;
+//    }
+
     return from + len;
 }
 
@@ -49,13 +54,14 @@ crypto::Sha256 EthBlockMessage::prev_block_hash() const {
 
 void EthBlockMessage::parse() {
     uint64_t block_msg_item_len, block_header_item_len, prev_block_item_len, txn_item_len;
+    uint8_t rlp_type;
 
     size_t block_msg_item_offset = encoding::consume_length_prefix(
-        _buffer, block_msg_item_len, 0
+        _buffer, block_msg_item_len, rlp_type,0
     );
 
     size_t block_header_item_offset = encoding::consume_length_prefix(
-        _buffer, block_header_item_len, block_msg_item_offset
+        _buffer, block_header_item_len, rlp_type, block_msg_item_offset
     );
 
     _block_header = common::BufferView(
@@ -69,13 +75,13 @@ void EthBlockMessage::parse() {
     );
 
     size_t prev_block_item_offset = encoding::consume_length_prefix(
-        _buffer, prev_block_item_len, block_header_item_offset
+        _buffer, prev_block_item_len, rlp_type, block_header_item_offset
     );
 
     _prev_block_hash = crypto::Sha256(_buffer, prev_block_item_offset);
 
     _txn_offset = encoding::consume_length_prefix(
-        _buffer, txn_item_len, block_header_item_offset + block_header_item_len
+        _buffer, txn_item_len, rlp_type, block_header_item_offset + block_header_item_len
     );
 
     _txn_end_offset = _txn_offset + txn_item_len;

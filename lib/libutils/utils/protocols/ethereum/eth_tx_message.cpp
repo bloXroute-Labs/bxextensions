@@ -31,9 +31,9 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
             // for legacy transactions that appear as rlp_string, need to skip the extra byte and not include it in the hash calcuation
             _payload_type = ETH_TX_TYPE_0;
             starting_offset_for_hash++;
-        } else if (tx_type == ETH_TX_TYPE_1) {
+        } else if (tx_type <= ETH_TX_TYPE_2) {
             // for access list transactions that appear as rlp_string, need to skip the extra byte and include it in the hash calcuation
-            _payload_type = ETH_TX_TYPE_1;
+            _payload_type = tx_type;
             payload_len_for_hash++;
         } else {
             throw std::runtime_error("ETH Transaction Type is not valid");
@@ -70,8 +70,7 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
         // New ETH items not in used in this transaction type
         _access_list = std::vector<uint8_t>(0);
         _y_parity = 0;
-    }
-    else if (_payload_type == ETH_TX_TYPE_1) {
+    } else if (_payload_type == ETH_TX_TYPE_1) {
         //  to, value, data, access_list, yParity, senderR, senderS
         _chain_id = uint8_t(_rlp_list[ETH_TYPE_1_CHAIN_ID_IDX].as_int());
         _nonce = _rlp_list[ETH_TYPE_1_NONCE_IDX].as_int();
@@ -87,7 +86,26 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
 
         // Old ETH items not in used in this transaction type
         _v = 0;
+    } else if (_payload_type == ETH_TX_TYPE_2) {
+        //  max_priority_fee_per_gas, max_fee_per_gas, start_gas, to, value, data, access_list, yParity, senderR, senderS
+        _chain_id = uint8_t(_rlp_list[ETH_TYPE_2_CHAIN_ID_IDX].as_int());
+        _nonce = _rlp_list[ETH_TYPE_2_NONCE_IDX].as_int();
+        _max_priority_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_PRIORITY_FEE_PER_GAS_IDX].as_int();
+        _max_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_FEE_PER_GAS_IDX].as_int();
+        _gas_price = _max_priority_fee_per_gas + _max_fee_per_gas;
+        _start_gas = _rlp_list[ETH_TYPE_2_START_GAS_IDX].as_int();
+        _address = _rlp_list[ETH_TYPE_2_TO_IDX].as_vector();
+        _value = _rlp_list[ETH_TYPE_2_VALUE_IDX].as_large_int();
+        _data = _rlp_list[ETH_TYPE_2_DATA_IDX].as_rlp_string();
+        _access_list = _rlp_list[ETH_TYPE_2_ACCESS_LIST_IDX].as_vector();
+        _y_parity = uint8_t(_rlp_list[ETH_TYPE_2_Y_PARITY_IDX].as_int());
+        _r = _rlp_list[ETH_TYPE_2_SENDER_R_IDX].as_vector();
+        _s = _rlp_list[ETH_TYPE_2_SENDER_S_IDX].as_vector();
+
+        // Old ETH items not in used in this transaction type
+        _v = 0;
     }
+
     _sha = crypto::keccak_sha3(msg_buf.byte_array(), starting_offset_for_hash, payload_len_for_hash);
     return rlp.val_offset() + rlp.length();
 }
@@ -109,17 +127,32 @@ bool EthTxMessage::deserialize() {
                 ) {
                 return false;
             }
-
+        } else if (_payload_type == ETH_TX_TYPE_2) {
+            if (
+                !_deserialize_string(_rlp_list[ETH_TYPE_2_DATA_IDX].length(), ULLONG_MAX)
+                or !_deserialize_string(address().size(), ETH_ADDRESS_LEN)
+                ) {
+                return false;
+            }
         }
 
         std::vector<int> int_indexes(0);
         if (_payload_type == ETH_TX_TYPE_0) {
-            int_indexes = {ETH_TYPE_0_NONCE_IDX, ETH_TYPE_0_GAS_PRICE_IDX, ETH_TYPE_0_GAS_LIMIT_IDX,
-                           ETH_TYPE_0_VALUE_IDX, ETH_TYPE_0_V_IDX, ETH_TYPE_0_R_IDX, ETH_TYPE_0_S_IDX};
-        }
-        else if (_payload_type == ETH_TX_TYPE_1) {
-            int_indexes = {ETH_TYPE_1_CHAIN_ID_IDX, ETH_TYPE_1_NONCE_IDX, ETH_TYPE_1_GAS_PRICE_IDX, ETH_TYPE_1_GAS_LIMIT_IDX,
-                           ETH_TYPE_1_VALUE_IDX, ETH_TYPE_1_Y_PARITY_IDX, ETH_TYPE_1_SENDER_R_IDX, ETH_TYPE_1_SENDER_S_IDX};
+            int_indexes = {
+                ETH_TYPE_0_NONCE_IDX, ETH_TYPE_0_GAS_PRICE_IDX, ETH_TYPE_0_GAS_LIMIT_IDX,
+                ETH_TYPE_0_VALUE_IDX, ETH_TYPE_0_V_IDX, ETH_TYPE_0_R_IDX, ETH_TYPE_0_S_IDX
+            };
+        } else if (_payload_type == ETH_TX_TYPE_1) {
+            int_indexes = {
+                ETH_TYPE_1_CHAIN_ID_IDX, ETH_TYPE_1_NONCE_IDX, ETH_TYPE_1_GAS_PRICE_IDX, ETH_TYPE_1_GAS_LIMIT_IDX,
+                ETH_TYPE_1_VALUE_IDX, ETH_TYPE_1_Y_PARITY_IDX, ETH_TYPE_1_SENDER_R_IDX, ETH_TYPE_1_SENDER_S_IDX
+            };
+        } else if (_payload_type == ETH_TX_TYPE_2) {
+            int_indexes = {
+                ETH_TYPE_2_CHAIN_ID_IDX, ETH_TYPE_2_NONCE_IDX, ETH_TYPE_2_MAX_PRIORITY_FEE_PER_GAS_IDX,
+                ETH_TYPE_2_MAX_FEE_PER_GAS_IDX, ETH_TYPE_2_START_GAS_IDX,
+                ETH_TYPE_2_VALUE_IDX, ETH_TYPE_2_Y_PARITY_IDX, ETH_TYPE_2_SENDER_R_IDX, ETH_TYPE_2_SENDER_S_IDX
+            };
         }
 
         for (auto idx: int_indexes) {
@@ -137,18 +170,19 @@ std::vector<uint8_t> EthTxMessage::get_unsigned_msg() {
     uint64_t unsigned_msg_starting_offset;
     uint64_t unsigned_msg_ending_offset;
     uint64_t unsigned_msg_len;
-    int first_item_idx, last_item_idx;
 
     std::vector<uint8_t> unsigned_msg;
     size_t rlp_len = 0;
 
-    if (_payload_type == ETH_TX_TYPE_0) {
-        first_item_idx = ETH_TYPE_0_NONCE_IDX;
-        last_item_idx = ETH_TYPE_0_DATA_IDX;
-    }
+    int first_item_idx = ETH_TYPE_0_NONCE_IDX;
+    int last_item_idx = ETH_TYPE_0_DATA_IDX;
+
     if (_payload_type == ETH_TX_TYPE_1) {
         first_item_idx = ETH_TYPE_1_CHAIN_ID_IDX;
         last_item_idx = ETH_TYPE_1_ACCESS_LIST_IDX;
+    } else if (_payload_type == ETH_TX_TYPE_2) {
+        first_item_idx = ETH_TYPE_2_CHAIN_ID_IDX;
+        last_item_idx = ETH_TYPE_2_ACCESS_LIST_IDX;
     }
 
     unsigned_msg_starting_offset = _rlp_list[first_item_idx].rlp_starting_offset();
@@ -172,7 +206,7 @@ std::vector<uint8_t> EthTxMessage::get_unsigned_msg() {
             );
             unsigned_msg.resize(rlp_len + unsigned_msg_len);
         }
-    } else if (_payload_type == ETH_TX_TYPE_1) {
+    } else if (_payload_type <= ETH_TX_TYPE_2) {
         rlp_len = utils::encoding::get_length_prefix_list(
             unsigned_msg, unsigned_msg_len, 1
         );
@@ -227,8 +261,18 @@ uint64_t EthTxMessage::gas_price() const {
     return _gas_price;
 }
 
+uint64_t EthTxMessage::max_priority_fee_per_gas() const {
+    return _max_priority_fee_per_gas;
+}
+
+
+uint64_t EthTxMessage::max_fee_per_gas() const {
+    return _max_fee_per_gas;
+}
+
+
 uint64_t EthTxMessage::gas_limit() const {
-    return _gas_limit;
+return _gas_limit;
 }
 
 const std::vector<uint64_t>& EthTxMessage::value() const {

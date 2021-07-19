@@ -19,6 +19,7 @@
 #define MAX_T_SIZE 32
 #define ETH_TX_TYPE_0 0x00
 #define ETH_TX_TYPE_1 0x01
+#define ETH_TX_TYPE_2 0x02
 #define START_RANGE_ETH_LEGACY_TX 0xc0
 #define END_RANGE_ETH_LEGACY_TX 0xfe
 

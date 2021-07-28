@@ -92,7 +92,7 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
         _nonce = _rlp_list[ETH_TYPE_2_NONCE_IDX].as_int();
         _max_priority_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_PRIORITY_FEE_PER_GAS_IDX].as_int();
         _max_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_FEE_PER_GAS_IDX].as_int();
-        _gas_price = _max_priority_fee_per_gas + _max_fee_per_gas;
+        _gas_price = _max_fee_per_gas;
         _start_gas = _rlp_list[ETH_TYPE_2_START_GAS_IDX].as_int();
         _address = _rlp_list[ETH_TYPE_2_TO_IDX].as_vector();
         _value = _rlp_list[ETH_TYPE_2_VALUE_IDX].as_large_int();

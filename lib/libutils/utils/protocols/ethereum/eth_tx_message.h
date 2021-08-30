@@ -59,10 +59,13 @@ class EthTxMessage {
 protected:
     bool _deserialize_int(Rlp_t&);
     bool _deserialize_string(size_t, size_t);
+    std::string _access_list_json();
+
 public:
     size_t decode(const BufferView_t& msg_buf, size_t offset);
     bool deserialize();
     std::vector<uint8_t> get_unsigned_msg();
+    std::string to_json();
 
     uint64_t nonce() const;
     uint64_t gas_price() const;
@@ -79,6 +82,7 @@ public:
     uint8_t y_parity() const;
     const std::vector<uint8_t>& access_list() const;
     char payload_type() const;
+    uint8_t chain_id() const;
 
 private:
     uint64_t _nonce, _gas_price, _gas_limit, _v, _max_priority_fee_per_gas, _max_fee_per_gas, _start_gas;

@@ -10,18 +10,19 @@ namespace protocols {
 namespace ethereum {
 
 BxEthBlockMessage::BxEthBlockMessage(const common::BufferView& buffer) :
-        _buffer(buffer), _short_ids_offset(0), _txn_offset(0), _txn_end_offset(0)
+    _buffer(buffer), _short_ids_offset(0), _block_txs_len(0), _txn_offset(0), _txn_end_offset(0)
 {
 }
 
 BxEthBlockMessage::BxEthBlockMessage(BxEthBlockMessage&& rhs) noexcept:
-        _block_header(rhs._block_header),
-        _buffer(std::move(rhs._buffer)),
-        _block_trailer(rhs._block_trailer),
-        _short_ids_offset(rhs._short_ids_offset),
-        _block_hash(std::move(rhs._block_hash)),
-        _txn_offset(rhs._txn_offset),
-        _txn_end_offset(rhs._txn_end_offset)
+    _block_header(rhs._block_header),
+    _buffer(std::move(rhs._buffer)),
+    _block_trailer(rhs._block_trailer),
+    _short_ids_offset(rhs._short_ids_offset),
+    _block_txs_len(rhs._block_txs_len),
+    _block_hash(std::move(rhs._block_hash)),
+    _txn_offset(rhs._txn_offset),
+    _txn_end_offset(rhs._txn_end_offset)
 {
 }
 
@@ -30,6 +31,7 @@ BxEthBlockMessage& BxEthBlockMessage::operator =(BxEthBlockMessage&& rhs) noexce
     _buffer = std::move(rhs._buffer);
     _block_trailer = std::move(rhs._block_trailer);
     _short_ids_offset = rhs._short_ids_offset;
+    _block_txs_len = rhs._block_txs_len;
     _block_hash = std::move(rhs._block_hash);
     _txn_offset = rhs._txn_offset;
     _txn_end_offset = rhs._txn_end_offset;
@@ -67,9 +69,13 @@ size_t BxEthBlockMessage::txn_offset() const {
     return _txn_offset;
 }
 
+uint64_t BxEthBlockMessage::block_txs_len() const {
+    return _block_txs_len;
+}
+
 void BxEthBlockMessage::parse()
 {
-    uint64_t block_item_len, block_header_len, block_txs_len;
+    uint64_t block_item_len, block_header_len;
     uint8_t rlp_type;
     size_t short_ids_offset = common::get_little_endian_value<uint64_t >(_buffer, _short_ids_offset, 0);
     size_t block_item_offset = encoding::consume_length_prefix(_buffer, block_item_len, rlp_type, short_ids_offset);
@@ -82,11 +88,12 @@ void BxEthBlockMessage::parse()
         utils::crypto::keccak_sha3((uint8_t*)_block_header.char_array(), 0, _block_header.size())
     );
 
-    _txn_offset = encoding::consume_length_prefix(_buffer, block_txs_len, rlp_type, block_header_offset + block_header_len);
+    _txn_offset = encoding::consume_length_prefix(_buffer, _block_txs_len, rlp_type, block_header_offset + block_header_len);
 
-    _txn_end_offset = _txn_offset + block_txs_len;
+    _txn_end_offset = _txn_offset + _block_txs_len;
 
     _block_trailer = common::BufferView(_buffer, _short_ids_offset - _txn_end_offset, _txn_end_offset);
+    std::cout << "_short_ids_offset: " << _short_ids_offset << ", _block_header size: " << _block_header.size() << ", _txn_end_offset: " <<  _txn_end_offset << ", _block_trailer size: " << _block_trailer.size() << std::endl;
 }
 
 void BxEthBlockMessage::deserialize_short_ids(
@@ -98,6 +105,9 @@ void BxEthBlockMessage::deserialize_short_ids(
     offset = utils::common::get_little_endian_value<uint32_t>(
         _buffer, short_ids_count, offset
     );
+
+    std::cout << "_short_ids_offset: " << _short_ids_offset << ", offset: " << offset << ", short_ids_count: " << short_ids_count << ", _buffer.size(): " << _buffer.size() << std::endl;
+
     if (offset + (sizeof(uint32_t) * short_ids_count) > _buffer.size()) {
         std::string error = utils::common::concatenate(
                 "Message is improperly formatted. Expected ",

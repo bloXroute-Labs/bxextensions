@@ -21,12 +21,13 @@ public:
     const common::BufferView& block_trailer() const;
     size_t txn_end_offset() const;
     size_t txn_offset() const;
+    uint64_t block_txs_len() const;
     void deserialize_short_ids(std::vector<unsigned int> &short_ids);
 	void parse();
 
 private:
 	common::BufferView _block_header, _buffer, _block_trailer;
-	uint64_t _short_ids_offset;
+	uint64_t _short_ids_offset, _block_txs_len;
     crypto::Sha256 _block_hash;
     size_t _txn_offset, _txn_end_offset;
 };

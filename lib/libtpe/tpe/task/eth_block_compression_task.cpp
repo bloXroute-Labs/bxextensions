@@ -133,25 +133,39 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
 
     uint8_t rlp_type;
     uint64_t tx_item_len;
+    utils::crypto::Sha256 tx_hash;
+    TxBuffer_t tx_buf;
     while (tx_from < txn_end_offset) {
         tx_offset = msg.get_next_tx_offset(tx_from, rlp_type);
 
         size_t tx_item_offset = utils::encoding::consume_length_prefix(*_block_buffer, tx_item_len, rlp_type, tx_from);
-
-        utils::crypto::Sha256 tx_hash = utils::crypto::Sha256(
-            utils::crypto::keccak_sha3(
-                (uint8_t*)_block_buffer->char_array(), tx_from, tx_item_offset + tx_item_len - tx_from
-            )
-        );
+        tx_buf = TxBuffer_t(_block_buffer->byte_array(), tx_item_offset + tx_item_len - tx_from, tx_from);
+        if (rlp_type == RLP_LIST) {
+            tx_hash = utils::crypto::Sha256(
+                utils::crypto::keccak_sha3(
+                    (uint8_t*)_block_buffer->char_array(), tx_from, tx_item_offset + tx_item_len - tx_from
+                )
+            );
+            std::cout << "tx_hash LEGACY : " << tx_hash.hex_string() << ", tx_from: " << tx_from << ", tx_offset: " << tx_offset << ", tx_item_offset: " << tx_item_offset << ", tx_item_len: " << tx_item_len << ", tx_buf: " << tx_buf << std::endl;
+        }
+        else {
+            // need to skip the RLP string length
+            tx_hash = utils::crypto::Sha256(
+                utils::crypto::keccak_sha3(
+                    (uint8_t*)_block_buffer->char_array(), tx_item_offset, tx_item_len
+                )
+            );
+            std::cout << "tx_hash STR : " << tx_hash.hex_string() << ", tx_from: " << tx_from << ", tx_offset: " << tx_offset << ", tx_item_offset: " << tx_item_offset << ", tx_item_len: " << tx_item_len << ", tx_buf: " << tx_buf << std::endl;
+        }
 
         size_t tx_content_bytes_len = 0, tx_content_prefix_offset;
 
         double short_id_assign_time = 0.0;
-        if ( _tx_service->has_short_id(tx_hash) ) {
+        bool has_short_id = _tx_service->has_short_id(tx_hash);
+        if (has_short_id) {
             short_id_assign_time = _tx_service->get_short_id_assign_time(_tx_service->get_short_id(tx_hash));
         }
 
-        bool has_short_id = _tx_service->has_short_id(tx_hash);
 
         if ( ! has_short_id or
              not _enable_block_compression or
@@ -183,6 +197,7 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
             }
         } else {
             _short_ids.push_back(_tx_service->get_short_id(tx_hash));
+            std::cout << "_tx_service->get_short_id(tx_hash): " << _tx_service->get_short_id(tx_hash) << std::endl;
             output_offset = _output_buffer->copy_from_array(
                 is_short_tx_byte, output_offset, 0, is_short_tx_byte.size()
             );

@@ -1,9 +1,10 @@
 #include <climits>
 
 #include "utils/protocols/ethereum/eth_tx_message.h"
-#include <utils/encoding/rlp_encoder.h>
-#include <utils/protocols/ethereum/eth_consts.h>
-#include <utils/crypto/keccak.h>
+#include "utils/encoding/rlp_encoder.h"
+#include "utils/protocols/ethereum/eth_consts.h"
+#include "utils/crypto/keccak.h"
+#include "utils/common/string_helper.h"
 
 
 namespace utils {
@@ -17,14 +18,16 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
     Rlp_t rlp(msg_buf, offset);
 
     size_t starting_offset_for_hash = offset;
-    size_t payload_len_for_hash = rlp.length();
+    size_t payload_len_for_hash = rlp.length() + rlp.val_offset() - rlp.rlp_starting_offset();
     if (rlp.rlp_type() == RLP_LIST) {
         _payload_type = ETH_TX_TYPE_0;
     }
-    else if (rlp.rlp_type() == RLP_STRING ){
-        starting_offset_for_hash = rlp.val_offset();
-        if (rlp.length() < 1) {
-            throw std::runtime_error("ETH Transaction is not valid");
+    else {
+        if (rlp.rlp_type() == RLP_STRING) {
+            starting_offset_for_hash = rlp.val_offset() ;
+            if (rlp.length() < 1) {
+                throw std::runtime_error("ETH Transaction is not valid");
+            }
         }
         uint8_t tx_type = rlp.payload().at(starting_offset_for_hash);
         if (tx_type == ETH_TX_TYPE_0) {
@@ -32,16 +35,12 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
             _payload_type = ETH_TX_TYPE_0;
             starting_offset_for_hash++;
         } else if (tx_type <= ETH_TX_TYPE_2) {
-            // for access list transactions that appear as rlp_string, need to skip the extra byte and include it in the hash calcuation
             _payload_type = tx_type;
-            payload_len_for_hash++;
         } else {
             throw std::runtime_error("ETH Transaction Type is not valid");
         }
         rlp = Rlp_t(msg_buf, rlp.val_offset() + 1);
-    }
-    else {
-        throw std::runtime_error("ETH Transaction is not valid");
+        payload_len_for_hash = rlp.length() + rlp.val_offset() - rlp.rlp_starting_offset() + 1;
     }
 
     _rlp_list = rlp.get_rlp_list();
@@ -93,6 +92,7 @@ size_t EthTxMessage::decode(const BufferView_t& msg_buf, size_t offset) {
         _max_priority_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_PRIORITY_FEE_PER_GAS_IDX].as_int();
         _max_fee_per_gas = _rlp_list[ETH_TYPE_2_MAX_FEE_PER_GAS_IDX].as_int();
         _gas_price = _max_fee_per_gas;
+        _gas_limit = 0;
         _start_gas = _rlp_list[ETH_TYPE_2_START_GAS_IDX].as_int();
         _address = _rlp_list[ETH_TYPE_2_TO_IDX].as_vector();
         _value = _rlp_list[ETH_TYPE_2_VALUE_IDX].as_large_int();
@@ -253,6 +253,63 @@ bool EthTxMessage::_deserialize_string(size_t string_len, size_t max_length) {
     return (string_len <= max_length);
 }
 
+std::string EthTxMessage::to_json() {
+    std::stringstream ss;
+
+    //put arbitrary formatted data into the stream
+    ss << "{" <<
+        "\"type\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << (short)_payload_type << "\"," <<
+        "\"hash\":\"0x" << _sha.hex_string() << "\",";
+
+    if (_payload_type == ETH_TX_TYPE_0) {
+        ss <<
+            "\"nonce\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _nonce << "\"," <<
+            "\"gasPrice\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _gas_price << "\"," <<
+            "\"gas\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _gas_limit << "\"," <<
+            "\"to\":\"0x" << utils::common::to_hex_string(_address) << "\"," <<
+            "\"value\":\"0x" << utils::common::to_hex_string(_value) << "\"," <<
+            "\"data\":\"0x" << utils::common::to_hex_string(_data.vector(_data.get_offset(), _data.size())) << "\"," <<
+            "\"v\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << (short)_v << "\"," <<
+            "\"r\":\"0x" << utils::common::to_hex_string(_r) << "\"," <<
+            "\"s\":\"0x" << utils::common::to_hex_string(_s) << "\"" <<
+        "}";
+    }
+    else if (_payload_type == ETH_TX_TYPE_1) {
+        ss <<
+            "\"chainId\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << (short)_chain_id << "\"," <<
+            "\"nonce\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _nonce << "\"," <<
+            "\"gasPrice\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _gas_price << "\"," <<
+            "\"gas\":\"0x" << std::hex << std::setw(2) << std::setfill('0')<< _gas_limit << "\"," <<
+            "\"to\":\"0x" << utils::common::to_hex_string(_address) << "\"," <<
+            "\"value\":\"0x" << utils::common::to_hex_string(_value) << "\"," <<
+            "\"data\":\"0x" << utils::common::to_hex_string(_data.vector(_data.get_offset(), _data.size())) << "\"," <<
+            _access_list_json() <<
+            "\"v\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << (short)_y_parity << "\"," <<
+            "\"r\":\"0x" << utils::common::to_hex_string(_r) << "\"," <<
+            "\"s\":\"0x" << utils::common::to_hex_string(_s) << "\"" <<
+            "}";
+    }
+    else if (_payload_type == ETH_TX_TYPE_2) {
+        ss <<
+            "\"chainId\":\"0x" << std::hex << std::setw(2) << std::setfill('0')<< (short)_chain_id << "\"," <<
+            "\"nonce\":\"0x" << std::hex << std::setw(2) << std::setfill('0')<< _nonce << "\"," <<
+            "\"maxPriorityFeePerGas\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _max_priority_fee_per_gas << "\"," <<
+            "\"maxFeePerGas\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _max_fee_per_gas << "\"," <<
+            "\"startGas\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << _gas_limit << "\"," <<
+            "\"to\":\"0x" << utils::common::to_hex_string(_address) << "\"," <<
+            "\"value\":\"0x" << utils::common::to_hex_string(_value) << "\"," <<
+            "\"data\":\"0x" << utils::common::to_hex_string(_data.vector(_data.get_offset(), _data.size())) << "\"," <<
+            _access_list_json() <<
+            "\"v\":\"0x" << std::hex << std::setw(2) << std::setfill('0') << (short)_y_parity << "\"," <<
+            "\"r\":\"0x" << utils::common::to_hex_string(_r) << "\"," <<
+            "\"s\":\"0x" << utils::common::to_hex_string(_s) << "\"" <<
+            "}";
+    }
+
+    return ss.str();
+}
+
+
 uint64_t EthTxMessage::nonce() const {
     return _nonce;
 }
@@ -315,6 +372,48 @@ char EthTxMessage::payload_type() const {
     return _payload_type;
 };
 
+uint8_t EthTxMessage::chain_id() const {
+    return _chain_id;
+}
+
+std::string EthTxMessage::_access_list_json() {
+    std::stringstream ss;
+
+    ss << "\"accessList\":[";
+    // parse access list
+    if (_access_list.size() > 0) {
+        size_t from = 0;
+        size_t end = _access_list.size();
+        BufferView_t access_list_bf(&_access_list.at(0), _access_list.size(), 0);
+        while (from < end) {
+            Rlp_t access_list_rlp(access_list_bf, from);
+            RlpList_t access_list_rlp_list = access_list_rlp.get_rlp_list();
+            // first element in an accesslist is string with fixed len == 20
+            ss <<
+            "{\"address\":\"0x" << utils::common::to_hex_string(access_list_rlp_list[0].as_rlp_string()) << "\"," <<
+            "\"storageKeys\":[";
+
+            //second element in an accesslist is a list of fixed strings == 32
+            Rlp_t storage_rlp(access_list_bf, access_list_rlp_list[1].rlp_starting_offset());
+            RlpList_t storage_rlp_list = storage_rlp.get_rlp_list();
+            for (size_t i = 0; i < storage_rlp_list.size(); i++) {
+                ss <<
+                "\"0x" << utils::common::to_hex_string(storage_rlp_list[i].as_rlp_string()) << "\"";
+                if (i < storage_rlp_list.size() -1) {
+                    ss << ",";
+                }
+            }
+            ss << "]}";
+            from = access_list_rlp.length() + access_list_rlp.val_offset();
+            if (from < end) {
+                ss << ",";
+            }
+        }
+    }
+    ss << "]";
+
+    return ss.str();
+}
 
 } // ethereum
 } // protocols

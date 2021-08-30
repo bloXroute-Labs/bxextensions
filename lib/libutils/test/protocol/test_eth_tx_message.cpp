@@ -30,28 +30,28 @@ TEST_F(EthTxMessageTest, test_tx_decoding_legacy) {
     ASSERT_TRUE(msg.deserialize());
     std::string address_str = "f8044ff824c2dce174b4ee9f958c2a738483189e";
     std::string data_str;
-    EXPECT_EQ(33, msg.nonce());
-    EXPECT_EQ(51000000000, msg.gas_price());
-    EXPECT_EQ(21000, msg.gas_limit());
-    EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+    ASSERT_EQ(33, msg.nonce());
+    ASSERT_EQ(51000000000, msg.gas_price());
+    ASSERT_EQ(21000, msg.gas_limit());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1,2600000000000000);
     std::vector<uint64_t> values = msg.value();
     for (size_t i = 0; i < values.size(); i++) {
-        EXPECT_EQ(expected_values[i], values[i]);
+        ASSERT_EQ(expected_values[i], values[i]);
     }
-    EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
-    EXPECT_EQ(38, msg.v());
+    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(38, msg.v());
 
     utils::crypto::Signature sig;
     sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
-    EXPECT_EQ(65, sig_vec.size());
-    EXPECT_EQ('-', sig_vec.at(0));
-    EXPECT_EQ(0x01, sig_vec.at(sig_vec.size() - 1));
+    ASSERT_EQ(65, sig_vec.size());
+    ASSERT_EQ('-', sig_vec.at(0));
+    ASSERT_EQ(0x01, sig_vec.at(sig_vec.size() - 1));
     std::vector<uint8_t> sig_unsigned_vec = msg.get_unsigned_msg();
-    EXPECT_EQ(44, sig_unsigned_vec.size());
-    EXPECT_EQ(0xeb, sig_unsigned_vec.at(0));
-    EXPECT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
+    ASSERT_EQ(44, sig_unsigned_vec.size());
+    ASSERT_EQ(0xeb, sig_unsigned_vec.at(0));
+    ASSERT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
     utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(sig_unsigned_vec.data(), 0, sig_unsigned_vec.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
     ASSERT_TRUE(sig.verify(public_key, sig_unsigned_vec));
@@ -66,28 +66,28 @@ TEST_F(EthTxMessageTest, test_tx_decoding_empty_data) {
     ASSERT_TRUE(msg.deserialize());
     std::string address_str;
     std::string data_str;
-    EXPECT_EQ(44, msg.nonce());
-    EXPECT_EQ(300000, msg.gas_price());
-    EXPECT_EQ(100000, msg.gas_limit());
-    EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+    ASSERT_EQ(44, msg.nonce());
+    ASSERT_EQ(300000, msg.gas_price());
+    ASSERT_EQ(100000, msg.gas_limit());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1, 1000000);
     std::vector<uint64_t> values = msg.value();
     for (size_t i = 0; i < values.size(); i++) {
-        EXPECT_EQ(expected_values[i], values[i]);
+        ASSERT_EQ(expected_values[i], values[i]);
     }
-    EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
-    EXPECT_EQ(27, msg.v());
+    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(27, msg.v());
 
     utils::crypto::Signature sig;
     sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
-    EXPECT_EQ(65, sig_vec.size());
-    EXPECT_EQ('Z', sig_vec.at(0));
-    EXPECT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
+    ASSERT_EQ(65, sig_vec.size());
+    ASSERT_EQ('Z', sig_vec.at(0));
+    ASSERT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
     std::vector<uint8_t> sig_unsigned_vec = msg.get_unsigned_msg();
-    EXPECT_EQ(16, sig_unsigned_vec.size());
-    EXPECT_EQ(0xcf, sig_unsigned_vec.at(0));
-    EXPECT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
+    ASSERT_EQ(16, sig_unsigned_vec.size());
+    ASSERT_EQ(0xcf, sig_unsigned_vec.at(0));
+    ASSERT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
     std::vector<uint8_t> unsigned_msg = msg.get_unsigned_msg();
     utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
@@ -103,28 +103,28 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation) {
     ASSERT_TRUE(msg.deserialize());
     std::string address_str;
     std::string data_str;
-    EXPECT_EQ(0, msg.nonce());
-    EXPECT_EQ(5625000000, msg.gas_price());
-    EXPECT_EQ(53000, msg.gas_limit());
-    EXPECT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+    ASSERT_EQ(0, msg.nonce());
+    ASSERT_EQ(5625000000, msg.gas_price());
+    ASSERT_EQ(53000, msg.gas_limit());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
     std::vector<uint64_t> expected_values(1, 0);
     std::vector<uint64_t> values = msg.value();
     for (size_t i = 0; i < values.size(); i++) {
-        EXPECT_EQ(expected_values[i], values[i]);
+        ASSERT_EQ(expected_values[i], values[i]);
     }
-    EXPECT_EQ(data_str, utils::common::to_hex_string(msg.data()));
-    EXPECT_EQ(37, msg.v());
+    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(37, msg.v());
 
     utils::crypto::Signature sig;
     sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
-    EXPECT_EQ(65, sig_vec.size());
-    EXPECT_EQ(';', sig_vec.at(0));
-    EXPECT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
+    ASSERT_EQ(65, sig_vec.size());
+    ASSERT_EQ(';', sig_vec.at(0));
+    ASSERT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
     std::vector<uint8_t> sig_unsigned_vec = msg.get_unsigned_msg();
-    EXPECT_EQ(17, sig_unsigned_vec.size());
-    EXPECT_EQ(0xd0, sig_unsigned_vec.at(0));
-    EXPECT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
+    ASSERT_EQ(17, sig_unsigned_vec.size());
+    ASSERT_EQ(0xd0, sig_unsigned_vec.at(0));
+    ASSERT_EQ(0x80, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
     std::vector<uint8_t> unsigned_msg = msg.get_unsigned_msg();
     utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(unsigned_msg.data(), 0, unsigned_msg.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
@@ -209,13 +209,13 @@ TEST_F(EthTxMessageTest, test_tx_signature_validation_type_1) {
     utils::crypto::Signature sig;
     sig.encode_signature(msg.v(), msg.r(), msg.s(), msg.payload_type(), msg.y_parity());
     std::vector<uint8_t> sig_vec = sig.signature();
-    EXPECT_EQ(65, sig_vec.size());
-    EXPECT_EQ(163, sig_vec.at(0));
-    EXPECT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
+    ASSERT_EQ(65, sig_vec.size());
+    ASSERT_EQ(163, sig_vec.at(0));
+    ASSERT_EQ(0x00, sig_vec.at(sig_vec.size() - 1));
     std::vector<uint8_t> sig_unsigned_vec = msg.get_unsigned_msg();
-    EXPECT_EQ(482, sig_unsigned_vec.size());
-    EXPECT_EQ(0x01, sig_unsigned_vec.at(0));
-    EXPECT_EQ(0x99, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
+    ASSERT_EQ(482, sig_unsigned_vec.size());
+    ASSERT_EQ(0x01, sig_unsigned_vec.at(0));
+    ASSERT_EQ(0x99, sig_unsigned_vec.at(sig_unsigned_vec.size() - 1));
     utils::crypto::Sha256 msg_hash = utils::crypto::keccak_sha3(sig_unsigned_vec.data(), 0, sig_unsigned_vec.size());
     std::vector<uint8_t> public_key = sig.recover(msg_hash);
     ASSERT_TRUE(sig.verify(public_key, sig_unsigned_vec));
@@ -252,4 +252,82 @@ TEST_F(EthTxMessageTest, test_tx_validtor_type_1_random_tx) {
 
     eth_validator._parse_transaction(std::make_shared<TxContents_t>(bf), tx_msg);
     ASSERT_TRUE(eth_validator._verify_transaction_signature(tx_msg, result));
+}
+
+TEST_F(EthTxMessageTest, tx_jo_json_legacy) {
+    std::string rlp_str = "f86b21850bdfd63e0082520894f8044ff824c2dce174b4ee9f958c2a738483189e87093cafac6a80008026a02dbf2ca92baeab4a03cdfae33cbf240065e24e7cc9f7e2a99c3edf6e0c4fc016a029114b3d3b96587d61d5000665537ad12ce43ea18cf87f3e0e3ad1cd003f2715";
+    std::string expected_json = "{\"type\":\"0x00\",\"hash\":\"0x397c39244abc618a37a03044eeb3d247e1335cb1263aa8cf5f0afdd8942e5e11\",\"nonce\":\"0x21\",\"gasPrice\":\"0xbdfd63e00\",\"gas\":\"0x5208\",\"to\":\"0xf8044ff824c2dce174b4ee9f958c2a738483189e\",\"value\":\"0x00\",\"data\":\"0x\",\"v\":\"0x26\",\"r\":\"0x2dbf2ca92baeab4a03cdfae33cbf240065e24e7cc9f7e2a99c3edf6e0c4fc016\",\"s\":\"0x29114b3d3b96587d61d5000665537ad12ce43ea18cf87f3e0e3ad1cd003f2715\"}";
+    std::vector<uint8_t > rlp_vec;
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    EthTxMessage_t msg;
+    msg.decode(BufferView_t(&rlp_vec.at(0), rlp_vec.size()), 0);
+    ASSERT_TRUE(msg.deserialize());
+    std::string address_str = "f8044ff824c2dce174b4ee9f958c2a738483189e";
+    std::string data_str;
+    ASSERT_EQ(33, msg.nonce());
+    ASSERT_EQ(51000000000, msg.gas_price());
+    ASSERT_EQ(21000, msg.gas_limit());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+    std::vector<uint64_t> expected_values(1,2600000000000000);
+    std::vector<uint64_t> values = msg.value();
+    for (size_t i = 0; i < values.size(); i++) {
+        ASSERT_EQ(expected_values[i], values[i]);
+    }
+    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(38, msg.v());
+
+    std::string json = msg.to_json();
+    ASSERT_EQ(expected_json, json);
+}
+
+TEST_F(EthTxMessageTest, tx_jo_json_type2) {
+    std::string rlp_str = "b902a102f9029d0182184285093881a7eb85093881a7eb8307a12094000000005736775feb0c8568e7dee77222a2688080b8540000000100c738dac02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000002000000000000000029e5c8906e7193c000000000000000a0a3f8206412841f56f1a91c7d44768070f711c68f33a7ca25c8d30268f901d7f85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a0fe1528ce3c182d2d7eed0b70b1a8cfc18405d17870fc7b7cb94a3cdb7e145d87a0b49bf121c8665d4fea844602438b390ab1200890f40ffdf0d7af651c1b5ea755f8dd94984a3eab3cf2fc2b4ca6e4a3768624a8272fe2a3f8c6a0000000000000000000000000000000000000000000000000000000000000000ca00000000000000000000000000000000000000000000000000000000000000008a00000000000000000000000000000000000000000000000000000000000000006a00000000000000000000000000000000000000000000000000000000000000007a00000000000000000000000000000000000000000000000000000000000000009a0000000000000000000000000000000000000000000000000000000000000000af89b94f1a91c7d44768070f711c68f33a7ca25c8d30268f884a07e8f21cb3285970cbc690329c49b32fe49503511c52f602d3e8e2a1182753870a00000000000000000000000000000000000000000000000000000000000000007a00000000000000000000000000000000000000000000000000000000000000008a0675a164006bce49fe78035726b6a3c528eb9c13de53398f7659c346d8ea5c3b201a0c885b3e31c9390bd9613e72b365cb750a2d2edd66dc0cf46fb460296de54b00fa025feb091ed600c1a20f4ab0b370fb18bc6deca1f6d54a2177c80cfd53b00174a";
+    std::string expected_json = "{\"type\":\"0x02\",\"hash\":\"0x85fc00ccbb990fd6e35bbbd7b21d75a84732eeb5f202f1cd14bc444375007639\",\"chainId\":\"0x01\",\"nonce\":\"0x1842\",\"maxPriorityFeePerGas\":\"0x93881a7eb\",\"maxFeePerGas\":\"0x93881a7eb\",\"startGas\":\"0x00\",\"to\":\"0x000000005736775feb0c8568e7dee77222a26880\",\"value\":\"0x00\",\"data\":\"0x0000000100c738dac02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000002000000000000000029e5c8906e7193c000000000000000a0a3f8206412841f56f1a91c7d44768070f711c68f33a7ca25c8d30268\",\"accessList\":[{\"address\":\"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2\",\"storageKeys\":[\"0xfe1528ce3c182d2d7eed0b70b1a8cfc18405d17870fc7b7cb94a3cdb7e145d87\",\"0xb49bf121c8665d4fea844602438b390ab1200890f40ffdf0d7af651c1b5ea755\"]},{\"address\":\"0x984a3eab3cf2fc2b4ca6e4a3768624a8272fe2a3\",\"storageKeys\":[\"0x000000000000000000000000000000000000000000000000000000000000000c\",\"0x0000000000000000000000000000000000000000000000000000000000000008\",\"0x0000000000000000000000000000000000000000000000000000000000000006\",\"0x0000000000000000000000000000000000000000000000000000000000000007\",\"0x0000000000000000000000000000000000000000000000000000000000000009\",\"0x000000000000000000000000000000000000000000000000000000000000000a\"]},{\"address\":\"0xf1a91c7d44768070f711c68f33a7ca25c8d30268\",\"storageKeys\":[\"0x7e8f21cb3285970cbc690329c49b32fe49503511c52f602d3e8e2a1182753870\",\"0x0000000000000000000000000000000000000000000000000000000000000007\",\"0x0000000000000000000000000000000000000000000000000000000000000008\",\"0x675a164006bce49fe78035726b6a3c528eb9c13de53398f7659c346d8ea5c3b2\"]}]\"v\":\"0x01\",\"r\":\"0xc885b3e31c9390bd9613e72b365cb750a2d2edd66dc0cf46fb460296de54b00f\",\"s\":\"0x25feb091ed600c1a20f4ab0b370fb18bc6deca1f6d54a2177c80cfd53b00174a\"}";
+    std::vector<uint8_t > rlp_vec;
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    EthTxMessage_t msg;
+    msg.decode(BufferView_t(&rlp_vec.at(0), rlp_vec.size()), 0);
+    ASSERT_TRUE(msg.deserialize());
+    std::string address_str = "000000005736775feb0c8568e7dee77222a26880";
+    std::string data_str;
+    ASSERT_EQ("85fc00ccbb990fd6e35bbbd7b21d75a84732eeb5f202f1cd14bc444375007639", msg.hash().hex_string());
+    ASSERT_EQ(2, msg.payload_type());
+    ASSERT_EQ(1, msg.chain_id());
+    ASSERT_EQ(0x1842, msg.nonce());
+    ASSERT_EQ(0x93881a7eb, msg.max_priority_fee_per_gas());
+    ASSERT_EQ(0x93881a7eb, msg.max_fee_per_gas());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+//    std::vector<uint64_t> expected_values(1,2600000000000000);
+//    std::vector<uint64_t> values = msg.value();
+//    for (size_t i = 0; i < values.size(); i++) {
+//        ASSERT_EQ(expected_values[i], values[i]);
+//    }
+//    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(0, msg.v());
+
+    std::string json = msg.to_json();
+    ASSERT_EQ(expected_json, json);
+
+    rlp_str = "02f9029d0182184285093881a7eb85093881a7eb8307a12094000000005736775feb0c8568e7dee77222a2688080b8540000000100c738dac02aaa39b223fe8d0a0e5c4f27ead9083c756cc200000002000000000000000029e5c8906e7193c000000000000000a0a3f8206412841f56f1a91c7d44768070f711c68f33a7ca25c8d30268f901d7f85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a0fe1528ce3c182d2d7eed0b70b1a8cfc18405d17870fc7b7cb94a3cdb7e145d87a0b49bf121c8665d4fea844602438b390ab1200890f40ffdf0d7af651c1b5ea755f8dd94984a3eab3cf2fc2b4ca6e4a3768624a8272fe2a3f8c6a0000000000000000000000000000000000000000000000000000000000000000ca00000000000000000000000000000000000000000000000000000000000000008a00000000000000000000000000000000000000000000000000000000000000006a00000000000000000000000000000000000000000000000000000000000000007a00000000000000000000000000000000000000000000000000000000000000009a0000000000000000000000000000000000000000000000000000000000000000af89b94f1a91c7d44768070f711c68f33a7ca25c8d30268f884a07e8f21cb3285970cbc690329c49b32fe49503511c52f602d3e8e2a1182753870a00000000000000000000000000000000000000000000000000000000000000007a00000000000000000000000000000000000000000000000000000000000000008a0675a164006bce49fe78035726b6a3c528eb9c13de53398f7659c346d8ea5c3b201a0c885b3e31c9390bd9613e72b365cb750a2d2edd66dc0cf46fb460296de54b00fa025feb091ed600c1a20f4ab0b370fb18bc6deca1f6d54a2177c80cfd53b00174a";
+    rlp_vec.clear();
+    utils::common::from_hex_string(rlp_str, rlp_vec);
+    msg.decode(BufferView_t(&rlp_vec.at(0), rlp_vec.size()), 0);
+    ASSERT_TRUE(msg.deserialize());
+    ASSERT_EQ("85fc00ccbb990fd6e35bbbd7b21d75a84732eeb5f202f1cd14bc444375007639", msg.hash().hex_string());
+    ASSERT_EQ(2, msg.payload_type());
+    ASSERT_EQ(1, msg.chain_id());
+    ASSERT_EQ(0x1842, msg.nonce());
+    ASSERT_EQ(0x93881a7eb, msg.max_priority_fee_per_gas());
+    ASSERT_EQ(0x93881a7eb, msg.max_fee_per_gas());
+    ASSERT_EQ(address_str, utils::common::to_hex_string(msg.address()));
+    //    std::vector<uint64_t> expected_values(1,2600000000000000);
+    //    std::vector<uint64_t> values = msg.value();
+    //    for (size_t i = 0; i < values.size(); i++) {
+    //        ASSERT_EQ(expected_values[i], values[i]);
+    //    }
+    //    ASSERT_EQ(data_str, utils::common::to_hex_string(msg.data()));
+    ASSERT_EQ(0, msg.v());
+
+    json = msg.to_json();
+    ASSERT_EQ(expected_json, json);
 }

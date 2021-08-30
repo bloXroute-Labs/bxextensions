@@ -17,6 +17,7 @@ public:
   explicit ByteArray(size_t capacity);
   ByteArray(const ByteArray& other) = delete;
   ByteArray(ByteArray&& rhs) noexcept;
+  ByteArray(const std::string& src) noexcept;
   ~ByteArray();
 
   ByteArray& operator=(const ByteArray& other) = delete;

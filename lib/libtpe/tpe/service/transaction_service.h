@@ -34,9 +34,11 @@ namespace service {
 
 typedef utils::common::BufferCopy BufferCopy_t;
 typedef utils::common::ByteArray ByteArray_t;
+typedef std::shared_ptr<ByteArray_t> PByteArray_t;
 typedef utils::common::BufferView TxContents_t;
 typedef std::shared_ptr<TxContents_t> PTxContents_t;
 typedef std::shared_ptr<BufferCopy_t> PTxContentsCopy_t;
+typedef utils::common::BufferView BlockMsg_t;
 typedef utils::common::BufferView TxsMsg_t;
 typedef std::shared_ptr<TxsMsg_t> PTxsMsg_t;
 typedef utils::common::ByteArray TxSyncTxs_t;
@@ -382,6 +384,7 @@ public:
 
     PByteArray_t process_tx_sync_message(PTxContents_t tx_sync_msg);
 
+    PByteArray_t eth_block_to_json(const BlockMsg_t& block_buffer);
 private:
 
     size_t _final_tx_confirmations_count;

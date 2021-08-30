@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="template_module"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\lib\;CMake Files\lib\third_party\;CMake Files\lib\third_party\secp256k1\;CMake Files\lib\third_party\googletest\;CMake Files\lib\third_party\googletest\googlemock\;CMake Files\lib\third_party\googletest\googletest\;CMake Files\lib\third_party\googletest\googletest\cmake\;CMake Files\lib\third_party\libsodium-stable\;CMake Files\lib\third_party\jsoncons\;CMake Files\lib\third_party\jsoncons\build_files\;CMake Files\lib\third_party\jsoncons\build_files\cmake\;CMake Files\lib\third_party\jsoncons\tests\;CMake Files\lib\pybind11\;CMake Files\lib\pybind11\tools\;CMake Files\lib\libtpe\;CMake Files\lib\libutils\;CMake Files\tmp\;CMake Files\interface\;CMake Files\interface\bxextensions\;CMake Files\interface\bxextensions\task_pool_executor\;CMake Files\interface\bxextensions\template_module\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="template_module">
+				<Option output="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/template_module.cpython-38-darwin.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module"/>
+					<Add directory="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/pybind11/include"/>
+					<Add directory="/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 template_module"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="template_module/fast">
+				<Option output="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/template_module.cpython-38-darwin.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module"/>
+					<Add directory="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/pybind11/include"/>
+					<Add directory="/Library/Frameworks/Python.framework/Versions/3.8/include/python3.8"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 template_module/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/src/main.cpp">
+			<Option target="template_module"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/secp256k1/ProjectSecp256k1.cmake">
+			<Option virtualFolder="CMake Files\lib\third_party\secp256k1\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/googletest/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\googletest\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/googletest/googlemock/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\googletest\googlemock\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/googletest/googletest/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\googletest\googletest\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/googletest/googletest/cmake/internal_utils.cmake">
+			<Option virtualFolder="CMake Files\lib\third_party\googletest\googletest\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/libsodium-stable/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\libsodium-stable\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/jsoncons/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\jsoncons\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/jsoncons/build_files/cmake/Darwin.cmake">
+			<Option virtualFolder="CMake Files\lib\third_party\jsoncons\build_files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/jsoncons/build_files/cmake/config.cmake.in">
+			<Option virtualFolder="CMake Files\lib\third_party\jsoncons\build_files\cmake\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/third_party/jsoncons/tests/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\third_party\jsoncons\tests\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/pybind11/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\pybind11\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/pybind11/tools/FindPythonLibsNew.cmake">
+			<Option virtualFolder="CMake Files\lib\pybind11\tools\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/pybind11/tools/pybind11Tools.cmake">
+			<Option virtualFolder="CMake Files\lib\pybind11\tools\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/libtpe/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\libtpe\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/lib/libutils/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\lib\libutils\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/tmp/secp256k1-cfgcmd.txt.in">
+			<Option virtualFolder="CMake Files\tmp\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/task_pool_executor/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\interface\bxextensions\task_pool_executor\"/>
+		</Unit>
+		<Unit filename="/Users/daniellemachpud/workspace/bloxroute-dev/bxextensions/interface/bxextensions/template_module/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\interface\bxextensions\template_module\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

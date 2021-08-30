@@ -146,7 +146,6 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
                     (uint8_t*)_block_buffer->char_array(), tx_from, tx_item_offset + tx_item_len - tx_from
                 )
             );
-            std::cout << "tx_hash LEGACY : " << tx_hash.hex_string() << ", tx_from: " << tx_from << ", tx_offset: " << tx_offset << ", tx_item_offset: " << tx_item_offset << ", tx_item_len: " << tx_item_len << ", tx_buf: " << tx_buf << std::endl;
         }
         else {
             // need to skip the RLP string length
@@ -155,7 +154,6 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
                     (uint8_t*)_block_buffer->char_array(), tx_item_offset, tx_item_len
                 )
             );
-            std::cout << "tx_hash STR : " << tx_hash.hex_string() << ", tx_from: " << tx_from << ", tx_offset: " << tx_offset << ", tx_item_offset: " << tx_item_offset << ", tx_item_len: " << tx_item_len << ", tx_buf: " << tx_buf << std::endl;
         }
 
         size_t tx_content_bytes_len = 0, tx_content_prefix_offset;
@@ -197,7 +195,6 @@ void EthBlockCompressionTask::_execute(SubPool_t& sub_pool) {
             }
         } else {
             _short_ids.push_back(_tx_service->get_short_id(tx_hash));
-            std::cout << "_tx_service->get_short_id(tx_hash): " << _tx_service->get_short_id(tx_hash) << std::endl;
             output_offset = _output_buffer->copy_from_array(
                 is_short_tx_byte, output_offset, 0, is_short_tx_byte.size()
             );

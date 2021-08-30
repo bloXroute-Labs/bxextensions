@@ -205,7 +205,6 @@ TEST_F(TransactionServiceTest, eth_compress_block_type_2) {
     utils::common::from_hex_string(block_str, block_msg_vec);
     BufferCopy_t block_message(BufferView_t(&block_msg_vec.at(0), block_msg_vec.size()));
 
-    std::cout << "chars: " << chars << ", block_str.size(): " << block_str.size() << ", block_message.size(): " << block_message.size() << std::endl;
     std::shared_ptr<ByteArray_t> block_json(tx_service().eth_block_to_json(block_buffer));
 
     std::array<std::string, 291> tx_hashes {
@@ -264,7 +263,6 @@ TEST_F(TransactionServiceTest, eth_compress_block_type_2) {
         Sha256_t acl_tx_hash(tx_hashes[i]);
         p_tx_service->set_transaction_contents(acl_tx_hash, p_acl_tx_bf);
         p_tx_service->assign_short_id(acl_tx_hash, i + 1);
-        std::cout << acl_tx_hash.hex_string() << " - " << i + 1 << " - " << p_tx_service->has_short_id(acl_tx_hash) << std::endl;
     }
 
     utils::protocols::ethereum::EthBlockMessage eth_block_msg(block_message);
@@ -283,11 +281,9 @@ TEST_F(TransactionServiceTest, eth_compress_block_type_2) {
     utils::protocols::ethereum::BxEthBlockMessage compress_block_msg(compress_block_bf);
     compress_block_msg.parse();
 
-    std::cout << "tx_service.size(): " << tx_service().size() << ", compress_block_msg.block_txs_len(): " << compress_block_msg.block_txs_len() << ", p_compressed_block->size(): " << p_compressed_block->size() << std::endl;
     std::vector<unsigned int> short_ids;
     short_ids.clear();
     compress_block_msg.deserialize_short_ids(short_ids);
-    std::cout << "short_ids len: " << short_ids.size() << std::endl;
 //    ASSERT_EQ(291, compress_block_msg.block_txs_len());
 
 //    BxEthBlockMessage_t block_msg(block_buffer);

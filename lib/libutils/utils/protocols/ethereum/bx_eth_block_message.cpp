@@ -93,7 +93,6 @@ void BxEthBlockMessage::parse()
     _txn_end_offset = _txn_offset + _block_txs_len;
 
     _block_trailer = common::BufferView(_buffer, _short_ids_offset - _txn_end_offset, _txn_end_offset);
-    std::cout << "_short_ids_offset: " << _short_ids_offset << ", _block_header size: " << _block_header.size() << ", _txn_end_offset: " <<  _txn_end_offset << ", _block_trailer size: " << _block_trailer.size() << std::endl;
 }
 
 void BxEthBlockMessage::deserialize_short_ids(
@@ -106,7 +105,6 @@ void BxEthBlockMessage::deserialize_short_ids(
         _buffer, short_ids_count, offset
     );
 
-    std::cout << "_short_ids_offset: " << _short_ids_offset << ", offset: " << offset << ", short_ids_count: " << short_ids_count << ", _buffer.size(): " << _buffer.size() << std::endl;
 
     if (offset + (sizeof(uint32_t) * short_ids_count) > _buffer.size()) {
         std::string error = utils::common::concatenate(

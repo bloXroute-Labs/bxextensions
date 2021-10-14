@@ -135,50 +135,6 @@ jobs:
       - store_artifacts:
           path: test-reports/
           destination: tr1
-  e2e:
-    executor: bloxroute-executor
-    working_directory: ~/ws
-    steps:
-      - attach_workspace:
-          at: ~/ws
-      - clone:
-          repo: bxe2e
-          folder: bxe2e
-      - clone:
-          repo: bxcommon-private
-          folder: bxcommon
-      - clone:
-          repo: bxcommon-internal
-          folder: bxcommon-internal
-      - clone:
-          repo: bxrelay
-          folder: bxrelay
-      - clone:
-          repo: bxgateway-private
-          folder: bxgateway
-      - restore_cache: # restores saved dependency cache
-          key: "bxcommon-{{ checksum \"bxcommon/requirements.txt\" }}-\
-            {{ checksum \"bxcommon/requirements-dev.txt\" }}-\
-            {{ checksum \"bxcommon/requirements-optional.txt\" }}"
-      - run:
-          name: Initialize virtualenv
-          command: |
-            . venv/bin/activate
-            pip install -r bxcommon/requirements.txt \
-              -r bxcommon/requirements-dev.txt \
-              -r bxcommon/requirements-optional.txt \
-              -r bxrelay/requirements.txt \
-              -r bxrelay/requirements-dev.txt \
-              -r bxgateway/requirements.txt \
-              -r bxgateway/requirements-dev.txt \
-              -r bxe2e/scripts/requirements.txt
-      - run:
-          name: Integration Test
-          command: |
-            . venv/bin/activate
-            cd bxe2e/test/integration
-            PYTHONPATH=$PYTHONPATH:/home/circleci/ws/bxe2e/src:/home/circleci/ws/bxgateway/src:/home/circleci/ws/bxrelay/src:/home/circleci/ws/bxcommon/src:/home/circleci/ws/bxcommon-internal/src/
-            python -m unittest discover --verbose
   build-extensions-alpine:
     executor: bloxroute-executor
     docker:
@@ -230,9 +186,6 @@ workflows:
     jobs:
       - initialize
       - test:
-          requires:
-            - initialize
-      - e2e:
           requires:
             - initialize
       - build-extensions-alpine:

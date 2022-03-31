@@ -1,6 +1,7 @@
 #include <array>
-#include "utils/protocols/ethereum/eth_consts.h"
+#include "utils/protocols/ethereum/eth_block_header.h"
 #include "utils/protocols/ethereum/eth_block_message.h"
+#include "eth_transaction_validator.h"
 #include <utils/encoding/rlp_encoder.h>
 #include <utils/crypto/keccak.h>
 #include <utils/common/buffer_view.h>
@@ -37,9 +38,14 @@ EthBlockMessage& EthBlockMessage::operator =(EthBlockMessage&& rhs) noexcept {
 size_t EthBlockMessage::get_next_tx_offset(size_t offset, uint8_t& rlp_type) {
     uint64_t len;
     size_t from = encoding::consume_length_prefix(_buffer, len, rlp_type, offset);
-    //    if (_buffer.at(offset) < START_RANGE_ETH_LEGACY_TX) {
-//        offset++;
-//    }
+
+    return from + len;
+}
+
+size_t EthBlockMessage::get_next_uncle_offset(size_t offset) {
+    uint64_t len;
+    uint8_t rlp_type;
+    size_t from = encoding::consume_length_prefix(_buffer, len, rlp_type, offset);
 
     return from + len;
 }
@@ -103,6 +109,7 @@ const common::BufferView& EthBlockMessage::block_header() const {
 const common::BufferView& EthBlockMessage::block_trailer() const {
     return _block_trailer;
 }
+
 
 } // ethereum
 } // protocols

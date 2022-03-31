@@ -32,7 +32,7 @@ void Signature::encode_signature(
         if (parity != V_RANGE_START and parity != V_RANGE_END) {
             throw std::runtime_error("v is expected to be int or long in range (27, 28)"); // TODO
         }
-    } else if (payload_type == ETH_TX_TYPE_1) {
+    } else if (payload_type <= ETH_TX_TYPE_2) {
         parity = y_parity;
     }
 

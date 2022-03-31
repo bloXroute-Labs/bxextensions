@@ -1,16 +1,21 @@
 #include <chrono>
 #include <utility>
 #include <math.h>
+#include <sstream>
 
-#include <utils/common/buffer_view.h>
-#include <utils/common/buffer_helper.h>
-#include <utils/protocols/ontology/ont_message_parser.h>
-#include <utils/protocols/ethereum/eth_message_parser.h>
-#include <utils/protocols/bitcoin/btc_transaction_validator.h>
-#include <utils/protocols/ethereum/eth_transaction_validator.h>
-#include <utils/protocols/ontology/ont_transaction_validator.h>
-#include <utils/protocols/blockchain_protocol.h>
+#include "utils/common/buffer_view.h"
+#include "utils/common/buffer_helper.h"
+#include "utils/common/string_helper.h"
+#include "utils/encoding/rlp_encoder.h"
+#include "utils/protocols/ontology/ont_message_parser.h"
+#include "utils/protocols/ethereum/eth_message_parser.h"
+#include "utils/protocols/bitcoin/btc_transaction_validator.h"
+#include "utils/protocols/ethereum/eth_transaction_validator.h"
+#include "utils/protocols/ontology/ont_transaction_validator.h"
+#include "utils/protocols/blockchain_protocol.h"
 #include "tpe/service/transaction_service.h"
+#include "utils/protocols/ethereum/eth_block_message.h"
+#include "utils/protocols/ethereum/eth_block_header.h"
 
 #define HEADER_LENGTH 20 // global message header
 #define NETWORK_NUM_LEN 4 // sizeof(uint_32_t)
@@ -811,6 +816,61 @@ PByteArray_t TransactionService::process_tx_sync_message(PTxContents_t tx_sync_m
     buffer->resize(output_buff_offset);
     buffer->set_output();
     return buffer;
+}
+
+PByteArray_t TransactionService::eth_block_to_json(const BlockMsg_t& block_buffer)
+{
+    std::stringstream json_str;
+    utils::protocols::ethereum::EthBlockMessage block_msg(block_buffer);
+    block_msg.parse();
+    json_str << "{" << "\"hash\":\"0x" << block_msg.block_hash().hex_string() << "\",";
+
+    // parse header
+    utils::protocols::ethereum::EthBlockHeader header(block_msg.block_header());
+    json_str << header.to_json() << ",";
+
+    // parse transactions
+    size_t from = block_msg.txn_offset();
+    uint64_t end_offset = block_msg.txn_end_offset();
+    size_t next_item_offset;
+
+    uint8_t rlp_type;
+    json_str << "\"transactions\":[";
+    int i = 1;
+    while (from < end_offset) {
+        next_item_offset = block_msg.get_next_tx_offset(from, rlp_type);
+        utils::protocols::ethereum::EthTxMessage tx;
+        tx.decode(block_buffer, from);
+        json_str << tx.to_json();
+        from = next_item_offset;
+        if (from < end_offset) {
+            json_str << ",";
+        }
+        i++;
+    }
+    json_str << "]";
+
+    // parse uncles
+    from = utils::encoding::consume_length_prefix(
+        block_buffer, end_offset, rlp_type, block_msg.block_trailer().get_offset()
+    );
+    json_str << "\"uncles\":[";
+    while (from < end_offset) {
+        next_item_offset = block_msg.get_next_uncle_offset(from);
+        utils::common::BufferView uncle_header_bf(block_buffer, next_item_offset - from, from);
+        utils::protocols::ethereum::EthBlockHeader uncle(uncle_header_bf);
+        json_str << uncle.to_json();
+        from = next_item_offset;
+        if (from < end_offset) {
+            json_str << ",";
+        }
+    }
+    json_str << "]";
+
+    PByteArray_t buffer = std::make_shared<ByteArray_t>(json_str.str());
+
+    buffer->set_output();
+    return std::move(buffer);
 }
 
 

@@ -20,6 +20,9 @@
 #define ETH_TX_TYPE_0 0x00
 #define ETH_TX_TYPE_1 0x01
 #define ETH_TX_TYPE_2 0x02
+#define ETH_ADDRESS_LEN 20
+#define MERKLE_ROOT_LEN 32
+#define BLOOM_LEN 256
 #define START_RANGE_ETH_LEGACY_TX 0xc0
 #define END_RANGE_ETH_LEGACY_TX 0xfe
 

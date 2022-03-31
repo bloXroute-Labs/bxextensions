@@ -39,6 +39,17 @@ ByteArray::ByteArray(ByteArray&& rhs) noexcept:
 	_capacity = rhs._capacity;
 }
 
+ByteArray::ByteArray(const std::string& src) noexcept:
+    _length(src.size()),
+    _capacity(src.size()),
+    _has_ownership(true)
+{
+    _array = new std::vector<uint8_t>();
+    _array->resize(_capacity , '\0');
+    memcpy(&at(0), src.c_str(), src.length());
+    _shape.resize(1);
+}
+
 ByteArray::~ByteArray() {
 	if (_has_ownership) {
 		delete _array;

@@ -339,6 +339,10 @@ void bind_transaction_service(py::module& m) {
                     "set_sender_nonce_reuse_setting",
                     &TransactionService_t::set_sender_nonce_reuse_setting,
                     py::return_value_policy::reference
+            ).def(
+                    "eth_block_to_json",
+                    &TransactionService_t::eth_block_to_json,
+                    py::return_value_policy::reference
             );
 
 	py::class_<TxProcessingResult_t, PTxProcessingResult_t>(m, "TxProcessingResult")
@@ -347,9 +351,9 @@ void bind_transaction_service(py::module& m) {
 					&TxProcessingResult_t::get_tx_status,
 					py::return_value_policy::reference
 			).def(
-                "get_tx_validation_status",
-                &TxProcessingResult_t::get_tx_validation_status,
-                py::return_value_policy::reference
+                    "get_tx_validation_status",
+                    &TxProcessingResult_t::get_tx_validation_status,
+                    py::return_value_policy::reference
             ).def(
 					"get_existing_short_ids",
 					&TxProcessingResult_t::get_existing_short_ids,

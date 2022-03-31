@@ -29,6 +29,19 @@
 #define ETH_TYPE_1_SENDER_R_IDX     9
 #define ETH_TYPE_1_SENDER_S_IDX     10
 
+#define ETH_TYPE_2_CHAIN_ID_IDX                    0
+#define ETH_TYPE_2_NONCE_IDX                       1
+#define ETH_TYPE_2_MAX_PRIORITY_FEE_PER_GAS_IDX    2
+#define ETH_TYPE_2_MAX_FEE_PER_GAS_IDX             3
+#define ETH_TYPE_2_START_GAS_IDX                   4
+#define ETH_TYPE_2_TO_IDX                          5
+#define ETH_TYPE_2_VALUE_IDX                       6
+#define ETH_TYPE_2_DATA_IDX                        7
+#define ETH_TYPE_2_ACCESS_LIST_IDX                 8
+#define ETH_TYPE_2_Y_PARITY_IDX                    9
+#define ETH_TYPE_2_SENDER_R_IDX                    10
+#define ETH_TYPE_2_SENDER_S_IDX                    11
+
 #ifndef UTILS_PROTOCOLS_ETHEREUM_ETH_TX_MESSAGE_H_
 #define UTILS_PROTOCOLS_ETHEREUM_ETH_TX_MESSAGE_H_
 
@@ -46,13 +59,18 @@ class EthTxMessage {
 protected:
     bool _deserialize_int(Rlp_t&);
     bool _deserialize_string(size_t, size_t);
+    std::string _access_list_json();
+
 public:
     size_t decode(const BufferView_t& msg_buf, size_t offset);
     bool deserialize();
     std::vector<uint8_t> get_unsigned_msg();
+    std::string to_json();
 
     uint64_t nonce() const;
     uint64_t gas_price() const;
+    uint64_t max_priority_fee_per_gas() const;
+    uint64_t max_fee_per_gas() const;
     uint64_t gas_limit() const;
     const std::vector<uint64_t>& value() const;
     uint64_t v() const;
@@ -64,9 +82,10 @@ public:
     uint8_t y_parity() const;
     const std::vector<uint8_t>& access_list() const;
     char payload_type() const;
+    uint8_t chain_id() const;
 
 private:
-    uint64_t _nonce, _gas_price, _gas_limit, _v;
+    uint64_t _nonce, _gas_price, _gas_limit, _v, _max_priority_fee_per_gas, _max_fee_per_gas, _start_gas;
     uint8_t _y_parity, _chain_id;
     std::vector<uint8_t> _r, _s;
     std::vector<uint64_t> _value;

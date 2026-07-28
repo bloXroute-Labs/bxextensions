@@ -19,7 +19,25 @@ size_t get_little_endian_value(const TBuffer& buffer, ReturnType& out_value, siz
 {
 	size_t type_size = sizeof(ParseType);
 	if (type_size > sizeof(uint8_t)) {
-		out_value = (ReturnType) *(ParseType *) &buffer[offset];
+		// Previously this did `*(ParseType *) &buffer[offset]`, i.e. it
+		// reinterpreted a pointer into a uint8_t-backed buffer as a
+		// ParseType* and dereferenced it directly. That is both a
+		// strict-aliasing violation (reading memory of one type through
+		// an incompatible pointer type is undefined behavior in C++) and
+		// a potential unaligned-access issue, since `offset` is not
+		// guaranteed to satisfy alignof(ParseType). This went unnoticed
+		// for a long time because permissive codegen on older
+		// GCC/x86_64 builds happened to produce the "expected" result,
+		// but it silently miscompiled under a newer Clang/arm64 toolchain
+		// (values parsed downstream of this call came out wrong even
+		// though the underlying bytes were correct). Using memcpy reads
+		// the raw bytes into a properly-typed, correctly-aligned local
+		// instead of punning the pointer, which is well-defined and
+		// produces the identical numeric result on any little-endian
+		// target (the only kind this function has ever supported).
+		ParseType tmp;
+		memcpy(&tmp, &buffer[offset], type_size);
+		out_value = (ReturnType) tmp;
 	} else {
 		out_value = (ReturnType) buffer[offset];
 	}

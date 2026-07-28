@@ -22,6 +22,15 @@ ExternalProject_Add(
         -DCMAKE_POSITION_INDEPENDENT_CODE=${BUILD_SHARED_LIBS}
         -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+        # ExternalProject_Add spawns its own independent `cmake -S -B`
+        # subprocess for this download -- it does NOT inherit the parent
+        # build's command-line arguments (the -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        # passed in setup.py/build_extensions.py's own cmake_args only
+        # applies to the top-level configure). The CMakeLists.txt above
+        # (patched in via PATCH_COMMAND) has already been bumped to
+        # `cmake_minimum_required(VERSION 3.5)` directly, but this flag is
+        # kept as a safety net in case that ever regresses again.
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         ${_only_release_configuration}
     LOG_CONFIGURE 1
     BUILD_COMMAND ""

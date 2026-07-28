@@ -10,7 +10,7 @@
 # Copy src/ecmult_static_context.h and src/libsecp256k1-config.h
 #
 # Copy CFLAGS from Makefile to COMPILE_OPTIONS.
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.5)
 project(secp256k1 LANGUAGES C)
 
 set(COMMON_COMPILE_FLAGS ENABLE_MODULE_RECOVERY ENABLE_MODULE_ECDH USE_ECMULT_STATIC_PRECOMPUTATION USE_FIELD_INV_BUILTIN USE_NUM_NONE USE_SCALAR_INV_BUILTIN)

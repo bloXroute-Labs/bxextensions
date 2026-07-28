@@ -60,7 +60,18 @@ class CMakeBuild(build_ext):
             "-DEXTENSION_MODULES={}".format(ext_module_dirs),
             "-DRUN_TESTS=TRUE",
             "-DCMAKE_INSTALL_RPATH={};{}".format(srcdir, os.path.join(srcdir, "tests")),
-            "-DINSTALL_TESTS=FALSE"
+            "-DINSTALL_TESTS=FALSE",
+            # Several vendored third-party dependencies pulled in via
+            # add_subdirectory (lib/third_party/googletest, lib/pybind11's
+            # own tools/pybind11Tools.cmake, etc.) declare very old
+            # cmake_minimum_required() floors (e.g. 2.8.12). Modern CMake
+            # (>=4.0) turns any cmake_minimum_required(VERSION < 3.5) into a
+            # hard error instead of a warning, which would otherwise fail
+            # the build the moment one of those nested CMakeLists.txt files
+            # is processed -- this flag tells CMake to evaluate policies as
+            # if 3.5 had been requested everywhere, without needing to patch
+            # each vendored file individually.
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
         ]
         cfg = 'Debug' if self.debug else 'Release'
         build_args = []

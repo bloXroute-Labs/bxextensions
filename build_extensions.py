@@ -62,7 +62,14 @@ def main(
         "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=FALSE",
         "-DEXTENSION_MODULES={}".format(ext_module_dirs),
         "-DRUN_TESTS={}".format(run_tests),
-        "-DCMAKE_BUILD_TYPE={}".format(build_type)
+        "-DCMAKE_BUILD_TYPE={}".format(build_type),
+        # See matching comment in setup.py's CMakeBuild.build(): vendored
+        # third-party CMakeLists.txt files (googletest, pybind11's own
+        # tools/pybind11Tools.cmake, ...) declare cmake_minimum_required()
+        # floors well below 3.5, which recent CMake (>=4.0) now hard-errors
+        # on instead of warning. This flag avoids needing to patch each
+        # vendored file individually.
+        "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     ]
     if packages_installation:
         cmake_args.append("-DCMAKE_INSTALL_RPATH=.;..")
